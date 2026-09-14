@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Omify</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- ============ SIDEBAR (desktop) ============ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="assets/logo.svg" alt="" class="brand-mark" />
+        <span class="brand-name">Omify</span>
+      </div>
+
+      <nav class="nav-group">
+        <a href="#/home" class="nav-link" data-route="home"><i class="fa-solid fa-house"></i><span>Home</span></a>
+        <a href="#/search" class="nav-link" data-route="search"><i class="fa-solid fa-magnifying-glass"></i><span>Search</span></a>
+        <a href="#/browse" class="nav-link" data-route="browse"><i class="fa-solid fa-compass"></i><span>Browse</span></a>
+      </nav>
+
+      <div class="nav-section">
+        <h3>Your Library</h3>
+        <a href="#/favorites" class="nav-link" data-route="favorites"><i class="fa-solid fa-heart"></i><span>Liked Songs</span></a>
+        <a href="#/recently-played" class="nav-link" data-route="recently-played"><i class="fa-solid fa-clock-rotate-left"></i><span>Recently Played</span></a>
+        <a href="#/albums" class="nav-link" data-route="albums"><i class="fa-solid fa-record-vinyl"></i><span>Albums</span></a>
+        <a href="#/artists" class="nav-link" data-route="artists"><i class="fa-solid fa-user-music"></i><span>Artists</span></a>
+        <a href="#/playlists" class="nav-link" data-route="playlists"><i class="fa-solid fa-list-ul"></i><span>Playlists</span></a>
+      </div>
+
+      <div class="nav-section">
+        <h3>Discover</h3>
+        <a href="#/foreign" class="nav-link" data-route="foreign"><i class="fa-solid fa-earth-americas"></i><span>Foreign Music</span></a>
+        <a href="#/trending" class="nav-link" data-route="trending"><i class="fa-solid fa-arrow-trend-up"></i><span>Trending</span></a>
+        <a href="#/new-releases" class="nav-link" data-route="new-releases"><i class="fa-solid fa-sparkles"></i><span>New Releases</span></a>
+        <a href="#/made-for-you" class="nav-link" data-route="made-for-you"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Made For You</span></a>
+      </div>
+
+      <div class="sidebar-bottom">
+        <a href="#/settings" class="nav-link" data-route="settings"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+        <a href="#/profile" class="nav-link" data-route="profile"><i class="fa-solid fa-circle-user"></i><span>Profile</span></a>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN COLUMN ============ -->
+    <div class="main-column">
+      <header class="topbar">
+        <button class="icon-btn only-mobile" id="mobileMenuBtn" aria-label="Open menu"><i class="fa-solid fa-bars"></i></button>
+        <div class="topbar-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="globalSearchInput" placeholder="What do you want to hear?" aria-label="Search Omify" />
+        </div>
+        <button class="icon-btn" id="queueBtn" aria-label="Open queue"><i class="fa-solid fa-list"></i></button>
+      </header>
+
+      <main class="view-container" id="view" tabindex="-1"></main>
+    </div>
+
+    <!-- ============ MOBILE BOTTOM NAV ============ -->
+    <nav class="mobile-nav">
+      <a href="#/home" class="mnav-link" data-route="home"><i class="fa-solid fa-house"></i></a>
+      <a href="#/search" class="mnav-link" data-route="search"><i class="fa-solid fa-magnifying-glass"></i></a>
+      <a href="#/favorites" class="mnav-link" data-route="favorites"><i class="fa-solid fa-heart"></i></a>
+      <a href="#/playlists" class="mnav-link" data-route="playlists"><i class="fa-solid fa-list-ul"></i></a>
+      <a href="#/profile" class="mnav-link" data-route="profile"><i class="fa-solid fa-circle-user"></i></a>
+    </nav>
+
+    <!-- ============ PERSISTENT PLAYER BAR ============ -->
+    <footer class="player-bar" id="playerBar">
+      <div class="player-now-playing">
+        <img id="nowArt" class="now-art" src="assets/logo.svg" alt="" />
+        <div class="now-meta">
+          <span id="nowTitle" class="now-title">Nothing playing yet</span>
+          <span id="nowArtist" class="now-artist">Pick a song to start</span>
+        </div>
+        <button class="icon-btn like-btn" id="nowLikeBtn" aria-label="Like song"><i class="fa-regular fa-heart"></i></button>
+      </div>
+
+      <div class="player-center">
+        <div class="player-controls">
+          <button class="icon-btn" id="shuffleBtn" aria-label="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
+          <button class="icon-btn" id="prevBtn" aria-label="Previous"><i class="fa-solid fa-backward-step"></i></button>
+          <button class="icon-btn play-btn" id="playBtn" aria-label="Play"><i class="fa-solid fa-circle-play"></i></button>
+          <button class="icon-btn" id="nextBtn" aria-label="Next"><i class="fa-solid fa-forward-step"></i></button>
+          <button class="icon-btn" id="repeatBtn" aria-label="Repeat"><i class="fa-solid fa-repeat"></i></button>
+        </div>
+        <div class="player-seek">
+          <span id="curTime" class="time">0:00</span>
+          <input type="range" id="seekBar" min="0" max="100" value="0" aria-label="Seek" />
+          <span id="durTime" class="time">0:00</span>
+        </div>
+      </div>
+
+      <div class="player-extra">
+        <button class="icon-btn" id="playerQueueBtn" aria-label="Queue"><i class="fa-solid fa-list-ol"></i></button>
+        <i class="fa-solid fa-volume-high"></i>
+        <input type="range" id="volumeBar" min="0" max="100" value="70" aria-label="Volume" />
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============ QUEUE PANEL (slide-over) ============ -->
+  <aside class="queue-panel" id="queuePanel" aria-hidden="true">
+    <div class="queue-panel-header">
+      <h3>Queue</h3>
+      <button class="icon-btn" id="closeQueueBtn" aria-label="Close queue"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="queue-panel-body" id="queueList"></div>
+    <button class="text-btn danger" id="clearQueueBtn">Clear queue</button>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <script src="data/songs.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

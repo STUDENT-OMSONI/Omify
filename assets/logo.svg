@@ -1,0 +1,98 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Omify Logo">
+  <defs>
+    <!-- Vibrant Electric Emerald & Cyber Mint Gradients -->
+    <linearGradient id="emerald-wave-1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5EEAD4"/>
+      <stop offset="45%" stop-color="#1ED760"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+
+    <linearGradient id="emerald-wave-2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00F59B"/>
+      <stop offset="55%" stop-color="#1ED760"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+
+    <!-- Deep Obsidian-Petrol Radial Background -->
+    <radialGradient id="disc-bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#12241C"/>
+      <stop offset="70%" stop-color="#0A1612"/>
+      <stop offset="100%" stop-color="#060C0A"/>
+    </radialGradient>
+
+    <!-- Electric Emerald Glow Filter -->
+    <filter id="emerald-glow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#1ED760" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="9" flood-color="#00F59B" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes waveBreath {
+      0%, 100% {
+        transform: scale(0.98);
+        opacity: 0.9;
+      }
+      50% {
+        transform: scale(1.025);
+        opacity: 1;
+      }
+    }
+    @keyframes soundOrbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes corePulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 3px rgba(30,215,96,0.7)); }
+      50% { transform: scale(1.09); filter: drop-shadow(0 0 9px rgba(0,245,155,0.95)); }
+    }
+    .wave-outer {
+      transform-origin: 60px 60px;
+      animation: soundOrbit 26s linear infinite;
+    }
+    .wave-group {
+      transform-origin: 60px 60px;
+      animation: waveBreath 3s ease-in-out infinite;
+    }
+    .play-core {
+      transform-origin: 60px 60px;
+      animation: corePulse 2s ease-in-out infinite;
+    }
+  </style>
+
+  <!-- Circular Outer Tech Disc -->
+  <circle cx="60" cy="60" r="56" fill="url(#disc-bg)" stroke="#163827" stroke-width="1.5"/>
+
+  <!-- Subtle Concentric Calibration Guide Dots -->
+  <circle cx="60" cy="60" r="51" fill="none" stroke="rgba(30,215,96,0.18)" stroke-width="1" stroke-dasharray="3 7"/>
+
+  <!-- Animated Soundwave "O" Monogram in Electric Emerald -->
+  <g class="wave-group" filter="url(#emerald-glow)">
+
+    <!-- Outer Harmonic Wave Track (forms outer "O" perimeter) -->
+    <g class="wave-outer">
+      <!-- Upper-Right Wave Arc -->
+      <path d="M 60 14 A 46 46 0 0 1 106 60" fill="none" stroke="url(#emerald-wave-1)" stroke-width="6" stroke-linecap="round"/>
+      <!-- Lower-Left Wave Arc -->
+      <path d="M 60 106 A 46 46 0 0 1 14 60" fill="none" stroke="url(#emerald-wave-2)" stroke-width="6" stroke-linecap="round"/>
+      <!-- Frequency Satellite Beads -->
+      <circle cx="101" cy="35" r="3.5" fill="#00F59B"/>
+      <circle cx="19" cy="85" r="3.5" fill="#1ED760"/>
+    </g>
+
+    <!-- Middle Resonant Sound Arcs -->
+    <path d="M 32 40 A 34 34 0 0 0 78 88" fill="none" stroke="url(#emerald-wave-1)" stroke-width="5" stroke-linecap="round"/>
+    <path d="M 88 80 A 34 34 0 0 0 42 32" fill="none" stroke="url(#emerald-wave-2)" stroke-width="5" stroke-linecap="round"/>
+
+    <!-- Inner Acoustic Ring Arc -->
+    <circle cx="60" cy="60" r="22" fill="none" stroke="url(#emerald-wave-1)" stroke-width="3" stroke-dasharray="24 10 18 10" stroke-linecap="round"/>
+
+    <!-- Central Sound Core Capsule -->
+    <circle cx="60" cy="60" r="16" fill="#0A1612" stroke="#1ED760" stroke-width="1"/>
+
+    <!-- Center Play Icon Glyph -->
+    <g class="play-core">
+      <polygon points="57,52 69,60 57,68" fill="#FFFFFF"/>
+    </g>
+  </g>
+</svg>

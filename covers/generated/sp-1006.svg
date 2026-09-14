@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <defs>
+    <linearGradient id="bg1005" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#84fab0"/>
+      <stop offset="100%" stop-color="#8fd3f4"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="url(#bg1005)"/>
+  <text x="150" y="130" text-anchor="middle" font-family="Arial,sans-serif" font-size="72" font-weight="bold" fill="rgba(255,255,255,0.9)">🎹</text>
+  <text x="150" y="195" text-anchor="middle" font-family="Arial,sans-serif" font-size="26" font-weight="bold" fill="rgba(255,255,255,0.95)">Ride</text>
+  <text x="150" y="225" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" fill="rgba(255,255,255,0.7)">twenty one pilots</text>
+</svg>
