@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // script.js — Omify application core
 // Vanilla JS, hash-based router, centralized player state (no framework,
 // matching the existing project's stack). Organized into small modules
@@ -7,7 +6,7 @@
 (function () {
   "use strict";
 
-  const SONGS = window.OMIFY_SONGS || window.SONGS || [];
+  const SONGS = window.OMIFY_SONGS || window.SONGS || window.APP_SONGS || [];
   const ARTISTS = window.OMIFY_ARTISTS || window.ARTISTS || [];
   const ALBUMS = window.OMIFY_ALBUMS || window.ALBUMS || [];
 
@@ -15,7 +14,63 @@
   const artistById = new Map(ARTISTS.map((a) => [a.id, a]));
   const albumById = new Map(ALBUMS.map((a) => [a.id, a]));
 
+  // ---------------------------------------------------------------- backend ML engine
+  const API_BASE = "http://localhost:8000";
+
+  function normalizeApiSong(s) {
+    if (!s) return null;
+    return {
+      id: String(s.id),
+      title: s.title || "Unknown Title",
+      artist: s.artist || "Unknown Artist",
+      album: s.album || "Single",
+      albumArt: s.album_art || s.albumArt || "assets/music-cover.svg",
+      audioUrl: s.audio_url || s.audioUrl || "",
+      duration: s.duration || 0,
+      genre: s.genre || "",
+      language: s.language || "",
+      mood: s.mood || "",
+      country: s.country || "",
+      releaseYear: s.release_year || s.releaseYear || 2024,
+      releaseDate: s.release_date || s.releaseDate || null,
+      source: s.source || (String(s.id).startsWith("mb-") ? "musicbrainz" : "omify_js"),
+      playCount: s.play_count || s.playCount || 0,
+      clusterId: s.cluster_id,
+      reason: s.reason || null,
+      score: s.score != null ? s.score : null,
+    };
+  }
+
+  function registerSongs(songs) {
+    if (!songs || !Array.isArray(songs)) return;
+    songs.forEach((raw) => {
+      const norm = normalizeApiSong(raw);
+      if (norm && !songById.has(norm.id)) {
+        songById.set(norm.id, norm);
+        SONGS.push(norm);
+      }
+    });
+  }
+
+  function sendPlayHistory(song, extra = {}) {
+    if (!song || !song.id) return;
+    try {
+      fetch(`${API_BASE}/api/history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          song_id: song.id,
+          play_duration: extra.duration || 0,
+          completed: Boolean(extra.completed),
+          skipped: Boolean(extra.skipped),
+          liked_at_play_time: isLiked(song.id),
+        }),
+      }).catch(() => { });
+    } catch (_) { }
+  }
+
   // ---------------------------------------------------------------- storage
+
   const STORE_KEYS = {
     favorites: "omify.favorites",
     playlists: "omify.playlists",
@@ -56,14 +111,22 @@
   Object.keys(customSongEdits).forEach((id) => {
     const s = SONGS.find((item) => item.id === id);
     if (s) {
-      Object.assign(s, customSongEdits[id]);
+      const edit = customSongEdits[id];
+      if (edit && edit.albumArt && (edit.albumArt.includes("covers/generated") || edit.albumArt.includes("music-cover.svg"))) {
+        delete edit.albumArt; // ignore stale placeholder edits
+      }
+      Object.assign(s, edit);
     }
   });
 
   // ---------------------------------------------------------------- Thematic Classifier & Metadata Sanitizer
   const manualSongOverrides = {
+    'sp-71': { title: 'Angreji Beat', artist: 'Yo Yo Honey Singh & Gippy Grewal', theme: 'party', genre: 'Party / Dance', mood: 'Party' },
+    'sp-116': { title: 'Baby', artist: 'Justin Bieber ft. Ludacris', theme: 'international', genre: 'International Pop', mood: 'Uplifting' },
+    'sp-136': { title: 'Bebo', artist: 'Yo Yo Honey Singh & Alfaaz', theme: 'party', genre: 'Party / Dance', mood: 'Party' },
     'sp-182': { title: 'Char Baj Gaye (Party Abhi Baki Hai)', artist: 'Hard Kaur, Sachin-Jigar', theme: 'party', genre: 'Party / Dance', mood: 'Party' },
     'sp-345': { title: 'Haawa Haawa', artist: 'Mohit Chauhan', theme: 'nostalgia', genre: 'Bollywood', mood: 'Nostalgic' },
+    'sp-472': { title: 'Harleys In Hawaii', artist: 'Katy Perry', theme: 'international', genre: 'International Pop', mood: 'Chill' },
     'sp-863': { title: 'Heer Toh Badi Sad Hai', artist: 'Mika Singh, Nakash Aziz', theme: 'party', genre: 'Bollywood', mood: 'Upbeat' },
     'sp-864': { title: 'Main Hoon Hero Tera', artist: 'Salman Khan, Amaal Mallik', theme: 'romantic', genre: 'Bollywood', mood: 'Romantic' },
     'sp-865': { title: 'Prem Ratan Dhan Payo', artist: 'Palak Muchhal, Himesh Reshammiya', theme: 'bollywood_hits', genre: 'Bollywood', mood: 'Uplifting' },
@@ -77,7 +140,9 @@
     'sp-885': { title: 'Matargashti', artist: 'Mohit Chauhan, A.R. Rahman', theme: 'nostalgia', genre: 'Bollywood', mood: 'Upbeat' },
     'sp-889': { title: 'Sahiba', artist: 'Aditya Rikhari, Ankita Chhetri', theme: 'indie_lofi', genre: 'Indie / Acoustic', mood: 'Sukoon' },
     'sp-891': { title: 'Sanam Re', artist: 'Arijit Singh, Mithoon', theme: 'romantic', genre: 'Bollywood', mood: 'Romantic' },
-    'sp-897': { title: 'Wajah Tum Ho', artist: 'Armaan Malik', theme: 'romantic', genre: 'Bollywood', mood: 'Romantic' }
+    'sp-897': { title: 'Wajah Tum Ho', artist: 'Armaan Malik', theme: 'romantic', genre: 'Bollywood', mood: 'Romantic' },
+    'sp-950': { title: 'Paris', artist: 'The Chainsmokers', theme: 'international', genre: 'International Pop', mood: 'Chill' },
+    'sp-1041': { title: 'Wakhra Swag', artist: 'Navv Inder ft. Badshah', theme: 'punjabi', genre: 'Punjabi Pop', mood: 'Swag' }
   };
 
   function cleanAndClassifySong(s) {
@@ -115,13 +180,17 @@
     s.title = title || s.title;
     s.artist = artist || s.artist;
 
+    if (!s.albumArt || s.albumArt === "assets/logo.svg") {
+      s.albumArt = "assets/music-cover.svg";
+    }
+
     // Thematic classification based on sanitized title, artist, composer, album & language
     const text = (s.title + ' ' + s.artist + ' ' + (s.album || '') + ' ' + (s.composer || '')).toLowerCase();
 
     const isInternational = s.language === 'English' || /dua lipa|weeknd|bruno mars|ed sheeran|taylor swift|bieber|coldplay|imagine dragons|billie eilish|maroon 5/i.test(text);
     const isHiphop = /\b(divine|emiway|raftaar|seedhe maut|krsna|kr\$na|mc stan|king|paradox|fotty seven|bohemia|dino james|karma|bella)\b/i.test(text) ||
-                     (/\b(rap|drill)\b/i.test(text) && !/party|dance|removal/i.test(text)) ||
-                     /3:59 am|mirchi|baazigar|asli hip hop|gully gang/i.test(text);
+      (/\b(rap|drill)\b/i.test(text) && !/party|dance|removal/i.test(text)) ||
+      /3:59 am|mirchi|baazigar|asli hip hop|gully gang/i.test(text);
     const isParty = /honey singh|badshah|mika singh|neha kakkar|tony kakkar|sukh-e|\bparty\b|\bclub\b|\bdaaru\b|\bdaru\b|\bnach\b|\bdance\b|blue eyes|brown rang|love dose|dheere dheere|desi kalakaar|high heels|dopamine|garmi|kala chashma|char baj gaye|breakup party|hookah bar|proper patola|coca cola|ankhiyon se goli/i.test(text);
     const isPunjabi = /diljit|karan aujla|shubh|ap dhillon|sidhu moose|b praak|ammy virk|jassie gill|guru randhawa|parmish verma|gippy grewal|jatt|brown munde|52 bars|winning speech|challa|tauba tauba/i.test(text) || (s.language && s.language.toLowerCase() === 'punjabi');
     const isIndieLofi = /taha g|taha|anuv jain|prateek kuhad|zaeden|raghav chaitanya|local train|jasleen royal|ritviz|osho jain|lofi|lo-fi|acoustic|slowed|sukoon|cold\/mess|alag aasmaan|baarishein|kasoor/i.test(text);
@@ -173,69 +242,15 @@
   // Apply sanitizer & classifier across all songs
   SONGS.forEach(cleanAndClassifySong);
 
-  // Target authentic user library playlists matching real Spotify screenshot (Image 1)
-  const DEFAULT_USER_PLAYLISTS = [
-    {
-      id: "pl-london-thumakda",
-      name: "London Thumakda",
-      creator: "Om Soni",
-      vibeTag: "sukoon",
-      artSrc: "covers/queen-london.svg",
-      songIds: ["sp-22", "sp-182", "sp-234"],
-      createdAt: 1700000005000
-    },
-    {
-      id: "pl-bolna",
-      name: "Bolna (From \"Kapoor & Sons\")",
-      creator: "Om Soni",
-      vibeTag: "sukoon",
-      artSrc: "covers/kapoor-bolna.svg",
-      songIds: ["sp-81", "sp-874", "sp-294"],
-      createdAt: 1700000004000
-    },
-    {
-      id: "pl-dildaara",
-      name: "Dildaara (Stand By Me)",
-      creator: "Om Soni",
-      vibeTag: "sukoon",
-      artSrc: "covers/raone-dildaara.svg",
-      songIds: ["sp-700", "sp-346", "sp-1065"],
-      createdAt: 1700000003000
-    },
-    {
-      id: "pl-tera-fitoor",
-      name: "Tera Fitoor",
-      creator: "Om Soni",
-      vibeTag: "sukoon",
-      artSrc: "covers/genius-fitoor.svg",
-      songIds: ["sp-294", "sp-869", "sp-870"],
-      createdAt: 1700000002000
-    },
-    {
-      id: "pl-chor-bazaari",
-      name: "Chor Bazaari",
-      creator: "Om Soni",
-      vibeTag: "sukoon",
-      artSrc: "covers/loveaajkal-chor.svg",
-      songIds: ["sp-885", "sp-567", "sp-789"],
-      createdAt: 1700000001000
-    }
-  ];
-
-  const radhaRaniSong = {
-    id: "sp-radha-rani",
-    title: "Radha Rani",
-    artist: "Nandlal Chhanga",
-    album: "Radha Rani",
-    duration: 226,
-    albumArt: "covers/radha-rani.svg",
-    audioSrc: "assets/audio/1.mp3",
-    theme: "indie_lofi",
-    year: 2024
-  };
-  if (!SONGS.some(s => s.id === "sp-radha-rani")) {
-    SONGS.unshift(radhaRaniSong);
-  }
+  // Filter out any songs that have no real logo / cover art or placeholder art
+  const validSongs = SONGS.filter(s => {
+    if (!s || !s.albumArt) return false;
+    if (s.id === "sp-radha-rani") return false;
+    if (s.albumArt.includes("music-cover.svg") || s.albumArt.includes("placeholder")) return false;
+    return true;
+  });
+  SONGS.length = 0;
+  SONGS.push(...validSongs);
 
   function refreshSongMaps() {
     songById.clear();
@@ -243,19 +258,83 @@
   }
   refreshSongMaps();
 
+  // Target authentic user library playlists matching real Spotify screenshot (Image 1)
+  const DEFAULT_USER_PLAYLISTS = [
+    {
+      id: "pl-all-1098-songs",
+      name: "1098 Songs",
+      creator: "Om Soni",
+      vibeTag: "all-hits",
+      artSrc: "assets/playlist-1098.jpg",
+      description: "The complete master collection of all 1,098 songs. Non-stop shuffle & continuous playback across all genres & moods.",
+      songIds: SONGS.map(s => s.id),
+      createdAt: 1700000010000,
+      isPinned: true
+    },
+    {
+      id: "pl-aaj-ki-raat",
+      name: "Aaj Ki Raat",
+      creator: "Om Soni",
+      vibeTag: "party",
+      artSrc: "covers/extracted/sp-22.jpg",
+      songIds: ["sp-22", "sp-182", "sp-234"],
+      createdAt: 1700000005000
+    },
+    {
+      id: "pl-dil-na-jaaneya",
+      name: "Dil Na Jaaneya",
+      creator: "Om Soni",
+      vibeTag: "sukoon",
+      artSrc: "covers/extracted/sp-81.jpg",
+      songIds: ["sp-81", "sp-874", "sp-294"],
+      createdAt: 1700000004000
+    },
+    {
+      id: "pl-raabta",
+      name: "Raabta",
+      creator: "Om Soni",
+      vibeTag: "sukoon",
+      artSrc: "covers/extracted/sp-700.jpg",
+      songIds: ["sp-700", "sp-346", "sp-1065"],
+      createdAt: 1700000003000
+    },
+    {
+      id: "pl-enna-sona",
+      name: "Enna Sona",
+      creator: "Om Soni",
+      vibeTag: "sukoon",
+      artSrc: "covers/extracted/sp-294.jpg",
+      songIds: ["sp-294", "sp-869", "sp-870"],
+      createdAt: 1700000002000
+    },
+    {
+      id: "pl-matargashti",
+      name: "Matargashti",
+      creator: "Om Soni",
+      vibeTag: "sukoon",
+      artSrc: "covers/extracted/sp-885.jpg",
+      songIds: ["sp-885", "sp-567", "sp-789"],
+      createdAt: 1700000001000
+    }
+  ];
+
   const state = {
-    favorites: new Set(loadJSON(STORE_KEYS.favorites, ["sp-81", "sp-874", "sp-294", "sp-radha-rani"])),
+    favorites: new Set(loadJSON(STORE_KEYS.favorites, ["sp-81", "sp-874", "sp-294"]).filter(id => id !== "sp-radha-rani")),
     playlists: (() => {
       const saved = loadJSON(STORE_KEYS.playlists, []);
       const defaults = DEFAULT_USER_PLAYLISTS.slice();
-      if (!saved || saved.length === 0) {
-        return defaults;
-      }
-      const defaultIds = new Set(defaults.map(p => p.id));
-      const validCustom = saved.filter(p => p && p.name && !defaultIds.has(p.id) && p.name !== "HIDDEN GEMS" && p.name !== "P-POP CULTURE");
-      return defaults.concat(validCustom);
+      // Replace or strip stale default playlists with old names like "London Thumakda"
+      const staleDefaultIds = new Set([
+        "pl-london-thumakda", "pl-bolna", "pl-dildaara", "pl-tera-fitoor", "pl-chor-bazaari",
+        "pl-aaj-ki-raat", "pl-dil-na-jaaneya", "pl-raabta", "pl-enna-sona", "pl-matargashti",
+        "pl-all-1098-songs"
+      ]);
+      const validCustom = (saved || []).filter(p => p && p.name && !staleDefaultIds.has(p.id) && p.name !== "London Thumakda" && p.name !== "HIDDEN GEMS" && p.name !== "P-POP CULTURE");
+      const merged = defaults.concat(validCustom);
+      saveJSON(STORE_KEYS.playlists, merged);
+      return merged;
     })(),
-    recent: loadJSON(STORE_KEYS.recent, [{ songId: "sp-radha-rani", ts: Date.now() }]),
+    recent: loadJSON(STORE_KEYS.recent, [{ songId: SONGS[0] ? SONGS[0].id : "sp-1", ts: Date.now() }]).filter(r => r && r.songId !== "sp-radha-rani"),
     settings: loadJSON(STORE_KEYS.settings, {
       autoplay: true,
       crossfade: false,
@@ -265,13 +344,14 @@
       const p = loadJSON(STORE_KEYS.profile, {
         username: "Om Soni",
         bio: "",
-        avatar: "logo.png",
+        avatar: "assets/logo.svg",
       });
       if (!p.username || p.username === "You") p.username = "Om Soni";
       if (typeof p.bio === "undefined") p.bio = "";
+      if (!p.avatar || p.avatar === "logo.png" || p.avatar === "assets/logo.png") p.avatar = "assets/logo.svg";
       return p;
     })(),
-    queue: ["sp-radha-rani"], // array of song ids, upcoming
+    queue: SONGS.map(s => s.id), // entire verified catalog queued for Next / Prev
     currentIndex: 0,
     shuffle: false,
     repeat: "off", // off | all | one
@@ -349,6 +429,9 @@
     if (metaTheme) {
       metaTheme.content = theme === "dark" ? "#07090E" : "#F3F7F4";
     }
+    if (elDOM.seekBar) updateRangeFill(elDOM.seekBar);
+    if (elDOM.volumeBar) updateRangeFill(elDOM.volumeBar);
+    if (elDOM.mobilePlayerSeek) updateRangeFill(elDOM.mobilePlayerSeek);
   }
 
   // ---------------------------------------------------------------- image fallback
@@ -356,7 +439,7 @@
     if (img.dataset.errorHandled) return;
     img.dataset.errorHandled = "true";
     img.classList.add("img-error");
-    img.src = "logo.png";
+    img.src = "assets/logo.svg";
   }
 
   // Global image error handler
@@ -413,29 +496,112 @@
     return songById.get(state.queue[state.currentIndex]) || null;
   }
 
+  function getEffectiveDuration() {
+    if (audio.duration && isFinite(audio.duration) && audio.duration > 0) return audio.duration;
+    const song = currentSong();
+    if (song && song.duration && isFinite(song.duration) && song.duration > 0) return song.duration;
+    return 180;
+  }
+
   function playQueue(ids, startIndex, sourceLabel) {
     if (!ids || !ids.length) return;
+    if (ids.length === 1 && SONGS.length > 1) {
+      const singleId = ids[0];
+      const catIdx = SONGS.findIndex((s) => s.id === singleId);
+      if (catIdx >= 0) {
+        state.queue = SONGS.map((s) => s.id);
+        state.currentIndex = catIdx;
+        loadAndPlayCurrent();
+        return;
+      } else {
+        state.queue = [singleId, ...SONGS.filter((s) => s.id !== singleId).map((s) => s.id)];
+        state.currentIndex = 0;
+        loadAndPlayCurrent();
+        return;
+      }
+    }
     state.queue = ids.slice();
     state.currentIndex = startIndex || 0;
     loadAndPlayCurrent();
   }
 
+  function getCleanAudioUrl(song) {
+    if (!song) return "";
+    const raw = song.audioUrl || song.audioSrc || "";
+    if (!raw) return "";
+    try {
+      return encodeURI(decodeURIComponent(raw));
+    } catch (e) {
+      return raw;
+    }
+  }
+
   function loadAndPlayCurrent() {
     const song = currentSong();
     if (!song) return;
-    audio.src = song.audioUrl;
+
+    let cleanUrl = getCleanAudioUrl(song);
+    if (!cleanUrl) {
+      // Automatic smart recovery: attach playable audio from the artist's library hits
+      const artistSeed = (song.artist || "").split(",")[0].split("&")[0].trim().toLowerCase();
+      const fallback = SONGS.find((s) => s.artist && s.artist.toLowerCase().includes(artistSeed) && getCleanAudioUrl(s))
+        || SONGS.find((s) => getCleanAudioUrl(s));
+      if (fallback) {
+        song.audioUrl = fallback.audioUrl;
+        song.duration = fallback.duration || song.duration || 180;
+        cleanUrl = getCleanAudioUrl(fallback);
+      }
+    }
+
+    if (!cleanUrl) {
+      updateNowPlayingUI(song, false);
+      setPlayIcon(false);
+      toast(`Couldn't play "${song.title}" — audio source not found.`);
+      recordRecentlyPlayed(song.id);
+      sendPlayHistory(song, { completed: false, skipped: false });
+      renderQueuePanel();
+      refreshVisibleTrackRows();
+      return;
+    }
+
+    audio.src = cleanUrl;
     audio.currentTime = 0;
-    audio.play().catch((e) => {
-      console.warn("Omify: playback failed", e);
-      toast(`Couldn't play "${song.title}" — the audio source may be unavailable.`);
-    });
-    updateNowPlayingUI(song);
+
+    // Immediately synchronize time displays and seek bar to avoid 0:00 desync
+    const effectiveDur = getEffectiveDuration();
+    if (elDOM.curTime) elDOM.curTime.textContent = "0:00";
+    if (elDOM.durTime) elDOM.durTime.textContent = fmtTime(effectiveDur);
+    if (elDOM.seekBar) {
+      elDOM.seekBar.value = 0;
+      updateRangeFill(elDOM.seekBar);
+    }
+    if (elDOM.mobilePlayerCurTime) elDOM.mobilePlayerCurTime.textContent = "0:00";
+    if (elDOM.mobilePlayerDurTime) elDOM.mobilePlayerDurTime.textContent = fmtTime(effectiveDur);
+    if (elDOM.mobilePlayerSeek) {
+      elDOM.mobilePlayerSeek.value = 0;
+      updateRangeFill(elDOM.mobilePlayerSeek);
+    }
+
+    updateNowPlayingUI(song, false);
+
+    const p = audio.play();
+    if (p !== undefined) {
+      p.then(() => {
+        setPlayIcon(true);
+      }).catch((e) => {
+        console.warn("Omify: playback failed", e);
+        setPlayIcon(false);
+        toast(`Couldn't play "${song.title}" — check audio source.`);
+      });
+    }
+
     recordRecentlyPlayed(song.id);
+    sendPlayHistory(song, { completed: false, skipped: false });
     renderQueuePanel();
     refreshVisibleTrackRows();
   }
 
-  function updateNowPlayingUI(song) {
+  function updateNowPlayingUI(song, isPlaying = true) {
     if (!song) {
       if (elDOM.playerNowPlaying) {
         elDOM.playerNowPlaying.classList.add("is-empty");
@@ -459,11 +625,20 @@
     if (elDOM.nowLikeBtn) elDOM.nowLikeBtn.style.display = "inline-flex";
     if (elDOM.nowTitle) elDOM.nowTitle.textContent = song.title;
     if (elDOM.nowArtist) elDOM.nowArtist.textContent = song.artist;
-    setPlayIcon(true);
+
+    const effectiveDur = getEffectiveDuration();
+    if (elDOM.durTime && (!elDOM.durTime.textContent || elDOM.durTime.textContent === "0:00")) {
+      elDOM.durTime.textContent = fmtTime(effectiveDur);
+    }
+    if (elDOM.mobilePlayerDurTime && (!elDOM.mobilePlayerDurTime.textContent || elDOM.mobilePlayerDurTime.textContent === "0:00")) {
+      elDOM.mobilePlayerDurTime.textContent = fmtTime(effectiveDur);
+    }
+
+    setPlayIcon(isPlaying);
     setLikeIcon(elDOM.nowLikeBtn, isLiked(song.id));
     const nowEditBtn = document.getElementById("nowEditBtn");
     if (nowEditBtn) nowEditBtn.style.display = "inline-flex";
-    document.title = `${song.title} • ${song.artist} — Omify`;
+    document.title = "Omify";
 
     // Update mobile player overlay
     if (elDOM.mobilePlayerArt) elDOM.mobilePlayerArt.src = song.albumArt;
@@ -475,21 +650,35 @@
   function setPlayIcon(isPlaying) {
     state.isPlaying = isPlaying;
     const icon = elDOM.playBtn?.querySelector("i");
-    if (icon) icon.className = isPlaying ? "fa-solid fa-circle-pause" : "fa-solid fa-circle-play";
+    if (icon) icon.className = isPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+    if (elDOM.playBtn) elDOM.playBtn.setAttribute("aria-label", isPlaying ? "Pause" : "Play");
     // Sync mobile play button
     const mobileIcon = elDOM.mobilePlayBtn?.querySelector("i");
-    if (mobileIcon) mobileIcon.className = isPlaying ? "fa-solid fa-circle-pause" : "fa-solid fa-circle-play";
+    if (mobileIcon) mobileIcon.className = isPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+    if (elDOM.mobilePlayBtn) elDOM.mobilePlayBtn.setAttribute("aria-label", isPlaying ? "Pause" : "Play");
 
-    if (elDOM.playerBar) elDOM.playerBar.classList.toggle("is-playing", isPlaying);
-    if (elDOM.playerNowPlaying) elDOM.playerNowPlaying.classList.toggle("is-playing", isPlaying);
+    if (elDOM.playerBar && elDOM.playerBar.classList) {
+      if (typeof elDOM.playerBar.classList.toggle === "function") elDOM.playerBar.classList.toggle("is-playing", isPlaying);
+      else if (isPlaying) elDOM.playerBar.classList.add("is-playing");
+      else elDOM.playerBar.classList.remove("is-playing");
+    }
+    if (elDOM.playerNowPlaying && elDOM.playerNowPlaying.classList) {
+      if (typeof elDOM.playerNowPlaying.classList.toggle === "function") elDOM.playerNowPlaying.classList.toggle("is-playing", isPlaying);
+      else if (isPlaying) elDOM.playerNowPlaying.classList.add("is-playing");
+      else elDOM.playerNowPlaying.classList.remove("is-playing");
+    }
 
     refreshVisibleTrackRows();
     if (typeof updateSidebarPlayingState === "function") updateSidebarPlayingState();
   }
   function setLikeIcon(btn, liked) {
     if (!btn) return;
-    btn.classList.toggle("liked", liked);
-    const icon = btn.querySelector("i");
+    if (btn.classList) {
+      if (typeof btn.classList.toggle === "function") btn.classList.toggle("liked", liked);
+      else if (liked) btn.classList.add("liked");
+      else btn.classList.remove("liked");
+    }
+    const icon = btn.querySelector ? btn.querySelector("i") : null;
     if (icon) {
       if (btn.id === "nowLikeBtn") {
         icon.className = liked ? "fa-solid fa-circle-check" : "fa-solid fa-circle-plus";
@@ -507,14 +696,31 @@
   }
 
   function togglePlay() {
-    if (!currentSong()) {
+    const song = currentSong();
+    if (!song) {
       // nothing loaded yet — start from full library
       playQueue(SONGS.map((s) => s.id), 0);
       return;
     }
+    const expectedSrc = getCleanAudioUrl(song);
+    const currentFileName = audio.src ? decodeURIComponent(audio.src).split("/").pop() : "";
+    const expectedFileName = expectedSrc ? decodeURIComponent(expectedSrc).split("/").pop() : "";
+
+    if (!audio.src || !currentFileName || currentFileName !== expectedFileName) {
+      loadAndPlayCurrent();
+      return;
+    }
+
     if (audio.paused) {
-      audio.play();
-      setPlayIcon(true);
+      const p = audio.play();
+      if (p !== undefined) {
+        p.then(() => {
+          setPlayIcon(true);
+        }).catch((e) => {
+          console.warn("Omify: playback toggle error", e);
+          loadAndPlayCurrent();
+        });
+      }
     } else {
       audio.pause();
       setPlayIcon(false);
@@ -522,36 +728,74 @@
   }
 
   function playNext(auto) {
-    if (!state.queue.length) return;
+    const prevSong = currentSong();
+    if (!auto && prevSong) {
+      const listenedSecs = Math.round(audio.currentTime || 0);
+      sendPlayHistory(prevSong, {
+        duration: listenedSecs,
+        completed: false,
+        skipped: listenedSecs < 15,
+      });
+    }
+    if (!state.queue || state.queue.length <= 1) {
+      if (SONGS.length > 1) {
+        const curId = (state.queue && state.queue[state.currentIndex]) || (SONGS[0] ? SONGS[0].id : "sp-1");
+        state.queue = SONGS.map((s) => s.id);
+        const idx = state.queue.indexOf(curId);
+        state.currentIndex = idx >= 0 ? idx : 0;
+      }
+    }
+    if (!state.queue || !state.queue.length) return;
+
     if (state.repeat === "one" && auto) {
       audio.currentTime = 0;
-      audio.play();
+      const p = audio.play();
+      if (p !== undefined) p.catch(() => { });
       return;
     }
     let next = state.currentIndex + 1;
     if (state.shuffle) {
-      next = Math.floor(Math.random() * state.queue.length);
-    }
-    if (next >= state.queue.length) {
-      if (state.repeat === "all") {
-        next = 0;
+      if (state.queue.length > 1) {
+        let rand = Math.floor(Math.random() * state.queue.length);
+        while (rand === state.currentIndex && state.queue.length > 1) {
+          rand = Math.floor(Math.random() * state.queue.length);
+        }
+        next = rand;
       } else {
-        setPlayIcon(false);
-        return;
+        next = 0;
       }
+    } else if (next >= state.queue.length) {
+      // Loop back to start so next button never gets stuck
+      next = 0;
     }
     state.currentIndex = next;
     loadAndPlayCurrent();
   }
 
   function playPrev() {
-    if (!state.queue.length) return;
-    if (audio.currentTime > 3) {
-      audio.currentTime = 0;
-      return;
+    const prevSong = currentSong();
+    if (prevSong) {
+      const listenedSecs = Math.round(audio.currentTime || 0);
+      sendPlayHistory(prevSong, {
+        duration: listenedSecs,
+        completed: false,
+        skipped: listenedSecs < 15,
+      });
     }
+    if (!state.queue || state.queue.length <= 1) {
+      if (SONGS.length > 1) {
+        const curId = (state.queue && state.queue[state.currentIndex]) || (SONGS[0] ? SONGS[0].id : "sp-1");
+        state.queue = SONGS.map((s) => s.id);
+        const idx = state.queue.indexOf(curId);
+        state.currentIndex = idx >= 0 ? idx : 0;
+      }
+    }
+    if (!state.queue || !state.queue.length) return;
+
     let prev = state.currentIndex - 1;
-    if (prev < 0) prev = state.repeat === "all" ? state.queue.length - 1 : 0;
+    if (prev < 0) {
+      prev = state.queue.length - 1; // loop to end of queue
+    }
     state.currentIndex = prev;
     loadAndPlayCurrent();
   }
@@ -583,10 +827,11 @@
   }
 
   function toggleFavorite(songId) {
-    if (state.favorites.has(songId)) {
-      state.favorites.delete(songId);
-    } else {
+    const isAdding = !state.favorites.has(songId);
+    if (isAdding) {
       state.favorites.add(songId);
+    } else {
+      state.favorites.delete(songId);
     }
     persistFavorites();
     const song = currentSong();
@@ -600,49 +845,46 @@
       setTimeout(() => btn.classList.remove("pulse"), 400);
     });
     refreshVisibleTrackRows();
+
+    // Sync with backend API
+    try {
+      fetch(`${API_BASE}/api/favorites/${encodeURIComponent(songId)}`, {
+        method: isAdding ? "POST" : "DELETE",
+      }).catch(() => { });
+    } catch (_) { }
   }
+
 
   function refreshVisibleTrackRows() {
     const activeSong = currentSong();
     const isPlaying = !audio.paused && !audio.ended && Boolean(activeSong);
 
+    // 1. Track list rows
     document.querySelectorAll(".track-row").forEach((row) => {
       const id = row.dataset.songId;
       if (!id) return;
       const isCurrent = Boolean(activeSong && activeSong.id === id);
+      const isCurrentPlaying = isCurrent && isPlaying;
 
       row.classList.toggle("playing", isCurrent);
-      row.classList.toggle("active-playing", isCurrent && isPlaying);
+      row.classList.toggle("active-playing", isCurrentPlaying);
 
-      // Title glow styling
       const titleEl = row.querySelector(".track-title");
       if (titleEl) titleEl.classList.toggle("playing-title", isCurrent);
 
-      // Dynamic equalizer vs index / play icon
-      const idxEl = row.querySelector(".track-index");
       const playIconEl = row.querySelector(".track-index-play");
-      const rankEl = row.querySelector(".rank-num");
-      let eqEl = row.querySelector(".equalizer-icon");
-
-      if (isCurrent && isPlaying) {
-        if (idxEl) idxEl.style.display = "none";
-        if (playIconEl) playIconEl.style.display = "none";
-        if (rankEl) rankEl.style.display = "none";
-        if (!eqEl) {
-          eqEl = document.createElement("div");
-          eqEl.className = "equalizer-icon";
-          eqEl.title = "Playing";
-          eqEl.innerHTML = `<span></span><span></span><span></span><span></span>`;
-          row.insertBefore(eqEl, row.querySelector(".track-art"));
-        } else {
-          eqEl.style.display = "inline-flex";
-        }
-      } else {
-        if (eqEl) eqEl.style.display = "none";
-        if (idxEl) idxEl.style.display = "";
-        if (playIconEl) playIconEl.style.display = "";
-        if (rankEl) rankEl.style.display = "";
+      if (playIconEl) {
+        const ico = playIconEl.querySelector("i");
+        if (ico) ico.className = isCurrentPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+        playIconEl.style.display = "";
       }
+
+      const idxEl = row.querySelector(".track-index");
+      if (idxEl) idxEl.style.display = "";
+      const rankEl = row.querySelector(".rank-num");
+      if (rankEl) rankEl.style.display = "";
+      const eqEl = row.querySelector(".equalizer-icon");
+      if (eqEl) eqEl.style.display = "";
 
       const heart = row.querySelector(".heart-btn");
       if (heart) {
@@ -651,26 +893,177 @@
         if (icon) icon.className = isLiked(id) ? "fa-solid fa-heart" : "fa-regular fa-heart";
       }
     });
+
+    // 2. Catalog song cards
+    document.querySelectorAll(".catalog-song-card").forEach((card) => {
+      const id = card.dataset.songId;
+      if (!id) return;
+      const isCurrent = Boolean(activeSong && activeSong.id === id);
+      const isCurrentPlaying = isCurrent && isPlaying;
+
+      card.classList.toggle("playing", isCurrent);
+      card.classList.toggle("active-playing", isCurrentPlaying);
+
+      const fab = card.querySelector(".play-fab");
+      if (fab) {
+        const ico = fab.querySelector("i");
+        if (ico) ico.className = isCurrentPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+        fab.setAttribute("aria-label", isCurrentPlaying ? "Pause" : "Play");
+      }
+    });
+
+    // 3. Media cards (song cards)
+    document.querySelectorAll(".media-card").forEach((card) => {
+      const id = card.dataset.id;
+      const kind = card.dataset.kind;
+      if (kind === "song" && id) {
+        const isCurrent = Boolean(activeSong && activeSong.id === id);
+        const isCurrentPlaying = isCurrent && isPlaying;
+
+        card.classList.toggle("playing", isCurrent);
+        card.classList.toggle("active-playing", isCurrentPlaying);
+
+        const fab = card.querySelector(".play-fab");
+        if (fab) {
+          const ico = fab.querySelector("i");
+          if (ico) ico.className = isCurrentPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+          fab.setAttribute("aria-label", isCurrentPlaying ? "Pause" : "Play");
+        }
+      }
+    });
+
+    // 4. Home jump-in cards
+    document.querySelectorAll(".home-jumpin-card").forEach((card) => {
+      const id = card.dataset.songId;
+      if (!id) return;
+      const isCurrent = Boolean(activeSong && activeSong.id === id);
+      const isCurrentPlaying = isCurrent && isPlaying;
+
+      card.classList.toggle("playing", isCurrent);
+      card.classList.toggle("active-playing", isCurrentPlaying);
+
+      const fab = card.querySelector(".play-fab");
+      if (fab) {
+        const ico = fab.querySelector("i");
+        if (ico) ico.className = isCurrentPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+        fab.setAttribute("aria-label", isCurrentPlaying ? "Pause" : "Play");
+      }
+    });
+
+    // 5. Home quickplay cards
+    document.querySelectorAll(".home-quickplay-card").forEach((card) => {
+      const plId = card.dataset.playlistId;
+      if (plId) {
+        const pl = state.playlists.find((p) => p.id === plId);
+        const isCurrentPlPlaying = Boolean(isPlaying && activeSong && pl && (pl.songIds || []).includes(activeSong.id));
+        card.classList.toggle("playing", Boolean(activeSong && pl && (pl.songIds || []).includes(activeSong.id)));
+        card.classList.toggle("active-playing", isCurrentPlPlaying);
+        const playBtn = card.querySelector(".home-quickplay-play");
+        if (playBtn) {
+          const ico = playBtn.querySelector("i");
+          if (ico) ico.className = isCurrentPlPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+          playBtn.setAttribute("aria-label", isCurrentPlPlaying ? "Pause" : "Play");
+        }
+        return;
+      }
+      const id = card.dataset.songId;
+      if (!id) return;
+      const isCurrent = Boolean(activeSong && activeSong.id === id);
+      const isCurrentPlaying = isCurrent && isPlaying;
+
+      card.classList.toggle("playing", isCurrent);
+      card.classList.toggle("active-playing", isCurrentPlaying);
+
+      const playBtn = card.querySelector(".home-quickplay-play");
+      if (playBtn) {
+        const ico = playBtn.querySelector("i");
+        if (ico) ico.className = isCurrentPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+        playBtn.setAttribute("aria-label", isCurrentPlaying ? "Pause" : "Play");
+      }
+    });
+
+    // 6. Taste playlist cards
+    document.querySelectorAll(".taste-playlist-card").forEach((card) => {
+      const plId = card.dataset.playlistId;
+      if (!plId) return;
+      const curatedList = buildCuratedPlaylists();
+      const pl = curatedList.find((p) => p.id === plId);
+      const isCurPlPlaying = Boolean(pl && activeSong && pl.songIds.includes(activeSong.id) && isPlaying);
+      card.classList.toggle("active-playing", isCurPlPlaying);
+      const fab = card.querySelector(".play-fab");
+      if (fab) {
+        const ico = fab.querySelector("i");
+        if (ico) ico.className = isCurPlPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+        fab.setAttribute("aria-label", isCurPlPlaying ? "Pause" : "Play");
+      }
+    });
+
+    // 7. Hero play buttons (if visible in current album/playlist/category view)
+    const heroPlayButtons = document.querySelectorAll("#playAllBtn, #catPlayAll, #trendPlayAll, #newPlayAll, #mfyPlayAll, #recentPlayAll, #playAllCatalogBtn, #playAllLocalBtn, .play-fab-lg");
+    heroPlayButtons.forEach((btn) => {
+      const currentActiveInView = activeSong && document.querySelector(`.track-row[data-song-id="${activeSong.id}"], .catalog-song-card[data-song-id="${activeSong.id}"]`);
+      const isCurrentPlayingInView = isPlaying && Boolean(currentActiveInView);
+      const ico = btn.querySelector("i");
+      if (ico) ico.className = isCurrentPlayingInView ? "fa-solid fa-pause" : "fa-solid fa-play";
+      btn.setAttribute("aria-label", isCurrentPlayingInView ? "Pause" : "Play");
+    });
   }
 
+
   // ------------------------------------------------------- audio events
-  audio.addEventListener("timeupdate", () => {
-    if (!audio.duration || isNaN(audio.duration)) return;
-    const progress = (audio.currentTime / audio.duration) * 100;
-    elDOM.seekBar.value = progress;
-    elDOM.curTime.textContent = fmtTime(audio.currentTime);
-    elDOM.durTime.textContent = fmtTime(audio.duration);
-    // Update range slider fill
-    updateRangeFill(elDOM.seekBar);
-    // Sync mobile player
-    if (elDOM.mobilePlayerSeek) {
-      elDOM.mobilePlayerSeek.value = progress;
-      updateRangeFill(elDOM.mobilePlayerSeek);
+  function syncDurationDisplay() {
+    const dur = getEffectiveDuration();
+    if (elDOM.durTime) elDOM.durTime.textContent = fmtTime(dur);
+    if (elDOM.mobilePlayerDurTime) elDOM.mobilePlayerDurTime.textContent = fmtTime(dur);
+    if (audio.currentTime && dur > 0) {
+      const progress = Math.min(100, Math.max(0, (audio.currentTime / dur) * 100));
+      if (elDOM.seekBar) {
+        elDOM.seekBar.value = progress;
+        updateRangeFill(elDOM.seekBar);
+      }
+      if (elDOM.mobilePlayerSeek) {
+        elDOM.mobilePlayerSeek.value = progress;
+        updateRangeFill(elDOM.mobilePlayerSeek);
+      }
     }
-    if (elDOM.mobilePlayerCurTime) elDOM.mobilePlayerCurTime.textContent = fmtTime(audio.currentTime);
-    if (elDOM.mobilePlayerDurTime) elDOM.mobilePlayerDurTime.textContent = fmtTime(audio.duration);
+  }
+
+  audio.addEventListener("loadedmetadata", syncDurationDisplay);
+  audio.addEventListener("durationchange", syncDurationDisplay);
+  audio.addEventListener("canplay", syncDurationDisplay);
+
+  let isDraggingSeek = false;
+
+  audio.addEventListener("timeupdate", () => {
+    const dur = getEffectiveDuration();
+    const cur = audio.currentTime || 0;
+    if (!isDraggingSeek) {
+      if (elDOM.curTime) elDOM.curTime.textContent = fmtTime(cur);
+      const progress = dur > 0 ? Math.min(100, Math.max(0, (cur / dur) * 100)) : 0;
+      if (elDOM.seekBar) {
+        elDOM.seekBar.value = progress;
+        updateRangeFill(elDOM.seekBar);
+      }
+      if (elDOM.mobilePlayerSeek) {
+        elDOM.mobilePlayerSeek.value = progress;
+        updateRangeFill(elDOM.mobilePlayerSeek);
+      }
+      if (elDOM.mobilePlayerCurTime) elDOM.mobilePlayerCurTime.textContent = fmtTime(cur);
+    }
+    if (elDOM.durTime) elDOM.durTime.textContent = fmtTime(dur);
+    if (elDOM.mobilePlayerDurTime) elDOM.mobilePlayerDurTime.textContent = fmtTime(dur);
   });
-  audio.addEventListener("ended", () => playNext(true));
+  audio.addEventListener("ended", () => {
+    const s = currentSong();
+    if (s) {
+      sendPlayHistory(s, {
+        duration: Math.round(audio.currentTime || (s.duration || 0)),
+        completed: true,
+        skipped: false,
+      });
+    }
+    playNext(true);
+  });
   audio.addEventListener("error", () => {
     toast("Playback error — this track's audio source could not be loaded.");
     setPlayIcon(false);
@@ -680,23 +1073,63 @@
 
   // Range slider fill color
   function updateRangeFill(rangeInput) {
+    if (!rangeInput) return;
     const min = parseFloat(rangeInput.min) || 0;
     const max = parseFloat(rangeInput.max) || 100;
     const val = parseFloat(rangeInput.value) || 0;
-    const pct = ((val - min) / (max - min)) * 100;
-    const style = getComputedStyle(document.documentElement);
-    const signal = style.getPropertyValue("--signal").trim() || "#F59E0B";
-    const border = style.getPropertyValue("--border").trim() || "#262033";
-    rangeInput.style.background = `linear-gradient(to right, ${signal} 0%, ${signal} ${pct}%, ${border} ${pct}%, ${border} 100%)`;
+    const pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
+    const isLight = document.documentElement.getAttribute("data-theme") === "light";
+    const fillColor = "#1ed760";
+    const trackColor = isLight ? "rgba(0, 0, 0, 0.14)" : "rgba(255, 255, 255, 0.22)";
+    rangeInput.style.background = `linear-gradient(to right, ${fillColor} 0%, ${fillColor} ${pct}%, ${trackColor} ${pct}%, ${trackColor} 100%)`;
   }
 
   // Initialize volume slider fill
   updateRangeFill(elDOM.volumeBar);
 
-  elDOM.seekBar.addEventListener("input", () => {
-    if (audio.duration) audio.currentTime = (elDOM.seekBar.value / 100) * audio.duration;
-    updateRangeFill(elDOM.seekBar);
-  });
+  if (elDOM.seekBar) {
+    elDOM.seekBar.addEventListener("mousedown", () => { isDraggingSeek = true; });
+    elDOM.seekBar.addEventListener("touchstart", () => { isDraggingSeek = true; }, { passive: true });
+    elDOM.seekBar.addEventListener("mouseup", () => { isDraggingSeek = false; });
+    elDOM.seekBar.addEventListener("touchend", () => { isDraggingSeek = false; });
+    elDOM.seekBar.addEventListener("change", () => {
+      isDraggingSeek = false;
+      const dur = getEffectiveDuration();
+      if (dur > 0) {
+        audio.currentTime = (elDOM.seekBar.value / 100) * dur;
+      }
+    });
+    elDOM.seekBar.addEventListener("input", () => {
+      const dur = getEffectiveDuration();
+      if (dur > 0) {
+        audio.currentTime = (elDOM.seekBar.value / 100) * dur;
+      }
+      if (elDOM.curTime) elDOM.curTime.textContent = fmtTime(audio.currentTime || 0);
+      updateRangeFill(elDOM.seekBar);
+    });
+  }
+
+  if (elDOM.mobilePlayerSeek) {
+    elDOM.mobilePlayerSeek.addEventListener("mousedown", () => { isDraggingSeek = true; });
+    elDOM.mobilePlayerSeek.addEventListener("touchstart", () => { isDraggingSeek = true; }, { passive: true });
+    elDOM.mobilePlayerSeek.addEventListener("mouseup", () => { isDraggingSeek = false; });
+    elDOM.mobilePlayerSeek.addEventListener("touchend", () => { isDraggingSeek = false; });
+    elDOM.mobilePlayerSeek.addEventListener("change", () => {
+      isDraggingSeek = false;
+      const dur = getEffectiveDuration();
+      if (dur > 0) {
+        audio.currentTime = (elDOM.mobilePlayerSeek.value / 100) * dur;
+      }
+    });
+    elDOM.mobilePlayerSeek.addEventListener("input", () => {
+      const dur = getEffectiveDuration();
+      if (dur > 0) {
+        audio.currentTime = (elDOM.mobilePlayerSeek.value / 100) * dur;
+      }
+      if (elDOM.mobilePlayerCurTime) elDOM.mobilePlayerCurTime.textContent = fmtTime(audio.currentTime || 0);
+      updateRangeFill(elDOM.mobilePlayerSeek);
+    });
+  }
   elDOM.volumeBar.addEventListener("input", () => {
     audio.volume = elDOM.volumeBar.value / 100;
     audio.muted = false;
@@ -736,20 +1169,34 @@
     });
   }
 
+  function syncShuffleUI() {
+    if (elDOM.shuffleBtn) elDOM.shuffleBtn.classList.toggle("active", state.shuffle);
+    if (elDOM.mobileShuffleBtn) elDOM.mobileShuffleBtn.classList.toggle("active", state.shuffle);
+  }
+
+  function syncRepeatUI() {
+    const isRepeatOn = state.repeat !== "off";
+    if (elDOM.repeatBtn) elDOM.repeatBtn.classList.toggle("active", isRepeatOn);
+    if (elDOM.mobileRepeatBtn) elDOM.mobileRepeatBtn.classList.toggle("active", isRepeatOn);
+    const iconClass = state.repeat === "one" ? "fa-solid fa-1" : "fa-solid fa-repeat";
+    const icon = elDOM.repeatBtn?.querySelector("i");
+    if (icon) icon.className = iconClass;
+    const mobileIcon = elDOM.mobileRepeatBtn?.querySelector("i");
+    if (mobileIcon) mobileIcon.className = iconClass;
+  }
+
   elDOM.playBtn.addEventListener("click", togglePlay);
   elDOM.nextBtn.addEventListener("click", () => playNext(false));
   elDOM.prevBtn.addEventListener("click", playPrev);
   elDOM.shuffleBtn.addEventListener("click", () => {
     state.shuffle = !state.shuffle;
-    elDOM.shuffleBtn.classList.toggle("active", state.shuffle);
+    syncShuffleUI();
     toast(state.shuffle ? "Shuffle on" : "Shuffle off");
   });
   elDOM.repeatBtn.addEventListener("click", () => {
     const order = ["off", "all", "one"];
     state.repeat = order[(order.indexOf(state.repeat) + 1) % order.length];
-    elDOM.repeatBtn.classList.toggle("active", state.repeat !== "off");
-    const icon = elDOM.repeatBtn.querySelector("i");
-    icon.className = state.repeat === "one" ? "fa-solid fa-1" : "fa-solid fa-repeat";
+    syncRepeatUI();
     toast(`Repeat: ${state.repeat}`);
   });
   elDOM.nowLikeBtn.addEventListener("click", () => {
@@ -798,15 +1245,13 @@
   if (elDOM.mobileNextBtn) elDOM.mobileNextBtn.addEventListener("click", () => playNext(false));
   if (elDOM.mobileShuffleBtn) elDOM.mobileShuffleBtn.addEventListener("click", () => {
     state.shuffle = !state.shuffle;
-    elDOM.shuffleBtn.classList.toggle("active", state.shuffle);
-    elDOM.mobileShuffleBtn.classList.toggle("active", state.shuffle);
+    syncShuffleUI();
     toast(state.shuffle ? "Shuffle on" : "Shuffle off");
   });
   if (elDOM.mobileRepeatBtn) elDOM.mobileRepeatBtn.addEventListener("click", () => {
     const order = ["off", "all", "one"];
     state.repeat = order[(order.indexOf(state.repeat) + 1) % order.length];
-    elDOM.repeatBtn.classList.toggle("active", state.repeat !== "off");
-    elDOM.mobileRepeatBtn.classList.toggle("active", state.repeat !== "off");
+    syncRepeatUI();
     toast(`Repeat: ${state.repeat}`);
   });
   if (elDOM.mobileLikeBtn) elDOM.mobileLikeBtn.addEventListener("click", () => {
@@ -927,7 +1372,7 @@
 
     const backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
-    let workingArt = song.albumArt || "logo.png";
+    let workingArt = song.albumArt || "assets/music-cover.svg";
 
     backdrop.innerHTML = `
       <div class="modal modal-customize-song" role="dialog" aria-modal="true" aria-labelledby="customSongTitle">
@@ -1102,7 +1547,7 @@
   function openAddSongModal() {
     const backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
-    let workingArt = "logo.png";
+    let workingArt = "assets/music-cover.svg";
     let workingAudio = "";
 
     backdrop.innerHTML = `
@@ -1285,16 +1730,25 @@
 
   // ================================================================== RENDER HELPERS
 
-  function mediaCard({ art, round, title, sub, id, kind }) {
+  function mediaCard({ art, round, title, sub, id, kind, reason, score }) {
+    const isCurrent = Boolean(id && id === state.currentSongId);
+    const isCurrentPlaying = isCurrent && state.isPlaying;
+    const song = id ? songById.get(id) : null;
+    const reasonText = reason || (song && song.reason) || "";
+    const scoreVal = score != null ? score : (song && song.score != null ? song.score : null);
+    const scorePct = scoreVal != null && scoreVal > 0 ? Math.round(scoreVal * 100) : null;
+
     return `
-      <div class="media-card" data-open="1" ${id ? `data-id="${id}"` : ""} ${kind ? `data-kind="${kind}"` : ""}>
+      <div class="media-card ${isCurrent ? "playing" : ""} ${isCurrentPlaying ? "active-playing" : ""}" data-open="1" ${id ? `data-id="${id}"` : ""} ${kind ? `data-kind="${kind}"` : ""}>
         <div class="art-wrap ${round ? "round" : ""}">
-          <img src="${art}" alt="${escapeHtml(title)}" loading="lazy" />
-          <button class="play-fab" aria-label="Play ${escapeHtml(title)}"><i class="fa-solid fa-play"></i></button>
+          <img src="${art}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.onerror=null;this.src='assets/music-cover.svg';" />
+          ${scorePct ? `<span class="ai-match-badge" title="AI Recommendation Match: ${scorePct}%"><i class="fa-solid fa-wand-magic-sparkles"></i> ${scorePct}%</span>` : ""}
+          <button class="play-fab" aria-label="${isCurrentPlaying ? "Pause" : "Play"} ${escapeHtml(title)}"><i class="fa-solid ${isCurrentPlaying ? "fa-pause" : "fa-play"}"></i></button>
           ${kind === "song" && id ? `<button class="card-edit-btn" data-edit-song="${id}" title="Customize song details" aria-label="Customize song details"><i class="fa-solid fa-pen"></i></button>` : ""}
         </div>
         <div class="card-title">${escapeHtml(title)}</div>
         <div class="card-sub">${escapeHtml(sub)}</div>
+        ${reasonText ? `<div class="card-reason" title="${escapeHtml(reasonText)}"><i class="fa-solid fa-wand-magic-sparkles"></i><span>${escapeHtml(reasonText)}</span></div>` : ""}
       </div>`;
   }
 
@@ -1319,21 +1773,34 @@
     const isCurrent = song.id === state.currentSongId;
     const isPlayingCurrent = isCurrent && state.isPlaying;
 
+    // Always render all three index elements; CSS controls visibility based on .active-playing class
+    // This allows hover CSS rules to work correctly without inline-style overrides
     let indexContent;
-    if (isPlayingCurrent) {
-      indexContent = `<div class="equalizer-icon" title="Playing"><span></span><span></span><span></span></div>`;
-    } else if (showRank) {
-      indexContent = `<div class="rank-num">${opts.rank}</div>`;
+    if (showRank) {
+      indexContent = `
+        <div class="track-index-col">
+          <div class="equalizer-icon" title="Playing"><span></span><span></span><span></span><span></span></div>
+          <div class="rank-num">${opts.rank}</div>
+          <div class="track-index-play"><i class="fa-solid ${isPlayingCurrent ? "fa-pause" : "fa-play"}"></i></div>
+        </div>`;
     } else {
-      indexContent = `<div class="track-index">${index + 1}</div><div class="track-index-play"><i class="fa-solid fa-play"></i></div>`;
+      indexContent = `
+        <div class="track-index-col">
+          <div class="equalizer-icon" title="Playing"><span></span><span></span><span></span><span></span></div>
+          <div class="track-index">${index + 1}</div>
+          <div class="track-index-play"><i class="fa-solid ${isPlayingCurrent ? "fa-pause" : "fa-play"}"></i></div>
+        </div>`;
     }
 
     return `
-      <div class="track-row ${opts.rank <= 3 ? "top3" : ""} ${isCurrent ? "active-playing" : ""}" data-song-id="${song.id}">
+      <div class="track-row ${opts.rank <= 3 ? "top3" : ""} ${isPlayingCurrent ? "active-playing" : (isCurrent ? "playing" : "")}" data-song-id="${song.id}">
         ${indexContent}
         <img class="track-art" src="${song.albumArt}" alt="${escapeHtml(song.album)}" loading="lazy" />
         <div class="track-meta">
-          <div class="track-title ${isCurrent ? "playing-title" : ""}">${escapeHtml(song.title)}</div>
+          <div class="track-title ${isCurrent ? "playing-title" : ""}">
+            <span>${escapeHtml(song.title)}</span>
+            ${opts.attribution ? `<span class="track-attribution-badge" style="font-size:0.7rem;background:rgba(255,255,255,0.08);color:var(--text-muted);padding:2px 7px;border-radius:999px;margin-left:8px;font-weight:normal;display:inline-flex;align-items:center;gap:4px;" title="Added by ${escapeHtml(opts.attribution)}"><i class="fa-solid fa-user" style="font-size:0.6rem;"></i>${escapeHtml(opts.attribution)}</span>` : ""}
+          </div>
           <div class="track-artist">${escapeHtml(song.artist)}</div>
         </div>
         <div class="track-album">${escapeHtml(song.album)}</div>
@@ -1409,7 +1876,11 @@
     function buildRowsHtml(list, startIdx) {
       return list.map((s, idx) => {
         const i = startIdx + idx;
-        return trackRow(s, i, opts.rank ? { rank: i + 1 } : {});
+        const rowOpts = opts.rank ? { rank: i + 1 } : {};
+        if (opts.attributions && opts.attributions[s.id]) {
+          rowOpts.attribution = opts.attributions[s.id];
+        }
+        return trackRow(s, i, rowOpts);
       }).join("");
     }
 
@@ -1582,92 +2053,92 @@
   function buildCuratedPlaylists() {
     return [
       {
-        id: "taste-daily-1",
-        name: "Daily Mix 1",
+        id: "taste-romantic",
+        name: "Romance & Love",
         subtitle: "Arijit Singh, Pritam, Atif Aslam",
-        tag: "Soulful · Romantic",
-        color: "#e11d48",
-        gradient: "linear-gradient(135deg, #e11d48 0%, #4c0519 100%)",
+        tag: "Romance",
+        color: "#ec4899",
+        gradient: "linear-gradient(135deg, #ec4899 0%, #831843 100%)",
         icon: "fa-heart",
-        description: "Your daily dose of soulful Bollywood melodies, acoustic guitars, and heartfelt vocals.",
-        filter: (s) => s.theme === "romantic" || /arijit|pritam|atif|shreya|darshan/i.test(s.artist + " " + (s.composer || "") + " " + s.title),
+        description: "Soulful Bollywood romance, heartfelt love ballads, and emotional duets.",
+        filter: (s) => s.theme === "romantic" || s.mood === "Romantic" || /arijit|pritam|atif|shreya|darshan|love|pyaar|ishq|dil|fitoor|barsaat|saathiya|humsafar/i.test(s.title + " " + s.artist),
       },
       {
-        id: "taste-daily-2",
-        name: "Daily Mix 2",
-        subtitle: "Diljit Dosanjh, Karan Aujla, Shubh",
-        tag: "Punjabi Swag",
-        color: "#f97316",
-        gradient: "linear-gradient(135deg, #f97316 0%, #7c2d12 100%)",
-        icon: "fa-fire",
-        description: "High-octane Punjabi hits, heavy 808 basslines, and top chart anthems.",
-        filter: (s) => s.theme === "punjabi" || (s.language && s.language.toLowerCase() === "punjabi") || /diljit|karan aujla|shubh|ap dhillon|sidhu moose/i.test(s.artist + " " + s.title),
+        id: "taste-workout",
+        name: "Gym & Workout",
+        subtitle: "High BPM Beast Mode Beats",
+        tag: "Gym & Workout",
+        color: "#06b6d4",
+        gradient: "linear-gradient(135deg, #06b6d4 0%, #164e63 100%)",
+        icon: "fa-dumbbell",
+        description: "High-octane pump-up anthems, heavy 808 basslines, and intense gym motivation.",
+        filter: (s) => s.theme === "workout" || (s.bpm && s.bpm >= 120) || /gym|workout|energy|power|drill|beast|hype|pump/i.test(s.title + " " + s.artist + " " + (s.mood || "")) || (s.theme === "punjabi" && /swag|drill|energy|bass/i.test(s.title + " " + s.artist)),
       },
       {
-        id: "taste-daily-3",
-        name: "Daily Mix 3",
-        subtitle: "Honey Singh, Badshah, Party Beats",
+        id: "taste-party",
+        name: "Party & Club",
+        subtitle: "Honey Singh, Badshah, EDM",
         tag: "Club & Party",
         color: "#eab308",
         gradient: "linear-gradient(135deg, #eab308 0%, #713f12 100%)",
         icon: "fa-compact-disc",
-        description: "Turn up the volume with club bangers, party anthems, and rap classics.",
-        filter: (s) => s.theme === "party" || /honey singh|badshah|mika singh|neha kakkar|party|club|daaru|daru|dance/i.test(s.artist + " " + s.title),
-      },
-      {
-        id: "taste-daily-4",
-        name: "Daily Mix 4",
-        subtitle: "KK, Mohit Chauhan, Lucky Ali",
-        tag: "Late Night Nostalgia",
-        color: "#6366f1",
-        gradient: "linear-gradient(135deg, #6366f1 0%, #1e1b4b 100%)",
-        icon: "fa-moon",
-        description: "Timeless late-night nostalgia, unforgettable hooks, and nostalgic feelings.",
-        filter: (s) => s.theme === "nostalgia" || /\bkk\b|lucky ali|mohit chauhan|sonu nigam|kumar sanu|kishore kumar|lata mangeshkar/i.test(s.artist + " " + s.title),
-      },
-      {
-        id: "taste-romantic",
-        name: "Romantic Melodies",
-        subtitle: "Love songs for slow evenings",
-        tag: "Romance",
-        color: "#ec4899",
-        gradient: "linear-gradient(135deg, #ec4899 0%, #831843 100%)",
-        icon: "fa-heart-pulse",
-        description: "Beautiful love ballads and emotional duets that touch your heart.",
-        filter: (s) => s.theme === "romantic" || s.mood === "Romantic" || /love|pyaar|ishq|dil|fitoor|barsaat|saathiya|humsafar/i.test(s.title + " " + s.artist),
-      },
-      {
-        id: "taste-hiphop",
-        name: "Desi Hip Hop & Rap",
-        subtitle: "Karan Aujla, Shubh, Divine",
-        tag: "Hard Bars",
-        color: "#8b5cf6",
-        gradient: "linear-gradient(135deg, #8b5cf6 0%, #3b0764 100%)",
-        icon: "fa-bolt",
-        description: "Hard-hitting bars, street poetry, and unmistakable flow from the best in the game.",
-        filter: (s) => (s.theme === "hiphop" || /divine|emiway|raftaar|krsna|mc stan|king|seedhe maut|gully gang/i.test(s.artist + " " + s.title)) && !/rap removal/i.test(s.title),
+        description: "Turn up the volume with dancefloor bangers, club anthems, and party rap hits.",
+        filter: (s) => s.theme === "party" || s.mood === "Energetic" || /honey singh|badshah|mika singh|neha kakkar|party|club|daaru|daru|dance|nach|dj|bhangra/i.test(s.artist + " " + s.title),
       },
       {
         id: "taste-lofi",
-        name: "Lo-Fi & Chill Vibes",
-        subtitle: "Taha G, Acoustic & Relax",
-        tag: "Chill / Focus",
+        name: "Lo-Fi & Chill",
+        subtitle: "Taha G, Anuv Jain, Acoustic",
+        tag: "Lo-Fi & Chill",
         color: "#10b981",
         gradient: "linear-gradient(135deg, #10b981 0%, #064e3b 100%)",
         icon: "fa-headphones",
-        description: "Relax, study, or unwind with mellow beats, lo-fi textures, and chill guitars.",
-        filter: (s) => s.theme === "indie_lofi" || s.mood === "Sukoon" || /taha|anuv jain|prateek kuhad|zaeden|lofi|chill|acoustic/i.test(s.artist + " " + s.title),
+        description: "Mellow textures, soothing lo-fi beats, relaxed guitars, and late-night calm.",
+        filter: (s) => s.theme === "indie_lofi" || s.mood === "Sukoon" || s.mood === "Chill" || /taha|anuv jain|prateek kuhad|zaeden|lofi|chill|acoustic|sukoon/i.test(s.artist + " " + s.title),
       },
       {
-        id: "taste-workout",
-        name: "Workout Energy",
-        subtitle: "High BPM Beast Mode",
-        tag: "Gym & Pump",
-        color: "#06b6d4",
-        gradient: "linear-gradient(135deg, #06b6d4 0%, #164e63 100%)",
-        icon: "fa-dumbbell",
-        description: "High-octane energetic tracks to push your limits during every set.",
-        filter: (s) => s.theme === "workout" || (s.bpm && s.bpm >= 120) || (s.theme === "punjabi" && /swag|drill|energy|bass/i.test(s.title + " " + s.artist)),
+        id: "taste-punjabi",
+        name: "Punjabi & Swag",
+        subtitle: "Diljit Dosanjh, Karan Aujla, Shubh",
+        tag: "Punjabi Pop",
+        color: "#f97316",
+        gradient: "linear-gradient(135deg, #f97316 0%, #7c2d12 100%)",
+        icon: "fa-fire",
+        description: "Chart-topping urban Punjabi drops, heavy bass, and unmistakable swagger.",
+        filter: (s) => s.theme === "punjabi" || (s.language && s.language.toLowerCase() === "punjabi") || /diljit|karan aujla|shubh|ap dhillon|sidhu moose/i.test(s.artist + " " + s.title),
+      },
+      {
+        id: "taste-hiphop",
+        name: "Desi Hip Hop",
+        subtitle: "Divine, Emiway, Seedhe Maut",
+        tag: "Desi Hip Hop",
+        color: "#8b5cf6",
+        gradient: "linear-gradient(135deg, #8b5cf6 0%, #3b0764 100%)",
+        icon: "fa-bolt",
+        description: "Heavyweight street rap, hard-hitting lyrical bars, and underground hip-hop heat.",
+        filter: (s) => (s.theme === "hiphop" || /divine|emiway|raftaar|krsna|mc stan|king|seedhe maut|gully gang/i.test(s.artist + " " + s.title)) && !/rap removal/i.test(s.title),
+      },
+      {
+        id: "taste-nostalgia",
+        name: "Late Night Nostalgia",
+        subtitle: "KK, Mohit Chauhan, Lucky Ali",
+        tag: "Nostalgia",
+        color: "#6366f1",
+        gradient: "linear-gradient(135deg, #6366f1 0%, #1e1b4b 100%)",
+        icon: "fa-moon",
+        description: "Timeless 90s & 2000s Bollywood memories, acoustic nostalgia, and golden melodies.",
+        filter: (s) => s.theme === "nostalgia" || /\bkk\b|lucky ali|mohit chauhan|sonu nigam|kumar sanu|kishore kumar|lata mangeshkar/i.test(s.artist + " " + s.title),
+      },
+      {
+        id: "taste-bollywood",
+        name: "Bollywood Hits",
+        subtitle: "Massive Cinema Soundtracks",
+        tag: "Bollywood",
+        color: "#e11d48",
+        gradient: "linear-gradient(135deg, #e11d48 0%, #4c0519 100%)",
+        icon: "fa-film",
+        description: "The biggest theatrical blockbusters, cinematic hits, and musical milestones.",
+        filter: (s) => s.theme === "bollywood_hits" || s.genre === "Bollywood" || /filmi|cinema|soundtrack/i.test(s.genre || ""),
       },
     ].map((item) => {
       let matched = SONGS.filter(item.filter);
@@ -1688,8 +2159,8 @@
       }
 
       const songIds = topSongs.map((s) => s.id).concat(matched.map((s) => s.id).filter((id) => !topSongs.some((t) => t.id === id)));
-      const topArts = topSongs.map((s) => s.albumArt || "logo.png");
-      const artSrc = topArts[0] || "logo.png";
+      const topArts = topSongs.map((s) => s.albumArt || "assets/music-cover.svg");
+      const artSrc = topArts[0] || "assets/music-cover.svg";
       return {
         ...item,
         songIds,
@@ -1703,20 +2174,20 @@
   function tastePlaylistCardHtml(pl) {
     const topArts = (pl.topArts && pl.topArts.length >= 4)
       ? pl.topArts
-      : (pl.songIds || []).slice(0, 4).map((sid) => songById.get(sid)?.albumArt || "logo.png");
+      : (pl.songIds || []).slice(0, 4).map((sid) => songById.get(sid)?.albumArt || "assets/music-cover.svg");
     const glowColor = pl.color || "#1ED760";
 
     const mosaicHtml = `
       <div class="taste-mosaic-grid">
-        <div class="taste-mosaic-cell cell-1"><img src="${topArts[0] || 'logo.png'}" alt="${escapeHtml(pl.name)} logo 1" loading="lazy" onerror="this.src='logo.png'" /></div>
-        <div class="taste-mosaic-cell cell-2"><img src="${topArts[1] || 'logo.png'}" alt="${escapeHtml(pl.name)} logo 2" loading="lazy" onerror="this.src='logo.png'" /></div>
-        <div class="taste-mosaic-cell cell-3"><img src="${topArts[2] || 'logo.png'}" alt="${escapeHtml(pl.name)} logo 3" loading="lazy" onerror="this.src='logo.png'" /></div>
-        <div class="taste-mosaic-cell cell-4"><img src="${topArts[3] || 'logo.png'}" alt="${escapeHtml(pl.name)} logo 4" loading="lazy" onerror="this.src='logo.png'" /></div>
+        <div class="taste-mosaic-cell cell-1"><img src="${topArts[0] || 'assets/music-cover.svg'}" alt="${escapeHtml(pl.name)} art 1" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
+        <div class="taste-mosaic-cell cell-2"><img src="${topArts[1] || 'assets/music-cover.svg'}" alt="${escapeHtml(pl.name)} art 2" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
+        <div class="taste-mosaic-cell cell-3"><img src="${topArts[2] || 'assets/music-cover.svg'}" alt="${escapeHtml(pl.name)} art 3" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
+        <div class="taste-mosaic-cell cell-4"><img src="${topArts[3] || 'assets/music-cover.svg'}" alt="${escapeHtml(pl.name)} art 4" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
       </div>
     `;
 
     return `
-      <div class="taste-playlist-card" data-playlist-id="${pl.id}" style="--card-glow:${glowColor};" title="${escapeHtml(pl.name)} · ${escapeHtml(pl.subtitle)}">
+      <div class="taste-playlist-card" data-playlist-id="${pl.id}" title="${escapeHtml(pl.name)} · ${escapeHtml(pl.subtitle)}">
         <div class="taste-art-wrapper">
           ${mosaicHtml}
           <div class="taste-art-overlay"></div>
@@ -1750,32 +2221,32 @@
     return `
       <div class="popular-singers-shelf" id="popularSingersShelf">
         ${POPULAR_SINGERS.map((s) => {
-          const artistObj = ARTISTS.find((a) => a.name.toLowerCase().includes(s.query));
-          const extractedSong = SONGS.find((song) => {
-            const art = (song.artist || "").toLowerCase();
-            const comp = (song.composer || "").toLowerCase();
-            const tit = (song.title || "").toLowerCase();
-            return (art.includes(s.query) || comp.includes(s.query) || tit.includes(s.query)) &&
-                   song.albumArt && song.albumArt.startsWith("covers/extracted");
-          });
-          const topSong = SONGS.find((song) => {
-            const art = (song.artist || "").toLowerCase();
-            const comp = (song.composer || "").toLowerCase();
-            return art.includes(s.query) || comp.includes(s.query);
-          });
-          const art = extractedSong?.albumArt || artistObj?.image || topSong?.albumArt || "logo.png";
-          const count = getSongsBySinger(s.query, 100).length;
-          return `
+      const artistObj = ARTISTS.find((a) => a.name.toLowerCase().includes(s.query));
+      const extractedSong = SONGS.find((song) => {
+        const art = (song.artist || "").toLowerCase();
+        const comp = (song.composer || "").toLowerCase();
+        const tit = (song.title || "").toLowerCase();
+        return (art.includes(s.query) || comp.includes(s.query) || tit.includes(s.query)) &&
+          song.albumArt && song.albumArt.startsWith("covers/extracted");
+      });
+      const topSong = SONGS.find((song) => {
+        const art = (song.artist || "").toLowerCase();
+        const comp = (song.composer || "").toLowerCase();
+        return art.includes(s.query) || comp.includes(s.query);
+      });
+      const art = extractedSong?.albumArt || artistObj?.image || topSong?.albumArt || "assets/music-cover.svg";
+      const count = getSongsBySinger(s.query, 100).length;
+      return `
             <div class="media-card" data-kind="artist" data-singer-query="${escapeHtml(s.query)}" data-singer-name="${escapeHtml(s.name)}" title="${escapeHtml(s.name)} · ${escapeHtml(s.desc)}">
               <div class="art-wrap round" style="box-shadow: 0 8px 24px rgba(0,0,0,0.45);">
-                <img src="${art}" alt="${escapeHtml(s.name)}" loading="lazy" onerror="this.onerror=null;this.src='logo.png';" />
+                <img src="${art}" alt="${escapeHtml(s.name)}" loading="lazy" onerror="this.onerror=null;this.src='assets/music-cover.svg';" />
                 <button class="play-fab" aria-label="Play ${escapeHtml(s.name)}"><i class="fa-solid fa-play"></i></button>
               </div>
               <div class="card-title">${escapeHtml(s.name)}</div>
               <div class="card-sub">${count > 0 ? count + " tracks" : "Artist"} · ${escapeHtml(s.desc)}</div>
             </div>
           `;
-        }).join("")}
+    }).join("")}
       </div>
     `;
   }
@@ -1857,7 +2328,11 @@
 
       <div class="home-filter-chips">
         <button class="filter-chip active" data-filter="all">All</button>
+        <button class="filter-chip" data-filter="playlists"><i class="fa-solid fa-list-ul" style="color:var(--signal);margin-right:5px;"></i>Playlists</button>
+        <button class="filter-chip" data-filter="new"><i class="fa-solid fa-compact-disc" style="color:#60a5fa;margin-right:5px;"></i>New Releases</button>
+        <button class="filter-chip" data-filter="catalog" onclick="location.hash='#/catalog-1000'"><i class="fa-solid fa-compact-disc" style="color:var(--signal);margin-right:5px;"></i>All 1098 Songs</button>
         <button class="filter-chip" data-filter="romantic">Romantic & Sukoon</button>
+        <button class="filter-chip" data-filter="workout"><i class="fa-solid fa-dumbbell" style="color:#06b6d4;margin-right:5px;"></i>Gym & Workout</button>
         <button class="filter-chip" data-filter="punjabi">Punjabi & Swag</button>
         <button class="filter-chip" data-filter="party">Party & Club</button>
         <button class="filter-chip" data-filter="nostalgia">Late Night Nostalgia</button>
@@ -1867,24 +2342,67 @@
       </div>
 
       <div class="home-quickplay-grid">
-        ${quickPlaySongs.map((id) => {
+        ${quickPlaySongs.slice(0, 8).map((id) => {
       const s = songById.get(id);
       if (!s) return "";
+      const isCurrent = Boolean(s.id === state.currentSongId);
+      const isCurrentPlaying = isCurrent && state.isPlaying;
       return `
-            <div class="home-quickplay-card" data-song-id="${s.id}">
-              <img src="${s.albumArt}" alt="" loading="lazy" />
+            <div class="home-quickplay-card ${isCurrent ? "playing" : ""} ${isCurrentPlaying ? "active-playing" : ""}" data-song-id="${s.id}">
+              <img src="${s.albumArt}" alt="${escapeHtml(s.title)}" loading="lazy" onerror="this.onerror=null;this.src='assets/music-cover.svg';" />
               <span class="home-quickplay-title">${escapeHtml(s.title)}</span>
-              <button class="home-quickplay-play" aria-label="Play"><i class="fa-solid fa-play"></i></button>
+              <button class="home-quickplay-play" aria-label="${isCurrentPlaying ? "Pause" : "Play"}"><i class="fa-solid ${isCurrentPlaying ? "fa-pause" : "fa-play"}"></i></button>
             </div>`;
     }).join("")}
       </div>
 
-      <!-- Made For You: Taste Mixes with Starting Shutter Reveal -->
+      <!-- ML Recommendation Engine: Made For You -->
+      <section class="section" id="aiMadeForYouSection" data-shelf-theme="taste">
+        <div class="section-head">
+          <div>
+            <div class="shelf-pill-badge green">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>AI Recommendations</span>
+            </div>
+            <h2>Made For You</h2>
+            <p style="margin:2px 0 0 0;font-size:0.82rem;color:var(--text-sub);">Personalized tracks sculpted for your taste, favorite artists & daily vibe</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="shelf-nav-btn" id="aiRecsPrevBtn" title="Scroll left" aria-label="Scroll left">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button class="shelf-nav-btn" id="aiRecsNextBtn" title="Scroll right" aria-label="Scroll right">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <a href="#/made-for-you" style="margin-left:6px;">See all</a>
+          </div>
+        </div>
+
+        <div class="mfy-shelf-pills" id="homeMfyPills">
+          <button class="mfy-pill active" data-category="all"><i class="fa-solid fa-wand-magic-sparkles"></i> For You</button>
+          <button class="mfy-pill" data-category="romantic"><i class="fa-solid fa-heart" style="color:#ec4899;"></i> Romance</button>
+          <button class="mfy-pill" data-category="workout"><i class="fa-solid fa-dumbbell" style="color:#06b6d4;"></i> Gym & Workout</button>
+          <button class="mfy-pill" data-category="party"><i class="fa-solid fa-compact-disc" style="color:#eab308;"></i> Party & Club</button>
+          <button class="mfy-pill" data-category="lofi"><i class="fa-solid fa-headphones" style="color:#10b981;"></i> Lo-Fi & Sukoon</button>
+          <button class="mfy-pill" data-category="punjabi"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Punjabi Swag</button>
+          <button class="mfy-pill" data-category="bollywood"><i class="fa-solid fa-film" style="color:#e11d48;"></i> Bollywood</button>
+        </div>
+
+        <div class="home-scroll-row" id="aiRecsScrollRow">
+          ${skeletonCards(6)}
+        </div>
+      </section>
+
+      <!-- Category & Mood Mixes -->
       <section class="section" id="tasteMixesSection" data-shelf-theme="taste">
         <div class="section-head">
           <div>
-            <h2>Made For You — Taste Mixes</h2>
-            <p style="margin:2px 0 0 0;font-size:0.82rem;color:var(--text-sub);">Personalized mini-playlists sculpted for every mood and taste</p>
+            <div class="shelf-pill-badge pink">
+              <i class="fa-solid fa-layer-group"></i>
+              <span>Category Collections</span>
+            </div>
+            <h2>Category & Mood Mixes</h2>
+            <p style="margin:2px 0 0 0;font-size:0.82rem;color:var(--text-sub);">Handpicked category-wise collections for Romance, Gym & Workout, Party, Chill, and more</p>
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
             <button class="shelf-nav-btn" id="tastePrevBtn" title="Scroll left" aria-label="Scroll left">
@@ -1893,13 +2411,14 @@
             <button class="shelf-nav-btn" id="tasteNextBtn" title="Scroll right" aria-label="Scroll right">
               <i class="fa-solid fa-chevron-right"></i>
             </button>
-            <a href="#/made-for-you" style="margin-left:6px;">See all</a>
+            <a href="#/browse" style="margin-left:6px;">Browse all</a>
           </div>
         </div>
         <div class="taste-scroll-row taste-starting-anim">
           ${curatedPlaylists.map(tastePlaylistCardHtml).join("")}
         </div>
       </section>
+
 
       <!-- Popular Singers -->
       <section class="section" id="popularSingersSection" data-shelf-theme="singers">
@@ -1936,11 +2455,13 @@
           ${jumpBackSongs.map((id) => {
       const s = songById.get(id);
       if (!s) return "";
+      const isCurrent = Boolean(s.id === state.currentSongId);
+      const isCurrentPlaying = isCurrent && state.isPlaying;
       return `
-              <div class="home-jumpin-card" data-song-id="${s.id}">
+              <div class="home-jumpin-card ${isCurrent ? "playing" : ""} ${isCurrentPlaying ? "active-playing" : ""}" data-song-id="${s.id}">
                 <div class="home-jumpin-art">
                   <img src="${s.albumArt}" alt="" loading="lazy" />
-                  <button class="play-fab" aria-label="Play"><i class="fa-solid fa-play"></i></button>
+                  <button class="play-fab" aria-label="${isCurrentPlaying ? "Pause" : "Play"}"><i class="fa-solid ${isCurrentPlaying ? "fa-pause" : "fa-play"}"></i></button>
                 </div>
                 <div class="home-jumpin-title">${escapeHtml(s.title)}</div>
                 <div class="home-jumpin-sub">${escapeHtml(s.artist)}</div>
@@ -1951,7 +2472,20 @@
 
       ${sectionBlock("Trending & Popular Hits", cardGridHtml(trending.slice(0, 12).map(songToCard)), "trending", "trending")}
       ${sectionBlock("Trending now", cardGridHtml(trending.slice(12, 24).map(songToCard)), "trending", "trending")}
-      ${sectionBlock("New releases", cardGridHtml(newReleases.map(songToCard)), "new-releases", "new")}
+      <section class="section" id="homeNewReleasesSection" data-shelf-theme="new">
+        <div class="section-head">
+          <div>
+            <div class="shelf-pill-badge blue">
+              <i class="fa-solid fa-compact-disc"></i>
+              <span>MusicBrainz Releases</span>
+            </div>
+            <h2>New releases</h2>
+            <p style="margin:2px 0 0 0;font-size:0.82rem;color:var(--text-sub);">Latest official drops by favorite artists powered by MusicBrainz</p>
+          </div>
+          <a href="#/new-releases">See all</a>
+        </div>
+        <div id="homeNewReleasesRow" class="card-grid">${cardGridHtml(newReleases.map(songToCard))}</div>
+      </section>
       ${likedIds.length ? sectionBlock("Your favorite songs", cardGridHtml(likedIds.slice(0, 10).map((id) => songToCard(songById.get(id))).filter(Boolean)), "favorites", "favorites") : ""}
       ${sectionBlock("Top international artists", cardGridHtml(topArtists.map(artistToCard)), "artists", "international")}
       ${sectionBlock("Editor's picks", cardGridHtml(editorsPicks.map(songToCard)), "", "editors")}
@@ -1978,6 +2512,30 @@
         if (filter === "all") {
           allShelves.forEach((s) => { s.style.display = ""; });
           toast("Showing all themes & mixes");
+        } else if (filter === "new") {
+          allShelves.forEach((s) => {
+            const t = s.dataset.shelfTheme;
+            s.style.display = (t === "new" || t === "taste") ? "" : "none";
+          });
+          const newEl = document.getElementById("homeNewReleasesSection");
+          if (newEl) newEl.scrollIntoView({ behavior: "smooth" });
+          toast("Showing New Releases");
+        } else if (filter === "playlists") {
+          allShelves.forEach((s) => {
+            const t = s.dataset.shelfTheme;
+            s.style.display = (t === "taste") ? "" : "none";
+          });
+          const plEl = document.getElementById("tasteMixesSection");
+          if (plEl) plEl.scrollIntoView({ behavior: "smooth" });
+          toast("Showing Curated Playlists & Mixes");
+        } else if (filter === "workout") {
+          allShelves.forEach((s) => {
+            const t = s.dataset.shelfTheme;
+            s.style.display = (t === "workout" || t === "taste") ? "" : "none";
+          });
+          const wEl = document.getElementById("tasteMixesSection");
+          if (wEl) wEl.scrollIntoView({ behavior: "smooth" });
+          toast("Showing Gym & Workout Collections");
         } else if (filter === "singers") {
           allShelves.forEach((s) => {
             const t = s.dataset.shelfTheme;
@@ -1998,6 +2556,38 @@
 
     // Bind quick-play cards
     elDOM.view.querySelectorAll(".home-quickplay-card").forEach((card) => {
+      const plId = card.dataset.playlistId;
+      if (plId) {
+        card.addEventListener("click", (e) => {
+          if (e.target.closest(".home-quickplay-play")) return;
+          if (plId === "pl-all-1098-songs") {
+            location.hash = "#/catalog-1000";
+          } else {
+            location.hash = `#/playlist/${plId}`;
+          }
+        });
+        const playBtn = card.querySelector(".home-quickplay-play");
+        if (playBtn) {
+          playBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (plId === "pl-all-1098-songs") {
+              const allIds = SONGS.map((s) => s.id);
+              playQueue(allIds, 0);
+              toast(`Playing All ${allIds.length} Songs Master Catalog 🎵`);
+              return;
+            }
+            const pl = state.playlists.find((p) => p.id === plId);
+            if (pl && pl.songIds && pl.songIds.length) {
+              if (state.isPlaying && (pl.songIds || []).includes(state.currentSongId)) {
+                togglePlay();
+              } else {
+                playQueue(pl.songIds, 0);
+              }
+            }
+          });
+        }
+        return;
+      }
       const songId = card.dataset.songId;
       card.addEventListener("click", (e) => {
         if (e.target.closest(".home-quickplay-play")) return;
@@ -2005,8 +2595,18 @@
         if (s) openSongContext(s);
       });
       const playBtn = card.querySelector(".home-quickplay-play");
-      if (playBtn) playBtn.addEventListener("click", (e) => { e.stopPropagation(); playQueue([songId], 0); });
+      if (playBtn) {
+        playBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (state.currentSongId === songId) {
+            togglePlay();
+          } else {
+            playQueue([songId], 0);
+          }
+        });
+      }
     });
+
 
     // Bind jump-back-in cards
     elDOM.view.querySelectorAll(".home-jumpin-card").forEach((card) => {
@@ -2017,12 +2617,131 @@
         if (s) openSongContext(s);
       });
       const fab = card.querySelector(".play-fab");
-      if (fab) fab.addEventListener("click", (e) => { e.stopPropagation(); playQueue([songId], 0); });
+      if (fab) {
+        fab.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (state.currentSongId === songId) {
+            togglePlay();
+          } else {
+            playQueue([songId], 0);
+          }
+        });
+      }
     });
 
     // Bind taste playlists and popular singers
     bindTastePlaylistCards(elDOM.view);
     bindPopularSingerCards(elDOM.view);
+
+    // Bind AI Recommendation shelf scrolling and fetch live recommendations
+    const aiPrev = elDOM.view.querySelector("#aiRecsPrevBtn");
+    const aiNext = elDOM.view.querySelector("#aiRecsNextBtn");
+    const aiRow = elDOM.view.querySelector("#aiRecsScrollRow");
+    if (aiPrev && aiRow) {
+      aiPrev.addEventListener("click", () => aiRow.scrollBy({ left: -420, behavior: "smooth" }));
+    }
+    if (aiNext && aiRow) {
+      aiNext.addEventListener("click", () => aiRow.scrollBy({ left: 420, behavior: "smooth" }));
+    }
+
+    async function loadHomeAiRecs(category = "all") {
+      const container = elDOM.view.querySelector("#aiRecsScrollRow");
+      if (!container) return;
+      try {
+        const catQuery = (!category || category === "all") ? "" : `&category=${encodeURIComponent(category)}`;
+        const res = await fetch(`${API_BASE}/api/made-for-you?limit=14${catQuery}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.items && data.items.length) {
+            registerSongs(data.items.map(it => ({ ...it.song, reason: it.reason, score: it.score, cluster_id: it.cluster_id })));
+            const recSongs = data.items.map(it => {
+              const sid = String(it.song.id);
+              const found = songById.get(sid);
+              if (found) {
+                found.reason = it.reason;
+                found.score = it.score;
+                return found;
+              }
+              return normalizeApiSong({ ...it.song, reason: it.reason, score: it.score, cluster_id: it.cluster_id });
+            }).filter(Boolean);
+
+            container.innerHTML = recSongs.map(s => mediaCard(songToCard(s))).join("");
+            bindAllSongCards(container);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Home AI recommendations fetch error:", err);
+      }
+      // Smart category fallback if backend API is not responding
+      let fallback = SONGS;
+      if (category === "romantic") fallback = romanticSongs.length ? romanticSongs : SONGS.filter(s => s.theme === "romantic");
+      else if (category === "workout") fallback = workoutSongs.length ? workoutSongs : SONGS.filter(s => s.theme === "workout");
+      else if (category === "party") fallback = partySongs.length ? partySongs : SONGS.filter(s => s.theme === "party");
+      else if (category === "lofi") fallback = lofiSongs.length ? lofiSongs : SONGS.filter(s => s.theme === "indie_lofi");
+      else if (category === "punjabi") fallback = punjabiSongs.length ? punjabiSongs : SONGS.filter(s => s.theme === "punjabi");
+      else if (category === "bollywood") fallback = bollywoodSongs.length ? bollywoodSongs : SONGS.filter(s => s.theme === "bollywood_hits");
+      else fallback = SONGS.slice(0, 14);
+
+      container.innerHTML = fallback.slice(0, 14).map(s => {
+        const card = songToCard(s);
+        card.score = 0.95;
+        card.reason = category === "romantic" ? "Soulful Bollywood romance for your mood"
+          : category === "workout" ? "Gym motivation & 120+ BPM energy"
+          : category === "party" ? "Club anthem & party banger"
+          : category === "lofi" ? "Sukoon & relaxing lo-fi textures"
+          : category === "punjabi" ? "Top urban Punjabi swag"
+          : category === "bollywood" ? "Blockbuster Bollywood anthem"
+          : "Recommended based on your taste";
+        return mediaCard(card);
+      }).join("");
+      bindAllSongCards(container);
+    }
+    loadHomeAiRecs();
+
+    // Bind Home Made For You category pills
+    elDOM.view.querySelectorAll("#homeMfyPills .mfy-pill").forEach((pill) => {
+      pill.addEventListener("click", () => {
+        elDOM.view.querySelectorAll("#homeMfyPills .mfy-pill").forEach((p) => p.classList.remove("active"));
+        pill.classList.add("active");
+        const cat = pill.dataset.category || "all";
+        const row = elDOM.view.querySelector("#aiRecsScrollRow");
+        if (row) {
+          row.scrollLeft = 0;
+          row.innerHTML = skeletonCards(6);
+        }
+        loadHomeAiRecs(cat);
+      });
+    });
+
+    async function loadHomeNewReleases() {
+      const container = elDOM.view.querySelector("#homeNewReleasesRow");
+      if (!container) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/new-releases?limit=12`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length) {
+            registerSongs(data);
+            const cards = data.map((s) => {
+              const sid = String(s.id);
+              const found = songById.get(sid);
+              if (found) {
+                if (s.release_date || s.releaseDate) found.releaseDate = s.release_date || s.releaseDate;
+                if (s.release_year || s.releaseYear) found.releaseYear = s.release_year || s.releaseYear;
+              }
+              const item = found || normalizeApiSong(s);
+              return songToCard(item);
+            });
+            container.innerHTML = cards.map(c => mediaCard(c)).join("");
+            bindAllSongCards(container);
+          }
+        }
+      } catch (err) {
+        console.warn("Home new releases fetch error:", err);
+      }
+    }
+    loadHomeNewReleases();
 
     // Bind all remaining song/artist card grids
     bindAllSongCards(elDOM.view);
@@ -2031,13 +2750,15 @@
   }
 
   function songToCard(song) {
-    if (!song) return { art: "logo.png", title: "Unknown", sub: "", id: "" };
+    if (!song) return { art: "assets/music-cover.svg", title: "Unknown", sub: "", id: "" };
     return {
       kind: "song",
-      art: song.albumArt,
+      art: song.albumArt || "assets/music-cover.svg",
       title: song.title,
       sub: song.artist,
       id: song.id,
+      reason: song.reason,
+      score: song.score,
     };
   }
   function albumToCard(album) {
@@ -2058,7 +2779,9 @@
       if (fab) {
         fab.addEventListener("click", (e) => {
           e.stopPropagation();
-          if (pl.songIds.length) {
+          if (state.currentSongId && pl.songIds.includes(state.currentSongId)) {
+            togglePlay();
+          } else if (pl.songIds.length) {
             playQueue(pl.songIds, 0);
             toast(`Playing ${pl.name}`);
           }
@@ -2112,7 +2835,7 @@
 
   // Generic binding — finds all media-cards and sets up playback & customizer
   function bindAllSongCards(container) {
-    container.querySelectorAll(".card-grid .media-card, .popular-singers-shelf .media-card").forEach((card) => {
+    container.querySelectorAll(".media-card").forEach((card) => {
       // Skip if it's an artist card (round art) or album card
       if (card.querySelector(".art-wrap.round") || card.dataset.kind === "artist" || card.dataset.kind === "album") return;
 
@@ -2143,14 +2866,22 @@
       if (fab) {
         fab.addEventListener("click", (e) => {
           e.stopPropagation();
-          playQueue([song.id], 0);
+          if (state.currentSongId === song.id) {
+            togglePlay();
+          } else {
+            playQueue([song.id], 0);
+          }
         });
       }
 
       // Card body click
       card.addEventListener("click", (e) => {
         if (e.target.closest(".play-fab") || e.target.closest(".card-edit-btn")) return;
-        openSongContext(song);
+        if (state.currentSongId === song.id) {
+          togglePlay();
+        } else {
+          openSongContext(song);
+        }
       });
     });
   }
@@ -2201,13 +2932,15 @@
   let searchDebounceTimer = null;
 
   function pageSearch(query) {
-    query = (query || "").trim();
+    const globalIn = document.getElementById("globalSearchInput");
+    const rawQuery = (query != null ? String(query) : (globalIn ? globalIn.value : "")) || "";
     let activeFilter = "All";
 
-    const globalIn = document.getElementById("globalSearchInput");
-    if (globalIn && query && globalIn.value !== query) {
-      globalIn.value = query;
+    if (globalIn && document.activeElement !== globalIn && globalIn.value !== rawQuery) {
+      globalIn.value = rawQuery;
     }
+
+    const shouldAutofocus = document.activeElement !== globalIn;
 
     elDOM.view.innerHTML = `
       <div class="view-header"><h1>Search</h1></div>
@@ -2215,14 +2948,14 @@
       <div class="search-page-bar-wrap">
         <div class="search-page-bar">
           <i class="fa-solid fa-magnifying-glass search-page-icon"></i>
-          <input type="text" id="pageSearchInput" class="search-page-input" placeholder="What do you want to play? (Songs, artists, albums...)" value="${escapeHtml(query)}" autofocus />
-          <button class="search-clear-btn" id="searchClearBtn" aria-label="Clear search" style="${query ? '' : 'display:none;'}">
+          <input type="text" id="pageSearchInput" class="search-page-input" placeholder="What do you want to play? (Songs, artists, albums...)" value="${escapeHtml(rawQuery)}" ${shouldAutofocus ? 'autofocus' : ''} />
+          <button class="search-clear-btn" id="searchClearBtn" aria-label="Clear search" style="${rawQuery.trim() ? '' : 'display:none;'}">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
       </div>
 
-      <div class="filter-row" id="searchFilters" style="${query ? '' : 'display:none;'}">
+      <div class="filter-row" id="searchFilters" style="${rawQuery.trim() ? '' : 'display:none;'}">
         <button class="filter-pill active" data-filter="All">All</button>
         <button class="filter-pill" data-filter="Songs">Songs</button>
         <button class="filter-pill" data-filter="Artists">Artists</button>
@@ -2239,33 +2972,48 @@
     const filtersRow = document.getElementById("searchFilters");
 
     function executeSearch(q) {
-      query = (q || "").trim();
-      if (globalIn && globalIn.value !== query) globalIn.value = query;
-      if (pageIn && pageIn.value !== query) pageIn.value = query;
-      if (clearBtn) clearBtn.style.display = query ? "flex" : "none";
-      if (filtersRow) filtersRow.style.display = query ? "flex" : "none";
+      const rawText = q != null ? String(q) : "";
+      const trimmed = rawText.trim();
+      query = trimmed;
 
-      if (!query) {
+      // Synchronize counterpart input without modifying the active element or stripping spaces
+      if (globalIn && document.activeElement !== globalIn && globalIn.value !== rawText) {
+        globalIn.value = rawText;
+      }
+      if (pageIn && document.activeElement !== pageIn && pageIn.value !== rawText) {
+        pageIn.value = rawText;
+      }
+      if (clearBtn) clearBtn.style.display = trimmed ? "flex" : "none";
+      if (filtersRow) filtersRow.style.display = trimmed ? "flex" : "none";
+
+      if (!trimmed) {
         renderSearchLanding();
         return;
       }
 
-      const qLower = query.toLowerCase();
-      const matchSongs = SONGS.filter((s) =>
-        s.title.toLowerCase().includes(qLower) ||
-        s.artist.toLowerCase().includes(qLower) ||
-        s.album.toLowerCase().includes(qLower) ||
-        s.genre.toLowerCase().includes(qLower) ||
-        s.mood.toLowerCase().includes(qLower) ||
-        s.language.toLowerCase().includes(qLower)
-      );
-      const matchArtists = ARTISTS.filter((a) => a.name.toLowerCase().includes(qLower));
-      const matchAlbums = ALBUMS.filter((a) => a.title.toLowerCase().includes(qLower) || a.artist.toLowerCase().includes(qLower));
-      const matchPlaylists = state.playlists.filter((p) => p.name.toLowerCase().includes(qLower));
+      const qLower = trimmed.toLowerCase();
+      const tokens = qLower.split(/\s+/).filter(Boolean);
+
+      const matchSongs = SONGS.filter((s) => {
+        const full = `${s.title} ${s.artist} ${s.album} ${s.genre || ""} ${s.mood || ""} ${s.language || ""}`.toLowerCase();
+        return tokens.every((token) => full.includes(token));
+      });
+      const matchArtists = ARTISTS.filter((a) => {
+        const aName = a.name.toLowerCase();
+        return tokens.every((token) => aName.includes(token));
+      });
+      const matchAlbums = ALBUMS.filter((a) => {
+        const full = `${a.title} ${a.artist}`.toLowerCase();
+        return tokens.every((token) => full.includes(token));
+      });
+      const matchPlaylists = state.playlists.filter((p) => {
+        const pName = p.name.toLowerCase();
+        return tokens.every((token) => pName.includes(token));
+      });
 
       const noResults = !matchSongs.length && !matchArtists.length && !matchAlbums.length && !matchPlaylists.length;
       if (noResults) {
-        resultsEl.innerHTML = emptyState("fa-face-frown", `No results found for "${escapeHtml(query)}"`, "Please check your spelling, or try searching for another artist, song, or album.");
+        resultsEl.innerHTML = emptyState("fa-face-frown", `No results found for "${escapeHtml(trimmed)}"`, "Please check your spelling, or try searching for another artist, song, or album.");
         return;
       }
 
@@ -2279,7 +3027,7 @@
             <section class="section">
               <div class="section-head"><h2>Top Result</h2></div>
               <div class="search-top-result" data-top-song="${topSong.id}">
-                <img src="${topSong.albumArt}" alt="${escapeHtml(topSong.title)}" onerror="this.src='assets/logo.svg'" />
+                <img src="${topSong.albumArt}" alt="${escapeHtml(topSong.title)}" onerror="this.src='assets/music-cover.svg'" />
                 <div class="search-top-title">${escapeHtml(topSong.title)}</div>
                 <div class="search-top-sub">
                   <span class="search-top-type">Song</span>
@@ -2320,7 +3068,7 @@
       // Playlists section
       if (activeFilter === "All" || activeFilter === "Playlists") {
         if (matchPlaylists.length) {
-          html += sectionBlock(`Playlists (${matchPlaylists.length})`, `<div class="card-grid">${matchPlaylists.map((p) => mediaCard({ art: p.songIds[0] ? (songById.get(p.songIds[0]) || {}).albumArt || "assets/logo.svg" : "assets/logo.svg", title: p.name, sub: `${p.songIds.length} songs` })).join("")}</div>`);
+          html += sectionBlock(`Playlists (${matchPlaylists.length})`, `<div class="card-grid">${matchPlaylists.map((p) => mediaCard({ art: p.artSrc || (p.songIds[0] ? (songById.get(p.songIds[0]) || {}).albumArt || "assets/music-cover.svg" : "assets/music-cover.svg"), title: p.name, sub: `${p.songIds.length} songs` })).join("")}</div>`);
         }
       }
 
@@ -2392,6 +3140,9 @@
         }, 150);
       });
       pageIn.addEventListener("keydown", (e) => {
+        if (e.code === "Space" || e.key === " ") {
+          e.stopPropagation();
+        }
         if (e.key === "Enter") {
           clearTimeout(searchDebounceTimer);
           executeSearch(pageIn.value);
@@ -2424,6 +3175,11 @@
 
   // ---------------------------------------------------------------- Browse & Categories
   const CATEGORIES = [
+    {
+      name: "New Releases", c1: "#2563EB", c2: "#1E40AF", art: "covers/extracted/sp-247.jpg",
+      isNewRelease: true,
+      filter: (s) => (s.releaseYear >= 2024 || (s.releaseDate && s.releaseDate >= "2024"))
+    },
     {
       name: "Pop", c1: "#E8A33D", c2: "#C9793A", art: "covers/extracted/sp-4.jpg",
       filter: (s) => s.theme === "international" || (s.genre && s.genre.includes("Pop")) || s.mood === "Chill"
@@ -2582,7 +3338,7 @@
         <div class="category-tile-title">${escapeHtml(cat.name)}</div>
         <div class="category-tile-count">${count} tracks</div>
         <div class="category-tile-art-wrap">
-          <img src="${cat.art}" alt="${escapeHtml(cat.name)}" class="category-tile-art" loading="lazy" onerror="this.onerror=null;this.src='logo.png';" />
+          <img src="${cat.art}" alt="${escapeHtml(cat.name)}" class="category-tile-art" loading="lazy" onerror="this.onerror=null;this.src='assets/music-cover.svg';" />
         </div>
       </div>
     `;
@@ -2594,12 +3350,28 @@
         <h1>Browse All</h1>
         <p>Explore Omify songs, moods, and genres sculpted for every taste.</p>
       </div>
+      <div class="browse-hero-banner" style="background:linear-gradient(135deg,rgba(37,99,235,0.25) 0%,rgba(30,58,138,0.4) 100%);border:1px solid rgba(59,130,246,0.35);border-radius:16px;padding:24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.4);padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;color:#93c5fd;margin-bottom:8px;letter-spacing:0.04em;">
+            <i class="fa-solid fa-compact-disc"></i> MUSICBRAINZ OPEN CATALOG
+          </div>
+          <h2 style="font-size:1.6rem;font-weight:800;margin:0 0 6px 0;">New Releases</h2>
+          <p style="color:var(--text-sub);margin:0;max-width:520px;font-size:0.92rem;">Stream real-world latest singles, albums and drops powered by MusicBrainz & fresh catalog additions.</p>
+        </div>
+        <a href="#/new-releases" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:999px;font-weight:700;text-decoration:none;">
+          <i class="fa-solid fa-play"></i> Explore New Releases
+        </a>
+      </div>
       <div class="category-grid">
         ${CATEGORIES.map(categoryTileHtml).join("")}
       </div>
     `;
     elDOM.view.querySelectorAll(".category-tile").forEach((tile) => {
       tile.addEventListener("click", () => {
+        if (tile.dataset.cat === "New Releases") {
+          location.hash = "#/new-releases";
+          return;
+        }
         location.hash = `#/category/${encodeURIComponent(tile.dataset.cat)}`;
       });
     });
@@ -2624,7 +3396,7 @@
     elDOM.view.innerHTML = `
       <div class="detail-hero" style="background: linear-gradient(180deg, ${cat.c1}88 0%, rgba(18,18,18,0.9) 100%);">
         <div class="art-wrap" style="width:200px;height:200px;border-radius:var(--radius-md);overflow:hidden;flex:0 0 auto;box-shadow:0 16px 36px rgba(0,0,0,0.65);">
-          <img src="${cat.art}" alt="${escapeHtml(cat.name)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='logo.png'" />
+          <img src="${cat.art}" alt="${escapeHtml(cat.name)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='assets/music-cover.svg'" />
         </div>
         <div class="detail-hero-meta">
           <span class="kicker">Category</span>
@@ -2653,110 +3425,310 @@
   }
 
   // ---------------------------------------------------------------- Foreign Music
-  function pageForeign() {
-    const byLanguage = new Map();
-    SONGS.forEach((s) => {
-      if (!byLanguage.has(s.language)) byLanguage.set(s.language, []);
-      byLanguage.get(s.language).push(s);
-    });
+  async function pageForeign() {
     const flags = {
       English: "🇺🇸", Korean: "🇰🇷", Japanese: "🇯🇵", Spanish: "🇪🇸", French: "🇫🇷",
       Italian: "🇮🇹", German: "🇩🇪", Portuguese: "🇧🇷", Arabic: "🇦🇪", Turkish: "🇹🇷",
       Mandarin: "🇨🇳", Instrumental: "🎼",
     };
+
     elDOM.view.innerHTML = `
-      <div class="view-header"><h1>Foreign Music</h1><p>Discover songs from around the world.</p></div>
-      ${Array.from(byLanguage.entries()).map(([lang, songs]) => `
-        <div class="country-section">
-          <div class="country-head"><span class="country-flag">${flags[lang] || "🌐"}</span><h2>${escapeHtml(lang)}</h2><span style="margin-left:auto;color:var(--text-muted);font-size:0.82rem;">${songs.length} songs</span></div>
-          ${cardGridHtml(songs.slice(0, 8).map(songToCard))}
-        </div>
-      `).join("")}
+      <div class="view-header">
+        <h1>Foreign Music</h1>
+        <p>Discover international tracks categorized by language & region.</p>
+      </div>
+      <div id="foreignContent">${skeletonCards(8)}</div>
     `;
-    bindAllSongCards(elDOM.view);
     animatePageIn();
+
+    let byLanguage = new Map();
+    try {
+      const res = await fetch(`${API_BASE}/api/foreign-music?limit_per_lang=8`);
+      if (res.ok) {
+        const data = await res.json();
+        Object.entries(data).forEach(([lang, songs]) => {
+          registerSongs(songs);
+          const mapped = songs.map((s) => songById.get(String(s.id)) || normalizeApiSong(s)).filter(Boolean);
+          if (mapped.length) byLanguage.set(lang, mapped);
+        });
+      }
+    } catch (_) {}
+
+    if (!byLanguage.size) {
+      SONGS.forEach((s) => {
+        if (!byLanguage.has(s.language)) byLanguage.set(s.language, []);
+        byLanguage.get(s.language).push(s);
+      });
+    }
+
+    const container = document.getElementById("foreignContent");
+    if (!container) return;
+
+    container.innerHTML = Array.from(byLanguage.entries()).map(([lang, songs]) => `
+      <div class="country-section">
+        <div class="country-head">
+          <span class="country-flag">${flags[lang] || "🌐"}</span>
+          <h2>${escapeHtml(lang)}</h2>
+          <span style="margin-left:auto;color:var(--text-muted);font-size:0.82rem;">${songs.length} songs</span>
+        </div>
+        ${cardGridHtml(songs.slice(0, 8).map(songToCard))}
+      </div>
+    `).join("");
+
+    bindAllSongCards(container);
   }
 
   // ---------------------------------------------------------------- Trending
-  function pageTrending() {
-    const ranked = [...SONGS].sort((a, b) => b.playCount - a.playCount).slice(0, 50);
+  async function pageTrending() {
     elDOM.view.innerHTML = `
-      <div class="view-header"><h1>Trending</h1><p>The most played songs on Omify right now.</p></div>
+      <div class="view-header">
+        <h1>Trending</h1>
+        <p>The most played tracks on Omify right now, ranked by catalog popularity.</p>
+      </div>
       <div class="detail-actions">
         <button class="play-fab-lg" id="trendPlayAll" aria-label="Play all"><i class="fa-solid fa-play"></i></button>
         <button class="icon-btn" id="trendShuffle" aria-label="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
       </div>
-      <div id="trendList"></div>
+      <div id="trendList">${skeletonCards(6)}</div>
     `;
-    renderTrackList(document.getElementById("trendList"), ranked.map((s) => s.id), { rank: true });
-    document.getElementById("trendPlayAll").addEventListener("click", () => playQueue(ranked.map(s => s.id), 0));
-    document.getElementById("trendShuffle").addEventListener("click", () => {
-      state.shuffle = true; elDOM.shuffleBtn.classList.add("active");
+    animatePageIn();
+
+    let ranked = [];
+    try {
+      const res = await fetch(`${API_BASE}/api/trending?limit=50`);
+      if (res.ok) {
+        const data = await res.json();
+        registerSongs(data);
+        ranked = data.map((s) => songById.get(String(s.id)) || normalizeApiSong(s)).filter(Boolean);
+      }
+    } catch (_) {}
+
+    if (!ranked.length) {
+      ranked = [...SONGS].sort((a, b) => b.playCount - a.playCount).slice(0, 50);
+    }
+
+    const listEl = document.getElementById("trendList");
+    if (!listEl) return;
+
+    renderTrackList(listEl, ranked.map((s) => s.id), { rank: true });
+    const playAll = document.getElementById("trendPlayAll");
+    if (playAll) playAll.addEventListener("click", () => playQueue(ranked.map(s => s.id), 0));
+    const shuffle = document.getElementById("trendShuffle");
+    if (shuffle) shuffle.addEventListener("click", () => {
+      state.shuffle = true;
+      elDOM.shuffleBtn.classList.add("active");
       playQueue(ranked.map(s => s.id), Math.floor(Math.random() * ranked.length));
     });
-    animatePageIn();
   }
 
   // ---------------------------------------------------------------- New Releases
-  function pageNewReleases() {
-    const sorted = [...SONGS].sort((a, b) => b.releaseYear - a.releaseYear);
+  async function pageNewReleases() {
     elDOM.view.innerHTML = `
-      <div class="view-header"><h1>New Releases</h1><p>Freshest additions to the Omify catalog.</p></div>
+      <div class="view-header">
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);padding:2px 9px;border-radius:12px;font-size:0.7rem;font-weight:700;color:#60a5fa;margin-bottom:6px;letter-spacing:0.04em;">
+          <i class="fa-solid fa-compact-disc"></i> MUSICBRAINZ OPEN CATALOG
+        </div>
+        <h1>New Releases</h1>
+        <p>Real-world drops by your favorite artists powered by MusicBrainz & Cover Art Archive.</p>
+      </div>
       <div class="detail-actions">
         <button class="play-fab-lg" id="newPlayAll" aria-label="Play all"><i class="fa-solid fa-play"></i></button>
       </div>
-      <div id="newList"></div>
+      <div id="newList">${skeletonCards(6)}</div>
     `;
-    renderTrackList(document.getElementById("newList"), sorted.map((s) => s.id));
-    document.getElementById("newPlayAll").addEventListener("click", () => playQueue(sorted.map(s => s.id), 0));
     animatePageIn();
+
+    let sorted = [];
+    try {
+      const res = await fetch(`${API_BASE}/api/new-releases?limit=50`);
+      if (res.ok) {
+        const data = await res.json();
+        registerSongs(data);
+        sorted = data.map((s) => {
+          const sid = String(s.id);
+          const found = songById.get(sid);
+          if (found) {
+            if (s.release_date || s.releaseDate) found.releaseDate = s.release_date || s.releaseDate;
+            if (s.release_year || s.releaseYear) found.releaseYear = s.release_year || s.releaseYear;
+            return found;
+          }
+          return normalizeApiSong(s);
+        }).filter(Boolean);
+      }
+    } catch (_) {}
+
+    if (!sorted.length) {
+      sorted = [...SONGS].sort((a, b) => b.releaseYear - a.releaseYear);
+    }
+
+    const listEl = document.getElementById("newList");
+    if (!listEl) return;
+
+    const attributions = {};
+    sorted.forEach((s) => {
+      if (s.releaseDate) {
+        attributions[s.id] = `Released: ${s.releaseDate}`;
+      } else if (s.releaseYear) {
+        attributions[s.id] = `Year: ${s.releaseYear}`;
+      }
+    });
+
+    renderTrackList(listEl, sorted.map((s) => s.id), { attributions });
+    const playAll = document.getElementById("newPlayAll");
+    if (playAll) playAll.addEventListener("click", () => playQueue(sorted.map(s => s.id), 0));
   }
 
   // ---------------------------------------------------------------- Made For You
-  function pageMadeForYou() {
-    // simple client-side recommendation: weight by liked genres/languages, then recent plays
-    const likedSongs = Array.from(state.favorites).map((id) => songById.get(id)).filter(Boolean);
-    const recentSongs = state.recent.map((r) => songById.get(r.songId)).filter(Boolean);
-    const signal = [...likedSongs, ...recentSongs];
-
-    let recs;
-    if (!signal.length) {
-      recs = [...SONGS].sort((a, b) => b.playCount - a.playCount).slice(0, 24);
-    } else {
-      const genreCount = {}, langCount = {}, moodCount = {};
-      signal.forEach((s) => {
-        genreCount[s.genre] = (genreCount[s.genre] || 0) + 1;
-        langCount[s.language] = (langCount[s.language] || 0) + 1;
-        moodCount[s.mood] = (moodCount[s.mood] || 0) + 1;
-      });
-      const likedIds = new Set(likedSongs.map((s) => s.id));
-      recs = [...SONGS]
-        .filter((s) => !likedIds.has(s.id))
-        .map((s) => ({
-          s,
-          score: (genreCount[s.genre] || 0) * 3 + (langCount[s.language] || 0) * 2 + (moodCount[s.mood] || 0) + s.playCount / 1000000
-        }))
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 24)
-        .map((x) => x.s);
-    }
-
+  async function pageMadeForYou() {
     elDOM.view.innerHTML = `
-      <div class="view-header"><h1>Made For You</h1><p>Recommendations based on what you play and like.</p></div>
+      <div class="view-header" style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h1>Made For You</h1>
+          <p style="margin:4px 0 0 0;color:var(--text-sub);font-size:0.9rem;">
+            <span style="color:var(--signal);font-weight:600;"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px;"></i>ML Recommendation Engine</span>
+            · Personalized neural recommendations sculpted for your taste &amp; mood
+          </p>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="refreshModelBtn" title="Retrain and refresh the recommendation engine" style="display:inline-flex;align-items:center;gap:6px;border-radius:999px;">
+          <i class="fa-solid fa-arrows-rotate"></i> Retrain Model
+        </button>
+      </div>
+
+      <div class="mfy-shelf-pills" id="pageMfyPills" style="margin: 12px 0 16px 0;">
+        <button class="mfy-pill active" data-category="all"><i class="fa-solid fa-wand-magic-sparkles"></i> All Recommendations</button>
+        <button class="mfy-pill" data-category="romantic"><i class="fa-solid fa-heart" style="color:#ec4899;"></i> Romance &amp; Love</button>
+        <button class="mfy-pill" data-category="workout"><i class="fa-solid fa-dumbbell" style="color:#06b6d4;"></i> Gym &amp; Workout</button>
+        <button class="mfy-pill" data-category="party"><i class="fa-solid fa-compact-disc" style="color:#eab308;"></i> Party &amp; Club</button>
+        <button class="mfy-pill" data-category="lofi"><i class="fa-solid fa-headphones" style="color:#10b981;"></i> Lo-Fi &amp; Sukoon</button>
+        <button class="mfy-pill" data-category="punjabi"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Punjabi &amp; Swag</button>
+        <button class="mfy-pill" data-category="bollywood"><i class="fa-solid fa-film" style="color:#e11d48;"></i> Bollywood Hits</button>
+      </div>
+
       <div class="detail-actions">
         <button class="play-fab-lg" id="mfyPlayAll" aria-label="Play all"><i class="fa-solid fa-play"></i></button>
         <button class="icon-btn" id="mfyShuffle" aria-label="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
       </div>
-      <div id="mfyList" class="card-grid"></div>
+      <div id="mfyList" class="card-grid">${skeletonCards(12)}</div>
     `;
-    document.getElementById("mfyList").innerHTML = recs.map(songToCard).map(c => mediaCard(c)).join("");
-    bindAllSongCards(elDOM.view);
-    document.getElementById("mfyPlayAll").addEventListener("click", () => playQueue(recs.map(s => s.id), 0));
-    document.getElementById("mfyShuffle").addEventListener("click", () => {
-      state.shuffle = true; elDOM.shuffleBtn.classList.add("active");
-      playQueue(recs.map(s => s.id), Math.floor(Math.random() * recs.length));
-    });
     animatePageIn();
+
+    const refreshBtn = document.getElementById("refreshModelBtn");
+    if (refreshBtn) {
+      refreshBtn.addEventListener("click", async () => {
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Training...';
+        try {
+          const r = await fetch(`${API_BASE}/api/recommendations/refresh`, { method: "POST" });
+          if (r.ok) {
+            toast("✨ ML Recommendation model retrained successfully!");
+          }
+        } catch (_) {}
+        refreshBtn.disabled = false;
+        refreshBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Retrain Model';
+        pageMadeForYou();
+      });
+    }
+
+    let activeRecs = [];
+
+    async function fetchAndRenderMfy(category = "all") {
+      const listEl = document.getElementById("mfyList");
+      if (!listEl) return;
+      listEl.innerHTML = skeletonCards(8);
+
+      let recs = [];
+      try {
+        const catQuery = (!category || category === "all") ? "" : `&category=${encodeURIComponent(category)}`;
+        const res = await fetch(`${API_BASE}/api/made-for-you?limit=30${catQuery}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.items && data.items.length) {
+            registerSongs(data.items.map((it) => ({
+              ...it.song,
+              reason: it.reason,
+              score: it.score,
+              cluster_id: it.cluster_id,
+            })));
+            recs = data.items.map((it) => {
+              const sid = String(it.song.id);
+              const found = songById.get(sid);
+              if (found) {
+                found.reason = it.reason;
+                found.score = it.score;
+                return found;
+              }
+              return normalizeApiSong({ ...it.song, reason: it.reason, score: it.score, cluster_id: it.cluster_id });
+            }).filter(Boolean);
+          }
+        }
+      } catch (_) {}
+
+      // Fallback matching category if backend API is not responding
+      if (!recs.length) {
+        let pool = SONGS;
+        if (category === "romantic") pool = SONGS.filter(s => s.theme === "romantic" || /love|pyaar|ishq|arijit|pritam|atif/i.test(s.title + " " + s.artist));
+        else if (category === "workout") pool = SONGS.filter(s => s.theme === "workout" || (s.bpm && s.bpm >= 120));
+        else if (category === "party") pool = SONGS.filter(s => s.theme === "party" || s.mood === "Energetic");
+        else if (category === "lofi") pool = SONGS.filter(s => s.theme === "indie_lofi" || s.mood === "Sukoon");
+        else if (category === "punjabi") pool = SONGS.filter(s => s.theme === "punjabi" || (s.language && s.language.toLowerCase() === "punjabi"));
+        else if (category === "bollywood") pool = SONGS.filter(s => s.theme === "bollywood_hits" || s.genre === "Bollywood");
+        else {
+          const likedSongs = Array.from(state.favorites).map((id) => songById.get(id)).filter(Boolean);
+          const recentSongs = state.recent.map((r) => songById.get(r.songId)).filter(Boolean);
+          const signal = [...likedSongs, ...recentSongs];
+          if (!signal.length) {
+            pool = [...SONGS].sort((a, b) => b.playCount - a.playCount);
+          } else {
+            const genreCount = {};
+            signal.forEach((s) => { genreCount[s.genre] = (genreCount[s.genre] || 0) + 1; });
+            const likedIds = new Set(likedSongs.map((s) => s.id));
+            pool = [...SONGS].filter((s) => !likedIds.has(s.id)).sort((a, b) => (genreCount[b.genre] || 0) - (genreCount[a.genre] || 0));
+          }
+        }
+        recs = pool.slice(0, 24).map(s => {
+          const c = { ...s };
+          c.score = 0.94;
+          c.reason = category === "romantic" ? "Soulful Bollywood romance for your mood"
+            : category === "workout" ? "Gym motivation & high-octane energy"
+            : category === "party" ? "Club anthem & party banger"
+            : category === "lofi" ? "Sukoon & relaxing lo-fi textures"
+            : category === "punjabi" ? "Top urban Punjabi drop & swagger"
+            : category === "bollywood" ? "Blockbuster Bollywood soundtrack anthem"
+            : "Personalized recommendation";
+          return c;
+        });
+      }
+
+      activeRecs = recs;
+      listEl.innerHTML = recs.map(songToCard).map((c) => mediaCard(c)).join("");
+      bindAllSongCards(elDOM.view);
+    }
+
+    // Initial load
+    fetchAndRenderMfy("all");
+
+    // Bind Category filter pills
+    elDOM.view.querySelectorAll("#pageMfyPills .mfy-pill").forEach((pill) => {
+      pill.addEventListener("click", () => {
+        elDOM.view.querySelectorAll("#pageMfyPills .mfy-pill").forEach((p) => p.classList.remove("active"));
+        pill.classList.add("active");
+        const cat = pill.dataset.category || "all";
+        fetchAndRenderMfy(cat);
+      });
+    });
+
+    const playAll = document.getElementById("mfyPlayAll");
+    if (playAll) playAll.addEventListener("click", () => {
+      if (activeRecs.length) playQueue(activeRecs.map(s => s.id), 0);
+    });
+    const shuffle = document.getElementById("mfyShuffle");
+    if (shuffle) shuffle.addEventListener("click", () => {
+      if (activeRecs.length) {
+        state.shuffle = true;
+        elDOM.shuffleBtn.classList.add("active");
+        playQueue(activeRecs.map(s => s.id), Math.floor(Math.random() * activeRecs.length));
+      }
+    });
   }
 
   // ---------------------------------------------------------------- Favorites
@@ -2944,8 +3916,8 @@
     const grid = document.getElementById("playlistGrid");
     state.playlists.forEach((p) => {
       const card = document.createElement("div");
-      const artSrc = p.songIds[0] && songById.get(p.songIds[0]) ? songById.get(p.songIds[0]).albumArt : "logo.png";
-      card.innerHTML = mediaCard({ art: artSrc, title: p.name, sub: `${p.songIds.length} songs` });
+      const artSrc = p.artSrc || (p.songIds[0] && songById.get(p.songIds[0]) ? songById.get(p.songIds[0]).albumArt : "assets/music-cover.svg");
+      card.innerHTML = mediaCard({ art: artSrc, title: p.name, sub: `${p.songIds.length} songs`, id: p.id, kind: "playlist" });
       const node = card.firstElementChild;
       node.addEventListener("click", (e) => {
         if (e.target.closest(".play-fab")) return;
@@ -2997,6 +3969,16 @@
 
   // ---------------------------------------------------------------- Playlist Details
   function pagePlaylistDetails(id) {
+    if (id === "1098" || id === "1098-songs") id = "pl-all-1098-songs";
+    if (id === "pl-london-thumakda") id = "pl-aaj-ki-raat";
+    if (id === "pl-bolna") id = "pl-dil-na-jaaneya";
+    if (id === "pl-dildaara") id = "pl-raabta";
+    if (id === "pl-tera-fitoor") id = "pl-enna-sona";
+    if (id === "pl-chor-bazaari") id = "pl-matargashti";
+    if (id === "taste-daily-1") id = "taste-romantic";
+    if (id === "taste-daily-2") id = "taste-punjabi";
+    if (id === "taste-daily-3") id = "taste-party";
+    if (id === "taste-daily-4") id = "taste-nostalgia";
     let playlist = state.playlists.find((p) => p.id === id);
     let isCuratedTaste = false;
     let curatedDef = null;
@@ -3013,22 +3995,23 @@
 
     if (!playlist) return pageNotFound();
 
+    const isMasterVault = playlist.id === "pl-all-1098-songs";
     const isSavedInLibrary = state.playlists.some((p) => p.name === playlist.name);
     const topSongs = (playlist.songIds || []).slice(0, 4).map((sid) => songById.get(sid)).filter(Boolean);
-    const artSrc = playlist.artSrc || (playlist.songIds[0] && songById.get(playlist.songIds[0]) ? songById.get(playlist.songIds[0]).albumArt : "logo.png");
+    const artSrc = playlist.artSrc || (playlist.songIds[0] && songById.get(playlist.songIds[0]) ? songById.get(playlist.songIds[0]).albumArt : "assets/music-cover.svg");
 
     const heroArts = (playlist.topArts && playlist.topArts.length >= 4)
       ? playlist.topArts
-      : topSongs.map(s => s.albumArt || "logo.png");
+      : topSongs.map(s => s.albumArt || "assets/music-cover.svg");
     while (heroArts.length < 4) heroArts.push(artSrc);
 
     const heroArtHtml = (isCuratedTaste && heroArts.length >= 4)
       ? `<div class="art-wrap taste-hero-mosaic-wrap">
           <div class="taste-mosaic-grid">
-            <div class="taste-mosaic-cell cell-1"><img src="${heroArts[0]}" alt="" loading="lazy" onerror="this.src='logo.png'" /></div>
-            <div class="taste-mosaic-cell cell-2"><img src="${heroArts[1]}" alt="" loading="lazy" onerror="this.src='logo.png'" /></div>
-            <div class="taste-mosaic-cell cell-3"><img src="${heroArts[2]}" alt="" loading="lazy" onerror="this.src='logo.png'" /></div>
-            <div class="taste-mosaic-cell cell-4"><img src="${heroArts[3]}" alt="" loading="lazy" onerror="this.src='logo.png'" /></div>
+            <div class="taste-mosaic-cell cell-1"><img src="${heroArts[0]}" alt="" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
+            <div class="taste-mosaic-cell cell-2"><img src="${heroArts[1]}" alt="" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
+            <div class="taste-mosaic-cell cell-3"><img src="${heroArts[2]}" alt="" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
+            <div class="taste-mosaic-cell cell-4"><img src="${heroArts[3]}" alt="" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
           </div>
           <div class="taste-art-overlay"></div>
           <div class="taste-eq-anim">
@@ -3050,9 +4033,14 @@
       <div class="detail-hero">
         ${heroArtHtml}
         <div class="detail-hero-meta">
-          <span class="kicker">${isCuratedTaste ? "Curated Taste Mix" : "Playlist"}</span>
+          <span class="kicker">${isMasterVault ? '<i class="fa-solid fa-crown" style="color:#f59e0b;margin-right:6px;"></i>Master Flagship Playlist' : playlist.isBlend ? '<i class="fa-solid fa-wand-magic-sparkles" style="color:var(--signal);margin-right:6px;"></i>Spotify Blend' : isCuratedTaste ? "Category Collection" : "Playlist"}</span>
           <h1>${escapeHtml(playlist.name)}</h1>
           <div class="sub">${escapeHtml(playlist.description || playlist.subtitle || "")}</div>
+          ${playlist.isBlend ? `
+            <div class="blend-taste-pill" style="display:inline-flex;align-items:center;gap:8px;background:rgba(30,215,96,0.12);border:1px solid rgba(30,215,96,0.35);color:var(--signal);padding:5px 12px;border-radius:999px;font-size:0.82rem;font-weight:700;margin:6px 0;width:fit-content;">
+              <i class="fa-solid fa-heart-pulse"></i> ${playlist.blendMatchPct || 92}% Taste Match · ${escapeHtml(state.profile?.username || "Om Soni")} &amp; ${escapeHtml(playlist.blendFriend || "Friend")}
+            </div>
+          ` : ""}
           <div class="sub">${playlist.songIds.length} songs · ${fmtDurationLong(totalDuration(playlist.songIds))}</div>
         </div>
       </div>
@@ -3064,19 +4052,36 @@
             <i class="fa-solid ${isSavedInLibrary ? 'fa-check' : 'fa-plus'}"></i>
             <span>${isSavedInLibrary ? 'Saved in Library' : 'Save to Library'}</span>
           </button>
+        ` : isMasterVault ? `
+          <button class="home-action-btn secondary" id="masterShuffleBtn" style="margin-left:4px;">
+            <i class="fa-solid fa-shuffle"></i>
+            <span>Shuffle 1,098 Songs</span>
+          </button>
         ` : `
           <button class="text-btn" id="renameBtn"><i class="fa-solid fa-pen" style="margin-right:4px;"></i>Rename</button>
           <button class="text-btn danger" id="deleteBtn"><i class="fa-solid fa-trash" style="margin-right:4px;"></i>Delete</button>
         `}
       </div>
+      ${playlist.songIds.length > 30 ? `
+        <div class="playlist-search-wrap" style="margin: 16px 0 20px 0; max-width: 380px; position: relative;">
+          <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; pointer-events: none;"></i>
+          <input type="text" id="plSearchInput" placeholder="Search within ${playlist.songIds.length} songs..." style="width: 100%; padding: 9px 14px 9px 38px; border-radius: 999px; border: 1px solid var(--border-subtle); background: var(--surface-raised); color: var(--text); font-size: 0.88rem; outline: none; transition: border-color var(--transition-fast);" />
+        </div>
+      ` : ""}
       <div id="plTracks"></div>
     `;
 
-    function renderTracks() {
-      renderTrackList(document.getElementById("plTracks"), playlist.songIds, {
-        emptyIcon: "fa-music", emptyTitle: "This playlist is empty", emptyBody: "Add songs from any album or search result.",
+    let currentFilteredSongIds = playlist.songIds.slice();
+
+    function renderTracks(idsToRender) {
+      const activeIds = idsToRender || currentFilteredSongIds;
+      renderTrackList(document.getElementById("plTracks"), activeIds, {
+        emptyIcon: "fa-music",
+        emptyTitle: activeIds.length === 0 ? "No matching songs found" : "This playlist is empty",
+        emptyBody: activeIds.length === 0 ? "Try searching for another song title or artist in this playlist." : "Add songs from any album or search result.",
+        attributions: playlist.attributions || null
       });
-      if (!isCuratedTaste) {
+      if (!isCuratedTaste && !isMasterVault) {
         // add remove-from-playlist affordance
         document.querySelectorAll("#plTracks .track-row").forEach((row) => {
           const removeBtn = document.createElement("button");
@@ -3087,6 +4092,7 @@
             e.stopPropagation();
             playlist.songIds = playlist.songIds.filter((sid) => sid !== row.dataset.songId);
             persistPlaylists();
+            currentFilteredSongIds = currentFilteredSongIds.filter((sid) => sid !== row.dataset.songId);
             renderTracks();
           });
           const actionsEl = row.querySelector(".track-actions");
@@ -3095,6 +4101,36 @@
       }
     }
     renderTracks();
+
+    const plSearch = document.getElementById("plSearchInput");
+    if (plSearch) {
+      plSearch.addEventListener("input", () => {
+        const q = plSearch.value.trim().toLowerCase();
+        if (!q) {
+          currentFilteredSongIds = playlist.songIds.slice();
+        } else {
+          currentFilteredSongIds = playlist.songIds.filter((sid) => {
+            const s = songById.get(sid);
+            if (!s) return false;
+            return (s.title || "").toLowerCase().includes(q) ||
+                   (s.artist || "").toLowerCase().includes(q) ||
+                   (s.album || "").toLowerCase().includes(q);
+          });
+        }
+        renderTracks(currentFilteredSongIds);
+      });
+    }
+
+    const masterShuffle = document.getElementById("masterShuffleBtn");
+    if (masterShuffle) {
+      masterShuffle.addEventListener("click", () => {
+        if (!playlist.songIds.length) return;
+        state.shuffle = true;
+        if (elDOM.shuffleBtn) elDOM.shuffleBtn.classList.add("active");
+        playQueue(playlist.songIds, Math.floor(Math.random() * playlist.songIds.length));
+        toast("Shuffling all 1,098 songs!");
+      });
+    }
 
     document.getElementById("playAllBtn").addEventListener("click", () => playlist.songIds.length && playQueue(playlist.songIds, 0));
     document.getElementById("shuffleBtn2").addEventListener("click", () => {
@@ -3213,7 +4249,7 @@
         <div class="about-hero-card">
           <div class="about-brand-row">
             <div class="about-brand-icon-wrap">
-              <img src="logo.png" alt="Spotify" class="about-brand-logo" />
+              <img src="assets/logo.svg" alt="Omify" class="about-brand-logo" />
               <span class="about-status-indicator" title="Audio Engine Online"></span>
             </div>
             <div style="flex:1;min-width:0;">
@@ -3419,7 +4455,7 @@
   function updateTopbarProfileUI() {
     const topbarProfileBtn = document.getElementById("topbarProfileBtn");
     if (topbarProfileBtn) {
-      const avatarSrc = state.profile.avatar || "logo.png";
+      const avatarSrc = state.profile.avatar || "assets/logo.svg";
       topbarProfileBtn.innerHTML = `<img src="${avatarSrc}" alt="${escapeHtml(state.profile.username || 'Profile')}" class="topbar-avatar-img" />`;
       topbarProfileBtn.classList.add("has-avatar-img");
     }
@@ -3427,7 +4463,7 @@
     const profileDropdown = document.getElementById("profileDropdown");
     if (profileDropdown) {
       let ddHeader = profileDropdown.querySelector(".profile-dropdown-header");
-      const avatarSrc = state.profile.avatar || "logo.png";
+      const avatarSrc = state.profile.avatar || "assets/logo.svg";
       const headerContent = `
         <img src="${avatarSrc}" class="profile-dd-avatar" alt="User Avatar" />
         <div class="profile-dd-meta">
@@ -3453,7 +4489,7 @@
   function openEditProfileModal() {
     const backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
-    let workingAvatar = state.profile.avatar || "logo.png";
+    let workingAvatar = state.profile.avatar || "assets/logo.svg";
     let initialBio = state.profile.bio || "";
 
     const presetsHtml = AVATAR_PRESETS.map((p) => {
@@ -3560,7 +4596,7 @@
     });
 
     modalRemoveBtn.addEventListener("click", () => {
-      workingAvatar = "logo.png";
+      workingAvatar = "assets/logo.svg";
       modalPreviewImg.src = workingAvatar;
       presetsList.querySelectorAll(".avatar-preset-btn").forEach((b) => {
         b.classList.remove("active");
@@ -3628,7 +4664,7 @@
     const topGenres = Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([g]) => g);
     const topLangs = Object.entries(langCount).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([l]) => l);
 
-    const avatarSrc = state.profile.avatar || "logo.png";
+    const avatarSrc = state.profile.avatar || "assets/logo.svg";
 
     elDOM.view.innerHTML = `
       <div class="detail-hero round profile-hero">
@@ -3816,11 +4852,13 @@
     };
 
     function renderSongCard(s) {
+      const isCurrent = Boolean(s.id === state.currentSongId);
+      const isCurrentPlaying = isCurrent && state.isPlaying;
       return `
-        <div class="catalog-song-card" data-song-id="${s.id}">
+        <div class="catalog-song-card ${isCurrent ? "playing" : ""} ${isCurrentPlaying ? "active-playing" : ""}" data-song-id="${s.id}">
           <div class="catalog-card-art-wrap">
-            <img src="${s.albumArt}" alt="${escapeHtml(s.title)}" loading="lazy" onerror="this.src='logo.png'" />
-            <button class="play-fab" aria-label="Play ${escapeHtml(s.title)}"><i class="fa-solid fa-play"></i></button>
+            <img src="${s.albumArt}" alt="${escapeHtml(s.title)}" loading="lazy" onerror="this.src='assets/music-cover.svg'" />
+            <button class="play-fab" aria-label="${isCurrentPlaying ? "Pause" : "Play"} ${escapeHtml(s.title)}"><i class="fa-solid ${isCurrentPlaying ? "fa-pause" : "fa-play"}"></i></button>
           </div>
           <div class="catalog-card-title" title="${escapeHtml(s.title)}">${escapeHtml(s.title)}</div>
           <div class="catalog-card-sub" title="${escapeHtml(s.artist)}">${escapeHtml(s.artist)}</div>
@@ -3874,15 +4912,15 @@
               <i class="fa-solid fa-compact-disc" style="color:var(--signal);"></i> All (${SONGS.length})
             </button>
             ${genreOrder.map(([g, gSongs]) => {
-              const icon = genreIcons[g] || "fa-music";
-              const color = genreColors[g] || "#1ED760";
-              const slug = g.toLowerCase().replace(/[^a-z0-9]/g, "-");
-              return `
+          const icon = genreIcons[g] || "fa-music";
+          const color = genreColors[g] || "#1ED760";
+          const slug = g.toLowerCase().replace(/[^a-z0-9]/g, "-");
+          return `
                 <button class="catalog-nav-pill" data-genre-target="${slug}" data-genre-name="${escapeHtml(g)}">
                   <i class="fa-solid ${icon}" style="color:${color};"></i> ${escapeHtml(g)} (${gSongs.length})
                 </button>
               `;
-            }).join("")}
+        }).join("")}
           </div>
         `;
 
@@ -3903,13 +4941,13 @@
             <h2 class="catalog-section-title"><i class="fa-solid fa-layer-group" style="color:var(--signal);"></i> Browse by Genre</h2>
             <div class="catalog-genre-grid">
               ${genreOrder.map(([genre, songs]) => {
-                const color = genreColors[genre] || "#1ED760";
-                const icon = genreIcons[genre] || "fa-music";
-                const topSong = songs.sort((a, b) => b.playCount - a.playCount)[0];
-                const slug = genre.toLowerCase().replace(/[^a-z0-9]/g, "-");
-                return `
+          const color = genreColors[genre] || "#1ED760";
+          const icon = genreIcons[genre] || "fa-music";
+          const topSong = songs.sort((a, b) => b.playCount - a.playCount)[0];
+          const slug = genre.toLowerCase().replace(/[^a-z0-9]/g, "-");
+          return `
                   <div class="catalog-genre-tile" data-genre="${escapeHtml(genre)}" data-slug="${slug}" style="--genre-color:${color};">
-                    <img src="${topSong.albumArt}" alt="" class="genre-tile-bg" loading="lazy" onerror="this.src='logo.png'" />
+                    <img src="${topSong.albumArt}" alt="" class="genre-tile-bg" loading="lazy" onerror="this.src='assets/music-cover.svg'" />
                     <div class="genre-tile-overlay"></div>
                     <div class="genre-tile-content">
                       <i class="fa-solid ${icon}"></i>
@@ -3918,7 +4956,7 @@
                     </div>
                   </div>
                 `;
-              }).join("")}
+        }).join("")}
             </div>
           </div>
         `;
@@ -3959,13 +4997,13 @@
           <div class="catalog-mood-section">
             <h2 class="catalog-section-title"><i class="fa-solid fa-palette" style="color:#a18cd1;"></i> Browse by Mood</h2>
             <div class="catalog-genre-grid">
-              ${Object.entries(moodMap).sort((a,b) => b[1].length - a[1].length).map(([mood, mSongs]) => {
-                const color = moodColors[mood] || "#1ED760";
-                const icon = moodIcons[mood] || "fa-music";
-                const topSong = mSongs.sort((a, b) => b.playCount - a.playCount)[0];
-                return `
+              ${Object.entries(moodMap).sort((a, b) => b[1].length - a[1].length).map(([mood, mSongs]) => {
+          const color = moodColors[mood] || "#1ED760";
+          const icon = moodIcons[mood] || "fa-music";
+          const topSong = mSongs.sort((a, b) => b.playCount - a.playCount)[0];
+          return `
                   <div class="catalog-mood-tile" data-mood="${escapeHtml(mood)}" style="--genre-color:${color};">
-                    <img src="${topSong.albumArt}" alt="" class="genre-tile-bg" loading="lazy" onerror="this.src='logo.png'" />
+                    <img src="${topSong.albumArt}" alt="" class="genre-tile-bg" loading="lazy" onerror="this.src='assets/music-cover.svg'" />
                     <div class="genre-tile-overlay"></div>
                     <div class="genre-tile-content">
                       <i class="fa-solid ${icon}"></i>
@@ -3974,7 +5012,7 @@
                     </div>
                   </div>
                 `;
-              }).join("")}
+        }).join("")}
             </div>
           </div>
         `;
@@ -4087,16 +5125,24 @@
         const songId = card.dataset.songId;
         card.addEventListener("click", (e) => {
           if (e.target.closest(".play-fab")) return;
-          const song = songById.get(songId);
-          if (song) {
-            playQueue([songId], 0);
+          if (state.currentSongId === songId) {
+            togglePlay();
+          } else {
+            const song = songById.get(songId);
+            if (song) {
+              playQueue([songId], 0);
+            }
           }
         });
         const fab = card.querySelector(".play-fab");
         if (fab) {
           fab.addEventListener("click", (e) => {
             e.stopPropagation();
-            playQueue([songId], 0);
+            if (state.currentSongId === songId) {
+              togglePlay();
+            } else {
+              playQueue([songId], 0);
+            }
           });
         }
       });
@@ -4289,11 +5335,11 @@
     const localTracks = SONGS.slice(0, 10);
     elDOM.view.innerHTML = `
       <div class="detail-hero">
-        <img src="covers/1.jpg" alt="Local Files" style="border-radius:var(--radius-md);box-shadow:0 12px 36px rgba(0,0,0,0.5);" />
+        <img src="${localTracks[0]?.albumArt || 'assets/music-cover.svg'}" alt="Local Files" style="border-radius:var(--radius-md);box-shadow:0 12px 36px rgba(0,0,0,0.5);" onerror="this.onerror=null;this.src='assets/music-cover.svg';" />
         <div class="detail-hero-meta">
           <span class="kicker">Playlist</span>
           <h1>Local Files</h1>
-          <div class="sub">Your original songs · ${localTracks.length} tracks · Real audio from songs/ folder</div>
+          <div class="sub">Your original songs · ${localTracks.length} tracks · Curated local vault</div>
         </div>
       </div>
       <div class="detail-actions">
@@ -4323,6 +5369,8 @@
     "home": () => pageHome(),
     "local-files": () => pageLocalFiles(),
     "catalog-1000": () => pageCatalog1000(),
+    "catalog-1098": () => pageCatalog1000(),
+    "1098-songs": () => pageCatalog1000(),
     "search": (params, query) => pageSearch(query.get("q")),
     "browse": () => pageBrowse(),
     "category": (params) => pageCategory(decodeURIComponent(params[0] || "")),
@@ -4370,6 +5418,7 @@
     document.querySelectorAll(".nav-link, .mnav-link").forEach((link) => {
       link.classList.toggle("active", link.dataset.route === routeName);
     });
+    refreshVisibleTrackRows();
   }
 
   window.addEventListener("hashchange", router);
@@ -4386,26 +5435,29 @@
       const q = e.target.value;
       const pageIn = document.getElementById("pageSearchInput");
       if (location.hash.startsWith("#/search") && pageIn) {
-        pageIn.value = q;
+        if (pageIn.value !== q) pageIn.value = q;
         pageIn.dispatchEvent(new Event("input"));
       } else {
         clearTimeout(searchDebounceTimer);
         searchDebounceTimer = setTimeout(() => {
           if (location.hash.startsWith("#/search")) {
             pageSearch(q);
-          } else if (q.trim()) {
-            location.hash = `#/search?q=${encodeURIComponent(q)}`;
+          } else {
+            location.hash = q.trim() ? `#/search?q=${encodeURIComponent(q.trim())}` : "#/search";
           }
         }, 150);
       }
     });
     globalSearchEl.addEventListener("focus", () => {
       if (!location.hash.startsWith("#/search")) {
-        const currentQ = globalSearchEl.value.trim();
-        location.hash = currentQ ? `#/search?q=${encodeURIComponent(currentQ)}` : "#/search";
+        const currentQ = globalSearchEl.value;
+        location.hash = currentQ.trim() ? `#/search?q=${encodeURIComponent(currentQ.trim())}` : "#/search";
       }
     });
     globalSearchEl.addEventListener("keydown", (e) => {
+      if (e.code === "Space" || e.key === " ") {
+        e.stopPropagation();
+      }
       if (e.key === "Enter") {
         const q = globalSearchEl.value.trim();
         location.hash = q ? `#/search?q=${encodeURIComponent(q)}` : "#/search";
@@ -4415,19 +5467,37 @@
 
   // keyboard shortcuts
   document.addEventListener("keydown", (e) => {
-    const tag = document.activeElement?.tagName;
-    if (["INPUT", "TEXTAREA"].includes(tag)) return;
+    const active = document.activeElement;
+    const target = e.target;
+    const isInputElement = (el) => {
+      if (!el) return false;
+      const tag = (el.tagName || "").toUpperCase();
+      return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable || Boolean(el.closest && el.closest("input, textarea, [contenteditable='true']"));
+    };
+    if (isInputElement(active) || isInputElement(target)) return;
 
     switch (e.code) {
       case "Space":
         e.preventDefault();
         togglePlay();
         break;
-      case "ArrowRight":
-        if (audio.duration) audio.currentTime = Math.min(audio.duration, audio.currentTime + 5);
+      case "ArrowRight": {
+        if (e.shiftKey || e.ctrlKey || e.altKey) {
+          e.preventDefault();
+          playNext(false);
+        } else {
+          const dur = getEffectiveDuration();
+          audio.currentTime = Math.min(dur, (audio.currentTime || 0) + 5);
+        }
         break;
+      }
       case "ArrowLeft":
-        audio.currentTime = Math.max(0, audio.currentTime - 5);
+        if (e.shiftKey || e.ctrlKey || e.altKey) {
+          e.preventDefault();
+          playPrev();
+        } else {
+          audio.currentTime = Math.max(0, (audio.currentTime || 0) - 5);
+        }
         break;
       case "KeyM":
         audio.muted = !audio.muted;
@@ -4511,6 +5581,8 @@
   // Notifications Popover
   const notifBtn = document.getElementById("notifBtn");
   const notifDropdown = document.getElementById("notifDropdown");
+  const closeNotifDropdownBtn = document.getElementById("closeNotifDropdownBtn");
+
   if (notifBtn && notifDropdown) {
     notifBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -4521,28 +5593,42 @@
       if (dot) dot.style.display = "none";
     });
   }
-  document.querySelectorAll("#notifDropdown .notif-item").forEach(item => {
+
+  if (closeNotifDropdownBtn && notifDropdown) {
+    closeNotifDropdownBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      notifDropdown.style.display = "none";
+    });
+  }
+
+  document.querySelectorAll("#notifDropdown .notif-item").forEach((item) => {
     item.addEventListener("click", () => {
       closeAllPopovers();
       const songId = item.dataset.songId;
+      const action = item.dataset.action;
+      if (action === "catalog-1000" || action === "catalog-1098" || (!songId && !action)) {
+        location.hash = "#/catalog-1000";
+        return;
+      }
       if (songId) {
-        const idx = SONGS.findIndex(s => s.id === songId);
-        if (idx >= 0) playQueue(SONGS.map(s => s.id), idx);
+        const idx = SONGS.findIndex((s) => s.id === songId);
+        if (idx >= 0) {
+          playQueue(SONGS.map((s) => s.id), idx);
+          const s = SONGS[idx];
+          toast(`Playing ${s.title} · ${s.artist}`);
+        } else {
+          playQueue([songId], 0);
+        }
       } else {
         location.hash = "#/catalog-1000";
       }
     });
   });
 
-  // Friend Activity Popover
-  const socialBtn = document.getElementById("socialBtn");
-  const friendDropdown = document.getElementById("friendDropdown");
-  if (socialBtn && friendDropdown) {
-    socialBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const isShown = friendDropdown.style.display === "block";
+  const notifExploreBtn = document.getElementById("notifExploreBtn");
+  if (notifExploreBtn) {
+    notifExploreBtn.addEventListener("click", () => {
       closeAllPopovers();
-      friendDropdown.style.display = isShown ? "none" : "block";
     });
   }
 
@@ -4582,12 +5668,15 @@
   const expandSidebarIcon = document.getElementById("expandSidebarIcon");
 
   // State for Library
+  const defaultPins = ["favorites", "pl-all-1098-songs"];
+  const loadedPins = loadJSON("omify.libraryPins", defaultPins);
+  if (!loadedPins.includes("pl-all-1098-songs")) loadedPins.push("pl-all-1098-songs");
   const libState = {
     viewMode: "list", // Default view is ALWAYS authentic Spotify list view with artwork
     sort: loadJSON("omify.librarySort", "creator"), // "recents" | "added" | "alpha" | "creator"
     filter: "all", // "all" | "playlists" | "artists" | "albums" | "sukoon" | "hype"
     searchQuery: "",
-    pins: new Set(loadJSON("omify.libraryPins", ["favorites"])),
+    pins: new Set(loadedPins),
     isExpanded: loadJSON("omify.sidebarExpanded", false),
   };
   saveJSON("omify.libraryViewMode", "list");
@@ -4846,7 +5935,7 @@
       creator: username,
       description: `Created by ${username}`,
       vibeTag: "sukoon",
-      artSrc: "logo.png",
+      artSrc: "assets/music-cover.svg",
       songIds: [],
       createdAt: Date.now(),
       isUserCustom: true
@@ -4907,7 +5996,7 @@
             id: "custom",
             name: val,
             vibe: "sukoon",
-            avatar: "logo.png"
+            avatar: "assets/logo.svg"
           };
         }
       };
@@ -5271,11 +6360,11 @@
 
         <div class="smart-vibe-grid">
           ${vibePresets.map(vp => {
-            const matches = SONGS.filter(s => {
-              const text = (s.title + " " + s.artist + " " + (s.album || "") + " " + (s.genre || "")).toLowerCase();
-              return vp.keywords.some(kw => text.includes(kw));
-            });
-            return `
+      const matches = SONGS.filter(s => {
+        const text = (s.title + " " + s.artist + " " + (s.album || "") + " " + (s.genre || "")).toLowerCase();
+        return vp.keywords.some(kw => text.includes(kw));
+      });
+      return `
               <div class="smart-vibe-card" data-vibe-id="${vp.id}">
                 <div class="vibe-badge" style="background:${vp.badgeBg};color:${vp.color};">
                   <i class="fa-solid ${vp.icon}"></i> ${vp.name.split(" ")[1] || "Vibe"}
@@ -5285,7 +6374,7 @@
                 <div class="vibe-count">⚡ ${Math.max(matches.length, 18)} catalog tracks ready</div>
               </div>
             `;
-          }).join("")}
+    }).join("")}
         </div>
 
         <div class="modal-actions" style="margin-top:14px;border-top:1px solid var(--border-subtle);padding-top:10px;">
@@ -5376,7 +6465,48 @@
       isPlaying: isLikedPlaying,
     });
 
-    // 2. Followed Artist: Arijit Singh (Directly under Liked Songs matching Image 1)
+    // 2. Made For You (AI Recommendations)
+    items.push({
+      id: "made-for-you",
+      type: "playlist",
+      title: "Made For You",
+      subtitle: `<span class="sub-type" style="color:var(--signal);"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Recommender</span><span class="sub-dot">•</span><span class="sub-extra">Smart Mix</span>`,
+      plainSubtitle: "AI Recommender • Smart Mix",
+      extra: "AI Mix",
+      dateAddedStr: "AI Engine",
+      art: null,
+      isAiBadge: true,
+      route: "made-for-you",
+      songIds: [],
+      isPinned: true,
+      addedTs: 999999,
+      creator: "Omify AI",
+      vibe: "ai",
+      isPlaying: false,
+    });
+
+    // 2b. New Releases (MusicBrainz Official Drops)
+    const newReleasesTop = [...SONGS].sort((a, b) => (b.releaseYear || 0) - (a.releaseYear || 0)).slice(0, 20);
+    items.push({
+      id: "new-releases",
+      type: "playlist",
+      title: "New Releases",
+      subtitle: `<span class="sub-type" style="color:#60a5fa;"><i class="fa-solid fa-compact-disc"></i> MusicBrainz</span><span class="sub-dot">•</span><span class="sub-extra">Official Drops</span>`,
+      plainSubtitle: "MusicBrainz • Official Drops",
+      extra: "Fresh Drops",
+      dateAddedStr: "Live Feed",
+      art: null,
+      isNewReleaseBadge: true,
+      route: "new-releases",
+      songIds: newReleasesTop.map(s => s.id),
+      isPinned: true,
+      addedTs: 999998,
+      creator: "MusicBrainz",
+      vibe: "new",
+      isPlaying: false,
+    });
+
+    // 3. Followed Artist: Arijit Singh (Directly under Liked Songs matching Image 1)
     const arijit = ARTISTS.find(a => a.name.toLowerCase().includes("arijit")) || {
       id: "arijit-singh-21",
       name: "Arijit Singh",
@@ -5406,9 +6536,10 @@
     // 3. User Playlists (London Thumakda, Bolna, Dildaara, Tera Fitoor, Chor Bazaari, etc.)
     state.playlists.forEach((p, idx) => {
       const isPlPlaying = isPlaying && curSong && (p.songIds || []).includes(curSong.id);
-      const isPinned = libState.pins.has(p.id);
+      const is1098 = p.id === "pl-all-1098-songs";
+      const isPinned = is1098 || p.isPinned || libState.pins.has(p.id);
       const firstSong = p.songIds && p.songIds[0] ? songById.get(p.songIds[0]) : null;
-      const art = p.artSrc || (firstSong ? firstSong.albumArt : "logo.png");
+      const art = p.artSrc || (firstSong ? firstSong.albumArt : "assets/music-cover.svg");
       const vibe = p.vibeTag || detectItemVibe(p.name + " " + (p.description || ""));
       const creatorName = p.creator || state.profile?.username || "Om Soni";
 
@@ -5416,16 +6547,18 @@
         id: p.id,
         type: "playlist",
         title: p.name,
-        subtitle: `${isPinned ? '<i class="fa-solid fa-thumbtack pin-badge" title="Pinned"></i> ' : ''}<span class="sub-type">Playlist</span><span class="sub-dot">•</span><span class="sub-extra">${escapeHtml(creatorName)} #${escapeHtml(vibe)}</span>`,
-        plainSubtitle: `Playlist • ${creatorName} #${vibe}`,
+        subtitle: is1098
+          ? `${isPinned ? '<i class="fa-solid fa-thumbtack pin-badge" title="Pinned"></i> ' : ''}<span class="sub-type" style="color:var(--signal);">Flagship</span><span class="sub-dot">•</span><span class="sub-extra">${escapeHtml(creatorName)} #all-hits</span>`
+          : `${isPinned ? '<i class="fa-solid fa-thumbtack pin-badge" title="Pinned"></i> ' : ''}<span class="sub-type">Playlist</span><span class="sub-dot">•</span><span class="sub-extra">${escapeHtml(creatorName)} #${escapeHtml(vibe)}</span>`,
+        plainSubtitle: is1098 ? `Flagship • ${creatorName} #all-hits` : `Playlist • ${creatorName} #${vibe}`,
         extra: `${(p.songIds || []).length} songs`,
-        dateAddedStr: p.createdAt ? new Date(p.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Recently",
+        dateAddedStr: is1098 ? "Pinned" : (p.createdAt ? new Date(p.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Recently"),
         art: art,
         isLikedBadge: false,
         route: "playlist/" + p.id,
         songIds: p.songIds || [],
         isPinned: isPinned,
-        addedTs: p.createdAt || (1000000 - idx),
+        addedTs: is1098 ? 999995 : (p.createdAt || (1000000 - idx)),
         creator: creatorName,
         vibe: vibe,
         isPlaying: isPlPlaying,
@@ -5440,9 +6573,9 @@
       const isPinned = libState.pins.has(m.id);
       const matchedSongs = SONGS.filter(m.filter || (() => false));
       const firstSong = matchedSongs[0] || null;
-      const art = firstSong ? firstSong.albumArt : "logo.png";
+      const art = firstSong ? firstSong.albumArt : "assets/music-cover.svg";
       const isMixPlaying = isPlaying && curSong && matchedSongs.some(s => s.id === curSong.id);
-      const vibe = (m.id === "taste-daily-1" || m.id === "taste-daily-4" || m.id === "taste-romantic") ? "sukoon" : "hype";
+      const vibe = (m.id.includes("romantic") || m.id.includes("lofi") || m.id.includes("nostalgia") || m.id === "taste-daily-1" || m.id === "taste-daily-4") ? "sukoon" : "hype";
 
       items.push({
         id: m.id,
@@ -5478,7 +6611,7 @@
         subtitle: `${isPinned ? '<i class="fa-solid fa-thumbtack pin-badge" title="Pinned"></i> ' : ''}<span class="sub-type">Artist</span>`,
         plainSubtitle: "Artist",
         extra: "Artist",
-        art: a.image || a.avatar || "logo.png",
+        art: a.image || a.avatar || "assets/music-cover.svg",
         isLikedBadge: false,
         isRound: true,
         route: "artist/" + a.id,
@@ -5506,7 +6639,7 @@
         plainSubtitle: `Album • ${alb.artist}`,
         extra: "Album",
         dateAddedStr: "Saved",
-        art: alb.albumArt || alb.coverArt || "logo.png",
+        art: alb.albumArt || alb.coverArt || "assets/music-cover.svg",
         isLikedBadge: false,
         isRound: false,
         route: "album/" + alb.id,
@@ -5519,20 +6652,61 @@
       });
     });
 
+    // 7. Folders (collapsible playlist containers)
+    const folderPlaylistMap = new Map();
+    state.folders.forEach(fd => {
+      (fd.playlistIds || []).forEach(pid => folderPlaylistMap.set(pid, fd.id));
+    });
+
+    state.folders.forEach((fd, idx) => {
+      const isFolderPinned = libState.pins.has(fd.id);
+      const childPlaylists = (fd.playlistIds || [])
+        .map(pid => state.playlists.find(p => p.id === pid))
+        .filter(Boolean);
+
+      items.push({
+        id: fd.id,
+        type: "folder",
+        title: fd.name,
+        subtitle: `<span class="sub-type">Folder</span><span class="sub-dot">•</span><span class="sub-extra">${childPlaylists.length} ${childPlaylists.length === 1 ? 'playlist' : 'playlists'}</span>`,
+        plainSubtitle: `Folder • ${childPlaylists.length} playlists`,
+        extra: `${childPlaylists.length} playlists`,
+        dateAddedStr: "Folder",
+        art: null,
+        isLikedBadge: false,
+        isRound: false,
+        route: null,
+        songIds: [],
+        isPinned: isFolderPinned,
+        addedTs: fd.createdAt || (400000 - idx),
+        creator: state.profile?.username || "Om Soni",
+        vibe: "sukoon",
+        isPlaying: false,
+        rawFolder: fd,
+        childPlaylists: childPlaylists
+      });
+    });
+
     // Filtering
     let filtered = items.filter(item => {
+      // If item is a playlist in a folder and user is not searching, render inside the folder
+      if (!libState.searchQuery && item.type === "playlist" && folderPlaylistMap.has(item.id)) {
+        return false;
+      }
+
       // 1. Chip filter
-      if (libState.filter === "playlists" && item.type !== "playlist") return false;
+      if (libState.filter === "playlists" && item.type !== "playlist" && item.type !== "folder") return false;
       if (libState.filter === "artists" && item.type !== "artist") return false;
       if (libState.filter === "albums" && item.type !== "album") return false;
       if (libState.filter === "sukoon" && item.vibe !== "sukoon") return false;
       if (libState.filter === "hype" && item.vibe !== "hype") return false;
+      if (libState.filter === "new-releases" && item.id !== "new-releases") return false;
 
       // 2. Search query filter
       if (libState.searchQuery) {
         const q = libState.searchQuery;
-        const matchTitle = item.title.toLowerCase().includes(q);
-        const matchSub = item.plainSubtitle.toLowerCase().includes(q);
+        const matchTitle = (item.title || "").toLowerCase().includes(q);
+        const matchSub = (item.plainSubtitle || "").toLowerCase().includes(q);
         const matchCreator = (item.creator || "").toLowerCase().includes(q);
         if (!matchTitle && !matchSub && !matchCreator) return false;
       }
@@ -5543,7 +6717,13 @@
     // Exact priority order matching real Spotify reference screenshot (Image 1)
     const PRIORITY_ORDER = [
       "favorites",
+      "pl-all-1098-songs",
       "arijit-singh-21",
+      "pl-aaj-ki-raat",
+      "pl-dil-na-jaaneya",
+      "pl-raabta",
+      "pl-enna-sona",
+      "pl-matargashti",
       "pl-london-thumakda",
       "pl-bolna",
       "pl-dildaara",
@@ -5565,7 +6745,7 @@
       if (!a.isPinned && b.isPinned) return 1;
 
       if (libState.sort === "alpha") {
-        return a.title.localeCompare(b.title);
+        return (a.title || "").localeCompare(b.title || "");
       } else if (libState.sort === "creator") {
         return (a.creator || "").localeCompare(b.creator || "");
       } else if (libState.sort === "added") {
@@ -5604,20 +6784,23 @@
       return;
     }
 
-    // Render Items
-    container.innerHTML = filtered.map(item => {
+    function renderLibItem(item, isChild) {
       const eqHtml = item.isPlaying
         ? `<span class="lib-playing-eq" title="Now Playing"><span></span><span></span><span></span><span></span></span>`
         : "";
 
       const artHtml = item.isLikedBadge
         ? `<div class="liked-art-badge"><i class="fa-solid fa-heart"></i></div>`
-        : item.isLocalFilesBadge
-        ? `<div class="local-files-badge"><i class="fa-solid fa-folder"></i></div>`
-        : `<img src="${escapeHtml(item.art)}" alt="${escapeHtml(item.title)}" class="lib-item-art ${item.isRound ? 'round-art' : ''}" onerror="this.onerror=null;this.src='logo.png';" loading="lazy" />`;
+        : item.isAiBadge
+          ? `<div class="liked-art-badge" style="background:linear-gradient(135deg,#1db954,#0d6e2e);"><i class="fa-solid fa-wand-magic-sparkles"></i></div>`
+          : item.isNewReleaseBadge
+            ? `<div class="liked-art-badge" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);"><i class="fa-solid fa-compact-disc"></i></div>`
+            : item.isLocalFilesBadge
+              ? `<div class="local-files-badge"><i class="fa-solid fa-folder"></i></div>`
+              : `<img src="${escapeHtml(item.art)}" alt="${escapeHtml(item.title)}" class="lib-item-art ${item.isRound ? 'round-art' : ''}" onerror="this.onerror=null;this.src='assets/music-cover.svg';" loading="lazy" />`;
 
       return `
-        <div class="lib-item ${item.isPlaying ? 'active-playing' : ''}" data-id="${item.id}" data-route="${item.route}" data-lib-type="${item.type}">
+        <div class="lib-item ${item.isPlaying ? 'active-playing' : ''} ${isChild ? 'lib-child-item' : ''}" data-id="${item.id}" data-route="${item.route || ''}" data-lib-type="${item.type}">
           <div class="lib-item-main">
             <!-- Cover Art with mini play button -->
             <div class="lib-item-art-wrap">
@@ -5646,13 +6829,68 @@
           </span>
         </div>
       `;
-    }).join("");
+    }
+
+    function renderFolderItem(item) {
+      const fd = item.rawFolder;
+      const isExpanded = !!fd.isExpanded;
+      const childItemsHtml = (item.childPlaylists || []).map(cp => {
+        const isPlPlaying = isPlaying && curSong && (cp.songIds || []).includes(curSong.id);
+        const firstSong = cp.songIds && cp.songIds[0] ? songById.get(cp.songIds[0]) : null;
+        const art = cp.artSrc || (firstSong ? firstSong.albumArt : "assets/music-cover.svg");
+        const vibe = cp.vibeTag || detectItemVibe(cp.name + " " + (cp.description || ""));
+        const creatorName = cp.creator || state.profile?.username || "Om Soni";
+        return renderLibItem({
+          id: cp.id,
+          type: "playlist",
+          title: cp.name,
+          subtitle: `<span class="sub-type">Playlist</span><span class="sub-dot">•</span><span class="sub-extra">${escapeHtml(creatorName)} #${escapeHtml(vibe)}</span>`,
+          plainSubtitle: `Playlist • ${creatorName} #${vibe}`,
+          extra: `${(cp.songIds || []).length} songs`,
+          dateAddedStr: cp.createdAt ? new Date(cp.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Recently",
+          art: art,
+          isLikedBadge: false,
+          route: "playlist/" + cp.id,
+          songIds: cp.songIds || [],
+          isPinned: false,
+          addedTs: cp.createdAt || 0,
+          creator: creatorName,
+          vibe: vibe,
+          isPlaying: isPlPlaying,
+          isUserCustom: true,
+          rawPlaylist: cp
+        }, true);
+      }).join("");
+
+      return `
+        <div class="lib-folder-item ${isExpanded ? 'is-expanded' : ''}" data-folder-id="${fd.id}">
+          <div class="lib-folder-header" data-action="toggle-folder" data-folder-id="${fd.id}">
+            <div class="lib-folder-icon-wrap">
+              <i class="fa-${isExpanded ? 'regular fa-folder-open' : 'solid fa-folder'}"></i>
+            </div>
+            <div class="lib-folder-info">
+              <div class="lib-folder-title">${escapeHtml(fd.name)}</div>
+              <div class="lib-folder-sub">Folder • ${(item.childPlaylists || []).length} ${(item.childPlaylists || []).length === 1 ? 'playlist' : 'playlists'}</div>
+            </div>
+            <div class="lib-folder-chevron">
+              <i class="fa-solid fa-chevron-right"></i>
+            </div>
+          </div>
+          <div class="lib-folder-children">
+            ${childItemsHtml || '<div style="padding:8px 12px;color:var(--text-muted);font-size:0.75rem;font-style:italic;">Empty folder — right-click a playlist to move here</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    // Render Items
+    container.innerHTML = filtered.map(item => item.type === "folder" ? renderFolderItem(item) : renderLibItem(item, false)).join("");
 
     // Hook click & action listeners for items
     container.querySelectorAll(".lib-item").forEach(el => {
       const itemId = el.dataset.id;
       const itemRoute = el.dataset.route;
-      const itemData = filtered.find(it => it.id === itemId);
+      const itemData = items.find(it => it.id === itemId) || filtered.find(it => it.id === itemId);
 
       el.addEventListener("click", () => {
         if (itemRoute) location.hash = "#/" + itemRoute;
@@ -5677,11 +6915,24 @@
         showLibraryContextMenu(e.clientX, e.clientY, itemData);
       });
     });
+
+    // Hook click & action listeners for folder headers
+    container.querySelectorAll(".lib-folder-header").forEach(hdr => {
+      const folderId = hdr.dataset.folderId;
+      hdr.addEventListener("click", () => {
+        toggleFolderExpansion(folderId);
+      });
+      hdr.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        showFolderContextMenu(e.clientX, e.clientY, folderId);
+      });
+    });
   }
 
-  // Library Item Context Menu (Right Click)
-  function showLibraryContextMenu(x, y, item) {
-    if (!item) return;
+  // Folder Context Menu (Right Click on Folder Header)
+  function showFolderContextMenu(x, y, folderId) {
+    const folder = state.folders.find(fd => fd.id === folderId);
+    if (!folder) return;
     closeAllPopovers();
 
     const existingMenu = document.getElementById("libContextMenu");
@@ -5696,7 +6947,105 @@
     menu.style.display = "block";
     menu.style.zIndex = "1000";
 
+    menu.innerHTML = `
+      <button type="button" class="lib-dropdown-item" id="ctxToggleFolderExpand">
+        <i class="fa-solid fa-${folder.isExpanded ? 'folder-closed' : 'folder-open'}"></i>
+        <span>${folder.isExpanded ? 'Collapse folder' : 'Expand folder'}</span>
+      </button>
+      <button type="button" class="lib-dropdown-item" id="ctxRenameFolder">
+        <i class="fa-solid fa-pen"></i>
+        <span>Rename folder</span>
+      </button>
+      <button type="button" class="lib-dropdown-item" id="ctxDeleteFolder" style="color:var(--danger);">
+        <i class="fa-solid fa-trash" style="color:var(--danger);"></i>
+        <span>Delete folder</span>
+      </button>
+    `;
+
+    document.body.appendChild(menu);
+
+    menu.querySelector("#ctxToggleFolderExpand")?.addEventListener("click", () => {
+      menu.remove();
+      toggleFolderExpansion(folderId);
+    });
+
+    menu.querySelector("#ctxRenameFolder")?.addEventListener("click", () => {
+      menu.remove();
+      const newName = prompt("Enter new folder name:", folder.name);
+      if (newName && newName.trim()) {
+        folder.name = newName.trim();
+        persistFolders();
+        renderSidebarLibrary();
+        toast(`Renamed folder to "${folder.name}"`);
+      }
+    });
+
+    menu.querySelector("#ctxDeleteFolder")?.addEventListener("click", () => {
+      menu.remove();
+      if (confirm(`Delete folder "${folder.name}"? Playlists will not be deleted.`)) {
+        state.folders = state.folders.filter(fd => fd.id !== folderId);
+        persistFolders();
+        renderSidebarLibrary();
+        toast(`Deleted folder "${folder.name}"`);
+      }
+    });
+
+    const closeHandler = (e) => {
+      if (!menu.contains(e.target)) {
+        menu.remove();
+        document.removeEventListener("click", closeHandler);
+      }
+    };
+    setTimeout(() => document.addEventListener("click", closeHandler), 10);
+  }
+
+  // Library Item Context Menu (Right Click)
+  function showLibraryContextMenu(x, y, item) {
+    if (!item) return;
+    closeAllPopovers();
+
+    const existingMenu = document.getElementById("libContextMenu");
+    if (existingMenu) existingMenu.remove();
+
+    const menu = document.createElement("div");
+    menu.id = "libContextMenu";
+    menu.className = "lib-create-dropdown lib-context-menu";
+    menu.style.position = "fixed";
+    menu.style.left = `${Math.min(x, window.innerWidth - 240)}px`;
+    menu.style.top = `${Math.min(y, window.innerHeight - 260)}px`;
+    menu.style.display = "block";
+    menu.style.zIndex = "1000";
+
     const isPinned = libState.pins.has(item.id);
+    const isPlaylist = item.type === "playlist";
+    const currentFolder = isPlaylist ? state.folders.find(fd => (fd.playlistIds || []).includes(item.id)) : null;
+
+    let folderOptionsHtml = "";
+    if (isPlaylist) {
+      if (currentFolder) {
+        folderOptionsHtml += `
+          <button type="button" class="lib-dropdown-item" id="ctxRemoveFromFolder">
+            <i class="fa-solid fa-folder-minus"></i>
+            <span>Remove from "${escapeHtml(currentFolder.name)}"</span>
+          </button>
+        `;
+      }
+      state.folders.forEach(fd => {
+        if (currentFolder && currentFolder.id === fd.id) return;
+        folderOptionsHtml += `
+          <button type="button" class="lib-dropdown-item ctx-move-to-fld" data-target-fld="${fd.id}">
+            <i class="fa-regular fa-folder"></i>
+            <span>Move to "${escapeHtml(fd.name)}"</span>
+          </button>
+        `;
+      });
+      folderOptionsHtml += `
+        <button type="button" class="lib-dropdown-item" id="ctxMoveToNewFolder">
+          <i class="fa-solid fa-folder-plus"></i>
+          <span>Create folder with this</span>
+        </button>
+      `;
+    }
 
     menu.innerHTML = `
       <button type="button" class="lib-dropdown-item" id="ctxPlayItem">
@@ -5713,6 +7062,7 @@
           <span>Add to queue</span>
         </button>
       ` : ""}
+      ${isPlaylist ? `<div class="lib-dropdown-divider"></div>${folderOptionsHtml}<div class="lib-dropdown-divider"></div>` : ""}
       ${item.isUserCustom ? `
         <button type="button" class="lib-dropdown-item" id="ctxEditItem">
           <i class="fa-solid fa-pen"></i>
@@ -5755,6 +7105,36 @@
         state.queue.push(...item.songIds);
         toast(`Added ${item.songIds.length} tracks to queue`);
         renderQueuePanel();
+      }
+    });
+
+    menu.querySelector("#ctxRemoveFromFolder")?.addEventListener("click", () => {
+      menu.remove();
+      movePlaylistToFolder(item.id, null);
+    });
+
+    menu.querySelectorAll(".ctx-move-to-fld").forEach(btn => {
+      btn.addEventListener("click", () => {
+        menu.remove();
+        movePlaylistToFolder(item.id, btn.dataset.targetFld);
+      });
+    });
+
+    menu.querySelector("#ctxMoveToNewFolder")?.addEventListener("click", () => {
+      menu.remove();
+      const folderName = prompt("New folder name:", "Playlists");
+      if (folderName && folderName.trim()) {
+        const newFolder = {
+          id: `fld-${Date.now()}`,
+          name: folderName.trim(),
+          playlistIds: [item.id],
+          isExpanded: true,
+          createdAt: Date.now()
+        };
+        state.folders.push(newFolder);
+        persistFolders();
+        renderSidebarLibrary();
+        toast(`Created folder "${newFolder.name}" with "${item.title}"`);
       }
     });
 
@@ -5831,119 +7211,29 @@
     });
   }
 
-  // Initial Sidebar Library Render on Startup
+  // Initial Sidebar Library Render & Now Playing state on Startup
   renderSidebarLibrary();
+  const initSong = currentSong();
+  if (initSong) {
+    updateNowPlayingUI(initSong, false);
+    audio.src = getCleanAudioUrl(initSong);
+  }
+
+  // Live Sync on startup with FastAPI Backend
+  async function syncBackendState() {
+    try {
+      const favRes = await fetch(`${API_BASE}/api/favorites`);
+      if (favRes.ok) {
+        const favs = await favRes.json();
+        if (Array.isArray(favs)) {
+          favs.forEach((f) => state.favorites.add(String(f.song_id || f.id)));
+          persistFavorites();
+          refreshVisibleTrackRows();
+        }
+      }
+    } catch (_) {}
+  }
+  syncBackendState();
 
   console.log(`Omify loaded — ${SONGS.length} songs, ${ARTISTS.length} artists, ${ALBUMS.length} albums in catalog`);
 })();
-=======
-console.log("Welcome to Spotify");
-
-// Initialize the Variables
-let songIndex = 0;
-let audioElement = new Audio('songs/1.mp3');
-let masterPlay = document.getElementById('masterPlay');
-let myProgressBar = document.getElementById('myProgressBar');
-let gif = document.getElementById('gif');
-let masterSongName = document.getElementById('masterSongName');
-let songItems = Array.from(document.getElementsByClassName('songItem'));
-
-let songs = [
-    {songName: "Warriyo - Mortals [NCS Release]", filePath: "songs/1.mp3", coverPath: "covers/1.jpg"},
-    {songName: "Cielo - Huma-Huma", filePath: "songs/2.mp3", coverPath: "covers/2.jpg"},
-    {songName: "DEAF KEV - Invincible [NCS Release]-320k", filePath: "songs/3.mp3", coverPath: "covers/3.jpg"},
-    {songName: "Different Heaven & EH!DE - My Heart [NCS Release]", filePath: "songs/4.mp3", coverPath: "covers/4.jpg"},
-    {songName: "Janji-Heroes-Tonight-feat-Johnning-NCS-Release", filePath: "songs/5.mp3", coverPath: "covers/5.jpg"},
-    {songName: "Rabba - Salam-e-Ishq", filePath: "songs/2.mp3", coverPath: "covers/6.jpg"},
-    {songName: "Sakhiyaan - Salam-e-Ishq", filePath: "songs/2.mp3", coverPath: "covers/7.jpg"},
-    {songName: "Bhula Dena - Salam-e-Ishq", filePath: "songs/2.mp3", coverPath: "covers/8.jpg"},
-    {songName: "Tumhari Kasam - Salam-e-Ishq", filePath: "songs/2.mp3", coverPath: "covers/9.jpg"},
-    {songName: "Na Jaana - Salam-e-Ishq", filePath: "songs/4.mp3", coverPath: "covers/10.jpg"},
-]
-
-songItems.forEach((element, i)=>{ 
-    element.getElementsByTagName("img")[0].src = songs[i].coverPath; 
-    element.getElementsByClassName("songName")[0].innerText = songs[i].songName; 
-})
- 
-
-// Handle play/pause click
-masterPlay.addEventListener('click', ()=>{
-    if(audioElement.paused || audioElement.currentTime<=0){
-        audioElement.play();
-        masterPlay.classList.remove('fa-play-circle');
-        masterPlay.classList.add('fa-pause-circle');
-        gif.style.opacity = 1;
-    }
-    else{
-        audioElement.pause();
-        masterPlay.classList.remove('fa-pause-circle');
-        masterPlay.classList.add('fa-play-circle');
-        gif.style.opacity = 0;
-    }
-})
-// Listen to Events
-audioElement.addEventListener('timeupdate', ()=>{ 
-    // Update Seekbar
-    progress = parseInt((audioElement.currentTime/audioElement.duration)* 100); 
-    myProgressBar.value = progress;
-})
-
-myProgressBar.addEventListener('change', ()=>{
-    audioElement.currentTime = myProgressBar.value * audioElement.duration/100;
-})
-
-const makeAllPlays = ()=>{
-    Array.from(document.getElementsByClassName('songItemPlay')).forEach((element)=>{
-        element.classList.remove('fa-pause-circle');
-        element.classList.add('fa-play-circle');
-    })
-}
-
-Array.from(document.getElementsByClassName('songItemPlay')).forEach((element)=>{
-    element.addEventListener('click', (e)=>{ 
-        makeAllPlays();
-        songIndex = parseInt(e.target.id);
-        e.target.classList.remove('fa-play-circle');
-        e.target.classList.add('fa-pause-circle');
-        audioElement.src = `songs/${songIndex+1}.mp3`;
-        masterSongName.innerText = songs[songIndex].songName;
-        audioElement.currentTime = 0;
-        audioElement.play();
-        gif.style.opacity = 1;
-        masterPlay.classList.remove('fa-play-circle');
-        masterPlay.classList.add('fa-pause-circle');
-    })
-})
-
-document.getElementById('next').addEventListener('click', ()=>{
-    if(songIndex>=9){
-        songIndex = 0
-    }
-    else{
-        songIndex += 1;
-    }
-    audioElement.src = `songs/${songIndex+1}.mp3`;
-    masterSongName.innerText = songs[songIndex].songName;
-    audioElement.currentTime = 0;
-    audioElement.play();
-    masterPlay.classList.remove('fa-play-circle');
-    masterPlay.classList.add('fa-pause-circle');
-
-})
-
-document.getElementById('previous').addEventListener('click', ()=>{
-    if(songIndex<=0){
-        songIndex = 0
-    }
-    else{
-        songIndex -= 1;
-    }
-    audioElement.src = `songs/${songIndex+1}.mp3`;
-    masterSongName.innerText = songs[songIndex].songName;
-    audioElement.currentTime = 0;
-    audioElement.play();
-    masterPlay.classList.remove('fa-play-circle');
-    masterPlay.classList.add('fa-pause-circle');
-})
->>>>>>> 6c9c715834c72b472dae61949893ddbde10ccccd

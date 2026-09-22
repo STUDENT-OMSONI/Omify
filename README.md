@@ -1,180 +1,54 @@
-# Omify
+# Omify — Music Streaming Platform & ML Recommendation Engine
 
-A dark, original, Spotify-inspired music streaming web app — vanilla HTML/CSS/JS,
-no build step required.
+A high-performance, dark-themed music streaming web application with an authentic 1,098-track catalog, client-side WebAudio playback, and a Python FastAPI Machine Learning recommendation engine.
 
-## Running it
+---
 
-Because the app uses `fetch`-like relative paths for audio/images, open it through
-a local server rather than double-clicking the HTML file:
+## 🚀 Quick Start
 
+### 1. Start the Machine Learning Backend
 ```bash
-# from the omify/ folder
-python3 -m http.server 8000
-# then open http://localhost:8000
+cd Backend
+.\venv\Scripts\uvicorn.exe app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
+- **Backend API Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **Health Check**: [http://127.0.0.1:8000/api/health](http://127.0.0.1:8000/api/health)
 
-Any static server works (`npx serve`, VS Code's Live Server, etc.).
-
-## What changed from the original project
-
-Your original project (`index.html`, `style.css`, `script.js`) was a single-page,
-10-song demo player with a static track list and no routing, favorites,
-playlists, search, or multiple pages. It's been rebuilt into a full
-multi-page app while keeping the same stack (plain HTML/CSS/JS, Font Awesome
-icons, no framework/build step) so it drops into your existing repo cleanly.
-
-### Files created
-- `data/songs.js` — the song/artist/album catalog and data model
-- `assets/logo.svg` — original Omify logo (soundwave mark, not Spotify's)
-- `assets/audio/demo-1.wav` … `demo-8.wav` — original, procedurally generated
-  placeholder tone clips (see **Licensing** below)
-- `README.md` — this file
-
-### Files rewritten
-- `index.html` — new app shell: sidebar, top bar with search, a single view
-  container that the router swaps content into, persistent player bar, queue
-  slide-over panel, mobile bottom navigation
-- `style.css` — new design system (see Design tokens below); old Spotify-style
-  pill rows and layout replaced with an original visual identity
-- `script.js` — full application logic: hash router, centralized player
-  engine, favorites, playlists, queue, recently played, search, and every
-  page listed below
-
-### Dependencies added
-None — no npm packages, no build tooling. Font Awesome and Google Fonts are
-loaded from CDN links in `index.html`, same pattern as your original project.
-
-## Pages implemented
-
-Home, Search, Browse, Foreign Music, Trending, New Releases, Made For You,
-Favorites (Liked Songs), Recently Played, Albums, Artists, Playlists,
-Album details, Artist details, Playlist details, Settings, Profile, 404 —
-all client-side routed via `location.hash` (e.g. `#/album/afterglow-nova-reyes`),
-so navigation never reloads the page.
-
-## How the music data is structured
-
-`data/songs.js` exports a flat array of track objects:
-
-```js
-{
-  id, title, artist, album, albumArt, audioUrl, duration,
-  genre, language, country, releaseYear, liked, playCount,
-  explicit, mood
-}
-```
-
-Artists and albums are *derived* automatically from the track list (grouped
-by `artist` and by `album + artist`), so you never maintain them separately.
-
-The catalog currently ships **119 tracks** across English, Korean, Japanese,
-Spanish, French, Italian, German, Portuguese, Arabic, Turkish, and Mandarin
-music, spanning Pop, K-Pop, J-Pop, Afrobeats, Reggaeton, Hip-Hop, Electronic,
-R&B, Rock, Indie, Lo-Fi, and Classical.
-
-### Adding more songs (scaling to 1000+)
-
-Don't hand-write 1000 objects. Add rows to the `RAW_TRACKS` array in
-`data/songs.js` — each row is a compact tuple:
-
-```js
-["Song Title", "Artist Name", "Album Name", "Language", "Genre", "Country", year, "Mood", playCount, durationSeed]
-```
-
-The `SONGS` array below it maps every row into a full track object
-automatically (IDs, slugs, artist/album linking, art placeholder, etc). To
-generate hundreds of rows programmatically, write a small script that reads
-from a spreadsheet/CSV/API of your licensed catalog and appends rows in this
-same tuple shape — the mapping step needs no changes.
-
-## Licensing — audio and artwork (read this before shipping)
-
-- **Audio**: every `audioUrl` currently points to one of 8 short, original,
-  procedurally generated tone clips in `assets/audio/`, created for this
-  project specifically so playback works during development. They are not
-  real songs and aren't meant to be the final product. **Do not scrape or
-  download audio from Spotify or any other streaming service** — that's
-  copyright infringement regardless of intent. To ship real audio, replace
-  `audioUrl` per track with a licensed source: files you own or purchased,
-  a royalty-free/production-music library (Epidemic Sound, Artlist, etc.),
-  public-domain recordings, or a licensed streaming API.
-- **Album art**: currently placeholder images from `picsum.photos`, seeded
-  per album so each one is visually consistent across the app. Swap in real,
-  licensed cover art before shipping.
-- **Logo**: `assets/logo.svg` is an original mark (an abstract soundwave
-  forming an "o"). It intentionally does not reuse Spotify's icon, wordmark,
-  or color signature.
-
-## How favorites work
-
-Clicking any heart icon toggles that song's ID in a `Set`, persisted to
-`localStorage` under `omify.favorites`. The Liked Songs page reads directly
-from that set, so it survives refreshes and needs no other syncing.
-
-## How playlists work
-
-Playlists are `{ id, name, description, songIds: [] }` objects stored under
-`omify.playlists` in `localStorage`. You can create, rename, and delete them
-from the Playlists page, and add any song to a playlist (or create a new one
-on the fly) from the "⋮" menu on any track row anywhere in the app.
-
-## How the player works
-
-A single `<audio>` element and a small state object (`queue`, `currentIndex`,
-`shuffle`, `repeat`) live at the top of `script.js` and are never recreated
-on navigation — only the visible page content changes, so playback continues
-uninterrupted while you browse. Play/pause, seek, volume, shuffle, repeat,
-next/previous, and the queue panel all operate on that one shared instance.
-
-## Recently played
-
-Every time a track starts, it's pushed to the front of `omify.recentlyPlayed`
-in `localStorage` (deduplicated, capped at 60 entries).
-
-## Made For You (recommendations)
-
-A simple client-side scoring pass: it counts genres/languages across your
-liked + recently played songs, then ranks the rest of the catalog by how
-often each song's genre/language matches those counts, plus a small global
-popularity boost. This is intentionally simple and meant to be swapped for a
-real backend-driven recommendation service later — the scoring function is
-isolated in `pageMadeForYou()` in `script.js`.
-
-## Performance notes
-
-With ~100 songs, no special optimization was needed for smoothness. If you
-scale into the thousands, the two things to add first are: (1) pagination or
-virtualization on `renderTrackList()` for any list over a few hundred rows,
-and (2) lazy-loading album art in batches — `loading="lazy"` is already set
-on all `<img>` tags as a first pass.
-
-## Remaining limitations
-
-- Search, browse, and recommendations run entirely client-side against the
-  in-memory catalog — fine at hundreds of songs, but a real 1000+ catalog
-  with audio hosting will want a backend/API rather than a single JS file.
-- Crossfade is exposed as a Settings toggle but not yet wired into the audio
-  engine (it's a placeholder for now, noted as such in Settings).
-- No authentication — playlists/favorites are per-browser (`localStorage`),
-  not per-account. If you already have auth in a larger version of this
-  project, playlists/favorites are structured so they can be moved to a
-  per-user backend without changing their shape.
-- Placeholder audio and album art, as described above.
-
-## Pushing this to GitHub
-
-I can't push to your GitHub account directly from this environment. To get
-these files into your existing repo:
-
+### 2. Start the Frontend Streaming Server
+In the root directory:
 ```bash
-# from inside your existing Omify repo
-cp -r /path/to/these/files/* .
-git add .
-git commit -m "Rebuild Omify as a multi-page app: routing, player, favorites, playlists, search"
-git push
+node server.js
 ```
+- **Frontend App**: [http://localhost:3000/](http://localhost:3000/)
 
-If you'd like me to open a pull request or commit directly, connect a GitHub
-tool/connector in this chat and I can do that for you instead of you running
-the commands manually.
+---
+
+## 🎧 Architecture & Features
+
+### Frontend (Vanilla HTML5 / CSS3 / JavaScript)
+- **Authentic Catalog**: 1,098 curated songs from the local audio library with authentic extracted cover art and metadata.
+- **Audio Streaming Engine**: Custom WebAudio player supporting play/pause, seek, volume control, shuffle, repeat, queue management, and keyboard shortcuts.
+- **Dynamic Hash Routing**: Instant SPA navigation without page refreshes (`#/home`, `#/made-for-you`, `#/trending`, `#/new-releases`, `#/foreign`, `#/favorites`, `#/playlists`, `#/settings`, `#/profile`).
+- **Live Sync**: Playback history and favorites sync in real time with the backend SQLite database.
+
+### Backend (Python / FastAPI / SQLAlchemy / Scikit-Learn)
+- **TF-IDF + Metadata Feature Matrix**: 524-dimensional feature vector per song incorporating genres, moods, languages, artist similarity, and normalized release years/play counts.
+- **KMeans Categorization**: Unsupervised 15-cluster grouping for diverse music discovery.
+- **User Preference Profile**: Real-time listening history decay and behavioral weighting ($W_{\text{like}} = 2.0$, $W_{\text{finish}} = 1.5$, $W_{\text{skip}} = -0.5$).
+- **Personalized Recommendations**: `/api/made-for-you` calculates content scores with diversity constraints ($\le 2$ tracks per artist) and clear human-readable explanations.
+- **Discovery Endpoints**: `/api/trending`, `/api/new-releases`, `/api/foreign-music`, `/api/history`, `/api/favorites`, `/api/playlists`.
+- **Automated Retraining**: `/api/recommendations/refresh` triggers full feature matrix recomputation, clustering, and user profile updates.
+
+---
+
+## 🧪 Testing the ML Engine
+```bash
+cd Backend
+.\venv\Scripts\python.exe -m pytest tests/ -v
+```
+All 10 integration and unit test suites pass, verifying:
+- Feature matrix construction
+- KMeans clustering consistency
+- User profile preference decay
+- Diversity enforcement
+- Playback history & favorites endpoints

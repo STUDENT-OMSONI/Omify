@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <defs>
+    <linearGradient id="neutralBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#282828"/>
+      <stop offset="100%" stop-color="#121212"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" rx="8" fill="url(#neutralBg)"/>
+  <!-- Minimalist Clean Vinyl Groove -->
+  <circle cx="150" cy="150" r="100" stroke="rgba(255,255,255,0.03)" stroke-width="2" fill="none"/>
+  <circle cx="150" cy="150" r="70" stroke="rgba(255,255,255,0.04)" stroke-width="2" fill="none"/>
+  <!-- Sleek Spotify-Style Music Note -->
+  <g fill="#7c7c88">
+    <path d="M138 120 L138 172 A18 18 0 1 1 120 154 A18 18 0 0 1 138 162 L138 120 L182 110 L182 160 A18 18 0 1 1 164 142 A18 18 0 0 1 182 150 L182 102 Z"/>
+  </g>
+</svg>

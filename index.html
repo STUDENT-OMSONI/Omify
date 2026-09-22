@@ -1,23 +1,29 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Omify</title>
-  <meta name="description" content="Omify is a premium music streaming platform with 1,000+ international songs, playlists, favorites, and personalized recommendations." />
+  <meta name="description"
+    content="Omify is a premium music streaming platform with 1,000+ international songs, playlists, favorites, and personalized recommendations." />
   <meta name="theme-color" content="#0D0B10" />
   <meta property="og:title" content="Omify" />
-  <meta property="og:description" content="Stream 1,000+ international songs. Create playlists, save favorites, and discover music from around the world." />
+  <meta property="og:description"
+    content="Stream 1,000+ international songs. Create playlists, save favorites, and discover music from around the world." />
   <meta property="og:type" content="website" />
   <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="style.css?v=20260920_2315" />
 </head>
+
 <body>
   <noscript>
-    <div style="padding:40px;text-align:center;color:#C9C2CE;font-family:sans-serif;background:#0D0B0F;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+    <div
+      style="padding:40px;text-align:center;color:#C9C2CE;font-family:sans-serif;background:#0D0B0F;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;">
       <h1 style="color:#F5F1E8;">Omify requires JavaScript</h1>
       <p>Please enable JavaScript in your browser to enjoy the full music streaming experience.</p>
     </div>
@@ -48,12 +54,14 @@
     <aside class="sidebar" id="sidebar">
       <!-- Sidebar Top Brand & Window Controls (Logo + ... < >) -->
       <div class="sidebar-top-brand-nav" id="sidebarTopBrandNav">
-        <div class="sidebar-brand" id="sidebarBrand" onclick="location.hash='#/'" title="Omify Home" role="button" tabindex="0">
+        <div class="sidebar-brand" id="sidebarBrand" onclick="location.hash='#/'" title="Omify Home" role="button"
+          tabindex="0">
           <img src="assets/logo.svg" alt="Omify" class="sidebar-brand-logo" id="sidebarBrandLogo" />
           <span class="sidebar-brand-name" id="sidebarBrandName">Omify</span>
         </div>
         <div class="sidebar-window-nav" id="sidebarWindowNav">
-          <button class="sidebar-window-btn menu-dots-btn" id="sidebarDotMenu" title="Spotify Menu" aria-label="Spotify Menu">
+          <button class="sidebar-window-btn menu-dots-btn" id="sidebarDotMenu" title="Spotify Menu"
+            aria-label="Spotify Menu">
             <i class="fa-solid fa-ellipsis"></i>
           </button>
           <div class="sidebar-nav-arrows">
@@ -64,7 +72,8 @@
               <i class="fa-solid fa-chevron-right"></i>
             </button>
           </div>
-          <button class="sidebar-toggle-btn" id="sidebarCollapseBtn" title="Collapse / Expand sidebar" aria-label="Collapse sidebar" style="display:none;">
+          <button class="sidebar-toggle-btn" id="sidebarCollapseBtn" title="Collapse / Expand sidebar"
+            aria-label="Collapse sidebar" style="display:none;">
             <i class="fa-solid fa-angles-left"></i>
           </button>
         </div>
@@ -73,16 +82,20 @@
       <!-- Spotify-Style Library Box with Motion Collapse & Expansion -->
       <div class="sidebar-library-box" id="sidebarLibraryBox">
         <div class="library-header" id="libraryHeader">
-          <button class="library-header-btn" id="libraryToggleBtn" title="Collapse / Expand Your Library" aria-label="Your Library">
-            <svg class="lib-header-icon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
-              <path d="M4 2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 2v16h3V4H4zm5 16h11V4H9v16zm7.707-11.707a1 1 0 0 0-1.414 0l-3 3a1 1 0 0 0 0 1.414l3 3a1 1 0 0 0 1.414-1.414L14.414 12l2.293-2.293a1 1 0 0 0 0-1.414z"/>
+          <button class="library-header-btn" id="libraryToggleBtn" title="Collapse / Expand Your Library"
+            aria-label="Your Library">
+            <svg class="lib-header-icon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor"
+              aria-hidden="true">
+              <path
+                d="M4 2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 2v16h3V4H4zm5 16h11V4H9v16zm7.707-11.707a1 1 0 0 0-1.414 0l-3 3a1 1 0 0 0 0 1.414l3 3a1 1 0 0 0 1.414-1.414L14.414 12l2.293-2.293a1 1 0 0 0 0-1.414z" />
             </svg>
             <span class="library-header-title">Your Library</span>
           </button>
           <div class="library-header-actions">
             <!-- Create Menu Trigger -->
             <div class="library-create-wrap" style="position:relative;">
-              <button class="icon-btn library-action-btn" id="createPlaylistSidebarBtn" title="Create playlist or smart vibe" aria-label="Create playlist or smart vibe">
+              <button class="icon-btn library-action-btn" id="createPlaylistSidebarBtn"
+                title="Create playlist or smart vibe" aria-label="Create playlist or smart vibe">
                 <i class="fa-solid fa-plus" id="createPlaylistSidebarIcon"></i>
               </button>
               <div class="lib-create-dropdown" id="libCreateDropdown" style="display:none;">
@@ -90,8 +103,9 @@
                 <button type="button" class="lib-dropdown-item" id="createNormalPlaylistBtn">
                   <div class="dd-item-icon-badge">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                      <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6zm-2 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
-                      <path d="M2 5h6v2H2zm0 4h6v2H2z" fill="currentColor"/>
+                      <path
+                        d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6zm-2 16c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" />
+                      <path d="M2 5h6v2H2zm0 4h6v2H2z" fill="currentColor" />
                     </svg>
                   </div>
                   <div class="dd-item-text">
@@ -104,8 +118,8 @@
                 <button type="button" class="lib-dropdown-item" id="createSmartVibeBtn">
                   <div class="dd-item-icon-badge">
                     <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-                      <circle cx="9" cy="12" r="5.5" fill="#FFFFFF" fill-opacity="0.55"/>
-                      <circle cx="15" cy="12" r="5.5" fill="#FFFFFF" fill-opacity="0.75"/>
+                      <circle cx="9" cy="12" r="5.5" fill="#FFFFFF" fill-opacity="0.55" />
+                      <circle cx="15" cy="12" r="5.5" fill="#FFFFFF" fill-opacity="0.75" />
                     </svg>
                   </div>
                   <div class="dd-item-text">
@@ -120,8 +134,9 @@
                 <!-- 3. Folder -->
                 <button type="button" class="lib-dropdown-item" id="createFolderBtn">
                   <div class="dd-item-icon-badge">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                     </svg>
                   </div>
                   <div class="dd-item-text">
@@ -133,31 +148,43 @@
             </div>
 
             <!-- Expand / Enlarge library width (Real Spotify diagonal arrows) -->
-            <button class="icon-btn library-action-btn" id="expandSidebarBtn" title="Enlarge library" aria-label="Enlarge library">
+            <button class="icon-btn library-action-btn" id="expandSidebarBtn" title="Enlarge library"
+              aria-label="Enlarge library">
               <i class="fa-solid fa-up-right-and-down-left-from-center" id="expandSidebarIcon"></i>
             </button>
           </div>
         </div>
 
-        <!-- Library Filter Chips: Playlists, Albums, Artists (Exact order & look of real Spotify) -->
+        <!-- Library Filter Chips: Playlists, Albums, Artists, New Releases (Exact order & look of real Spotify) -->
         <div class="library-filter-chips" id="libFilterChips">
           <button class="lib-chip" data-lib-filter="playlists">Playlists</button>
           <button class="lib-chip" data-lib-filter="albums">Albums</button>
           <button class="lib-chip" data-lib-filter="artists">Artists</button>
+          <button class="lib-chip vibe-chip" data-lib-filter="new-releases" onclick="location.hash='#/new-releases'"
+            title="New Music Releases"><i class="fa-solid fa-compact-disc" style="color:#60a5fa;"></i> New
+            Releases</button>
+          <button class="lib-chip vibe-chip" data-lib-filter="ai" onclick="location.hash='#/made-for-you'"
+            title="AI Personalized Recommendations"><i class="fa-solid fa-wand-magic-sparkles"
+              style="color:var(--signal);"></i> Made For You</button>
           <!-- Hidden hooks for test compatibility -->
           <button class="lib-chip" data-lib-filter="all" style="display:none;">All</button>
-          <button class="lib-chip vibe-chip" data-lib-filter="sukoon" style="display:none;"><i class="fa-solid fa-spa"></i> Sukoon</button>
-          <button class="lib-chip vibe-chip" data-lib-filter="hype" style="display:none;"><i class="fa-solid fa-bolt"></i> Hype</button>
+          <button class="lib-chip vibe-chip" data-lib-filter="sukoon" style="display:none;"><i
+              class="fa-solid fa-spa"></i> Sukoon</button>
+          <button class="lib-chip vibe-chip" data-lib-filter="hype" style="display:none;"><i
+              class="fa-solid fa-bolt"></i> Hype</button>
         </div>
 
         <!-- Library Search & Sort Row -->
         <div class="library-subrow">
           <div class="lib-search-box-wrap">
-            <button class="icon-btn lib-search-toggle" id="libSearchToggle" title="Search in Your Library" aria-label="Search Library">
+            <button class="icon-btn lib-search-toggle" id="libSearchToggle" title="Search in Your Library"
+              aria-label="Search Library">
               <i class="fa-solid fa-magnifying-glass"></i>
             </button>
-            <input type="text" class="lib-quick-search" id="libQuickSearch" placeholder="Search in Library..." style="display:none;" />
-            <button class="lib-search-clear-btn" id="libSearchClearBtn" style="display:none;" aria-label="Clear library search"><i class="fa-solid fa-xmark"></i></button>
+            <input type="text" class="lib-quick-search" id="libQuickSearch" placeholder="Search in Library..."
+              style="display:none;" />
+            <button class="lib-search-clear-btn" id="libSearchClearBtn" style="display:none;"
+              aria-label="Clear library search"><i class="fa-solid fa-xmark"></i></button>
           </div>
 
           <div class="lib-subrow-right">
@@ -184,7 +211,8 @@
             </div>
 
             <!-- View Mode Switcher (kept in DOM for full test compatibility) -->
-            <button class="icon-btn library-action-btn" id="libViewModeBtn" title="Change view" aria-label="Change view" style="display:none;">
+            <button class="icon-btn library-action-btn" id="libViewModeBtn" title="Change view" aria-label="Change view"
+              style="display:none;">
               <i class="fa-solid fa-list" id="libViewModeIcon"></i>
             </button>
           </div>
@@ -203,7 +231,8 @@
       </div>
 
       <!-- Real Spotify Draggable Column Splitter / Resizer -->
-      <div class="sidebar-resizer" id="sidebarResizer" title="Drag to resize library (double-click to expand/collapse)" aria-label="Resize library">
+      <div class="sidebar-resizer" id="sidebarResizer" title="Drag to resize library (double-click to expand/collapse)"
+        aria-label="Resize library">
         <div class="resizer-handle-line"></div>
       </div>
 
@@ -212,7 +241,8 @@
     <!-- ============ MAIN COLUMN ============ -->
     <div class="main-column">
       <header class="topbar">
-        <button class="icon-btn only-mobile" id="mobileMenuBtn" aria-label="Open menu"><i class="fa-solid fa-bars"></i></button>
+        <button class="icon-btn only-mobile" id="mobileMenuBtn" aria-label="Open menu"><i
+            class="fa-solid fa-bars"></i></button>
 
         <!-- Left Nav Controls: Window menu (...), Back (<), Forward (>) -->
         <div class="topbar-nav-controls">
@@ -221,14 +251,20 @@
               <i class="fa-solid fa-ellipsis"></i>
             </button>
             <div class="spotify-menu-dropdown" id="spotifyMenuDropdown" style="display:none;">
-              <div class="menu-item" data-action="new-playlist"><span class="menu-label">New Playlist</span><span class="menu-shortcut">Ctrl+N</span></div>
-              <div class="menu-item" data-action="toggle-sidebar"><span class="menu-label">Toggle Sidebar</span><span class="menu-shortcut">Ctrl+[</span></div>
+              <div class="menu-item" data-action="new-playlist"><span class="menu-label">New Playlist</span><span
+                  class="menu-shortcut">Ctrl+N</span></div>
+              <div class="menu-item" data-action="toggle-sidebar"><span class="menu-label">Toggle Sidebar</span><span
+                  class="menu-shortcut">Ctrl+[</span></div>
               <div class="menu-divider"></div>
-              <div class="menu-item" data-action="fullscreen"><span class="menu-label">Fullscreen</span><span class="menu-shortcut">F11</span></div>
-              <div class="menu-item" data-action="play-pause"><span class="menu-label">Play / Pause</span><span class="menu-shortcut">Space</span></div>
-              <div class="menu-item" data-action="next-track"><span class="menu-label">Next Track</span><span class="menu-shortcut">Ctrl+Right</span></div>
+              <div class="menu-item" data-action="fullscreen"><span class="menu-label">Fullscreen</span><span
+                  class="menu-shortcut">F11</span></div>
+              <div class="menu-item" data-action="play-pause"><span class="menu-label">Play / Pause</span><span
+                  class="menu-shortcut">Space</span></div>
+              <div class="menu-item" data-action="next-track"><span class="menu-label">Next Track</span><span
+                  class="menu-shortcut">Ctrl+Right</span></div>
               <div class="menu-divider"></div>
-              <div class="menu-item" data-action="about"><span class="menu-label">About Omify</span><i class="fa-solid fa-circle-info"></i></div>
+              <div class="menu-item" data-action="about"><span class="menu-label">About Omify</span><i
+                  class="fa-solid fa-circle-info"></i></div>
             </div>
           </div>
           <button class="topbar-hist-btn" id="histBackBtn" title="Go back" aria-label="Go back">
@@ -246,9 +282,11 @@
           </a>
           <div class="topbar-search-box">
             <i class="fa-solid fa-magnifying-glass search-leading-icon"></i>
-            <input type="text" id="globalSearchInput" placeholder="What do you want to play?" aria-label="Search Omify" />
+            <input type="text" id="globalSearchInput" placeholder="What do you want to play?"
+              aria-label="Search Omify" />
             <div class="search-box-divider"></div>
-            <a href="#/browse" class="search-browse-link" id="searchBrowseBtn" title="Browse catalog" aria-label="Browse catalog">
+            <a href="#/browse" class="search-browse-link" id="searchBrowseBtn" title="Browse catalog"
+              aria-label="Browse catalog">
               <i class="fa-solid fa-box-archive"></i>
             </a>
           </div>
@@ -256,7 +294,8 @@
 
         <!-- Right Side Actions: Notifications, Social, Profile -->
         <div class="topbar-right-actions">
-          <button class="icon-btn topbar-action-btn" id="queueBtn" title="Queue" aria-label="Open queue"><i class="fa-solid fa-list-ol"></i></button>
+          <button class="icon-btn topbar-action-btn" id="queueBtn" title="Queue" aria-label="Open queue"><i
+              class="fa-solid fa-list-ol"></i></button>
 
           <!-- What's New Notifications -->
           <div class="topbar-popover-wrapper">
@@ -265,71 +304,66 @@
               <span class="notif-dot"></span>
             </button>
             <div class="popover-dropdown notif-dropdown" id="notifDropdown" style="display:none;">
-              <div class="popover-header">
-                <h4>What's New</h4>
-                <span class="popover-subtitle">Latest releases and updates</span>
+              <div class="popover-header notif-popover-header">
+                <div class="popover-header-text">
+                  <div class="popover-title-row">
+                    <span class="popover-icon-badge notif-badge"><i class="fa-solid fa-bell"></i></span>
+                    <h4>What's New</h4>
+                  </div>
+                  <span class="popover-subtitle">Latest releases and updates</span>
+                </div>
+                <button class="popover-close-btn" id="closeNotifDropdownBtn" title="Close"
+                  aria-label="Close notifications">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
               </div>
               <div class="notif-list">
-                <div class="notif-item" data-song-id="omify-0011">
-                  <img src="covers/1.jpg" alt="" class="notif-art" />
+                <div class="notif-item" data-song-id="sp-1084" title="Play Tera Fitoor">
+                  <div class="notif-art-wrap">
+                    <img src="covers/extracted/sp-1084.jpg" alt="Tera Fitoor" class="notif-art"
+                      onerror="this.onerror=null;this.src='assets/music-cover.svg';" />
+                    <div class="notif-play-overlay"><i class="fa-solid fa-play"></i></div>
+                  </div>
                   <div class="notif-info">
                     <span class="notif-title">Tera Fitoor · Arijit Singh</span>
                     <span class="notif-desc">New Bollywood favorite added</span>
-                    <span class="notif-time">Just now</span>
+                    <span class="notif-time"><span class="notif-badge-pill">NEW</span> Just now</span>
                   </div>
                 </div>
-                <div class="notif-item" data-song-id="omify-0020">
-                  <img src="covers/10.jpg" alt="" class="notif-art" />
+                <div class="notif-item" data-song-id="sp-22" title="Play Aaj Ki Raat">
+                  <div class="notif-art-wrap">
+                    <img src="covers/extracted/sp-22.jpg" alt="Aaj Ki Raat" class="notif-art"
+                      onerror="this.onerror=null;this.src='assets/music-cover.svg';" />
+                    <div class="notif-play-overlay"><i class="fa-solid fa-play"></i></div>
+                  </div>
                   <div class="notif-info">
-                    <span class="notif-title">London Thumakda · Queen</span>
+                    <span class="notif-title">Aaj Ki Raat · Stree 2</span>
                     <span class="notif-desc">Party anthem streaming now</span>
-                    <span class="notif-time">2h ago</span>
+                    <span class="notif-time"><span class="notif-badge-pill">HOT</span> 2h ago</span>
                   </div>
                 </div>
-                <div class="notif-item">
-                  <div class="notif-icon-box"><i class="fa-solid fa-compact-disc"></i></div>
+                <div class="notif-item notif-catalog-item" data-action="catalog-1000"
+                  title="Explore full 1,098 Song Catalog">
+                  <div class="notif-icon-box">
+                    <i class="fa-solid fa-compact-disc"></i>
+                  </div>
                   <div class="notif-info">
-                    <span class="notif-title">1,000 Song Catalog Live</span>
+                    <span class="notif-title">1,098 Song Catalog Live</span>
                     <span class="notif-desc">Explore full library in High Quality</span>
-                    <span class="notif-time">Today</span>
+                    <span class="notif-time"><span class="notif-badge-pill">1098</span> Today</span>
                   </div>
                 </div>
+              </div>
+              <div class="notif-footer">
+                <a href="#/new-releases" class="notif-cta-btn" id="notifExploreBtn">
+                  <i class="fa-solid fa-compact-disc"></i> Explore All New Releases
+                </a>
               </div>
             </div>
           </div>
 
-          <!-- Friend Activity -->
-          <div class="topbar-popover-wrapper">
-            <button class="icon-btn topbar-action-btn" id="socialBtn" title="Friend Activity" aria-label="Friend Activity">
-              <i class="fa-solid fa-user-group"></i>
-            </button>
-            <div class="popover-dropdown friend-dropdown" id="friendDropdown" style="display:none;">
-              <div class="popover-header">
-                <h4>Friend Activity</h4>
-                <span class="popover-subtitle">See what your friends are listening to</span>
-              </div>
-              <div class="friend-list">
-                <div class="friend-item">
-                  <div class="friend-avatar"><i class="fa-solid fa-user"></i></div>
-                  <div class="friend-info">
-                    <div class="friend-name">Om Soni <span class="friend-tag">#sukoon</span></div>
-                    <div class="friend-song"><i class="fa-solid fa-music"></i> Tera Fitoor</div>
-                    <div class="friend-album">Sukoon Playlist</div>
-                  </div>
-                </div>
-                <div class="friend-item">
-                  <div class="friend-avatar"><i class="fa-solid fa-user"></i></div>
-                  <div class="friend-info">
-                    <div class="friend-name">Aarav Patel</div>
-                    <div class="friend-song"><i class="fa-solid fa-music"></i> London Thumakda</div>
-                    <div class="friend-album">Queen Soundtrack</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <button class="icon-btn topbar-action-btn" id="themeToggleBtn" title="Toggle theme" aria-label="Toggle theme"><i class="fa-solid fa-moon"></i></button>
+          <button class="icon-btn topbar-action-btn" id="themeToggleBtn" title="Toggle theme"
+            aria-label="Toggle theme"><i class="fa-solid fa-moon"></i></button>
 
           <!-- Profile Avatar with Menu -->
           <div class="topbar-popover-wrapper">
@@ -340,7 +374,8 @@
               <a href="#/profile" class="popover-item"><i class="fa-solid fa-user"></i> <span>Profile</span></a>
               <a href="#/settings" class="popover-item"><i class="fa-solid fa-gear"></i> <span>Settings</span></a>
               <div class="popover-divider"></div>
-              <div class="popover-item" id="logoutActionBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Log out</span></div>
+              <div class="popover-item" id="logoutActionBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span>Log out</span></div>
             </div>
           </div>
 
@@ -353,30 +388,37 @@
     <!-- ============ MOBILE BOTTOM NAV ============ -->
     <nav class="mobile-nav">
       <a href="#/home" class="mnav-link" data-route="home"><i class="fa-solid fa-house"></i><span>Home</span></a>
-      <a href="#/search" class="mnav-link" data-route="search"><i class="fa-solid fa-magnifying-glass"></i><span>Search</span></a>
-      <a href="#/favorites" class="mnav-link" data-route="favorites"><i class="fa-solid fa-heart"></i><span>Liked</span></a>
-      <a href="#/playlists" class="mnav-link" data-route="playlists"><i class="fa-solid fa-list-ul"></i><span>Library</span></a>
-      <a href="#/profile" class="mnav-link" data-route="profile"><i class="fa-solid fa-circle-user"></i><span>Profile</span></a>
+      <a href="#/search" class="mnav-link" data-route="search"><i
+          class="fa-solid fa-magnifying-glass"></i><span>Search</span></a>
+      <a href="#/favorites" class="mnav-link" data-route="favorites"><i
+          class="fa-solid fa-heart"></i><span>Liked</span></a>
+      <a href="#/playlists" class="mnav-link" data-route="playlists"><i
+          class="fa-solid fa-list-ul"></i><span>Library</span></a>
+      <a href="#/profile" class="mnav-link" data-route="profile"><i
+          class="fa-solid fa-circle-user"></i><span>Profile</span></a>
     </nav>
 
     <!-- ============ PERSISTENT PLAYER BAR ============ -->
     <footer class="player-bar" id="playerBar">
       <div class="player-now-playing" id="playerNowPlaying">
-        <img id="nowArt" class="now-art" src="covers/radha-rani.svg" alt="Radha Rani" />
+        <img id="nowArt" class="now-art" src="covers/extracted/sp-1.jpg" alt="Tujhe Bhula Diya" />
         <div class="now-meta">
-          <span id="nowTitle" class="now-title">Radha Rani</span>
-          <span id="nowArtist" class="now-artist">Nandlal Chhanga</span>
+          <span id="nowTitle" class="now-title">Tujhe Bhula Diya</span>
+          <span id="nowArtist" class="now-artist">Ranbir Kapoor, Priyanka Chopra</span>
         </div>
-        <button class="icon-btn now-action-dismiss" id="nowDismissBtn" title="Clear track" aria-label="Clear track"><i class="fa-solid fa-xmark"></i></button>
-        <button class="icon-btn like-btn" id="nowLikeBtn" title="Save to Your Library" aria-label="Save to Your Library"><i class="fa-solid fa-circle-plus"></i></button>
-        <button class="icon-btn edit-song-btn" id="nowEditBtn" title="Customize this song" aria-label="Customize song" style="display:none;"><i class="fa-solid fa-pen-to-square"></i></button>
+        <button class="icon-btn now-action-dismiss" id="nowDismissBtn" title="Clear track" aria-label="Clear track"><i
+            class="fa-solid fa-xmark"></i></button>
+        <button class="icon-btn like-btn" id="nowLikeBtn" title="Save to Your Library"
+          aria-label="Save to Your Library"><i class="fa-solid fa-circle-plus"></i></button>
+        <button class="icon-btn edit-song-btn" id="nowEditBtn" title="Customize this song" aria-label="Customize song"
+          style="display:none;"><i class="fa-solid fa-pen-to-square"></i></button>
       </div>
 
       <div class="player-center">
         <div class="player-controls">
           <button class="icon-btn" id="shuffleBtn" aria-label="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
           <button class="icon-btn" id="prevBtn" aria-label="Previous"><i class="fa-solid fa-backward-step"></i></button>
-          <button class="icon-btn play-btn" id="playBtn" aria-label="Play"><i class="fa-solid fa-circle-play"></i></button>
+          <button class="icon-btn play-btn" id="playBtn" aria-label="Play"><i class="fa-solid fa-play"></i></button>
           <button class="icon-btn" id="nextBtn" aria-label="Next"><i class="fa-solid fa-forward-step"></i></button>
           <button class="icon-btn" id="repeatBtn" aria-label="Repeat"><i class="fa-solid fa-repeat"></i></button>
         </div>
@@ -408,7 +450,8 @@
 
   <!-- ============ MOBILE FULL-SCREEN PLAYER ============ -->
   <div class="mobile-player-overlay" id="mobilePlayerOverlay">
-    <button class="icon-btn close-mobile-player" id="closeMobilePlayer" aria-label="Close player"><i class="fa-solid fa-chevron-down"></i></button>
+    <button class="icon-btn close-mobile-player" id="closeMobilePlayer" aria-label="Close player"><i
+        class="fa-solid fa-chevron-down"></i></button>
     <img class="mobile-player-art" id="mobilePlayerArt" src="assets/logo.svg" alt="Album art" />
     <div class="mobile-player-meta">
       <h2 id="mobilePlayerTitle"></h2>
@@ -421,8 +464,9 @@
     </div>
     <div class="mobile-player-controls">
       <button class="icon-btn" id="mobileShuffleBtn" aria-label="Shuffle"><i class="fa-solid fa-shuffle"></i></button>
-      <button class="icon-btn" id="mobilePrevBtn" aria-label="Previous"><i class="fa-solid fa-backward-step"></i></button>
-      <button class="icon-btn play-btn" id="mobilePlayBtn" aria-label="Play"><i class="fa-solid fa-circle-play"></i></button>
+      <button class="icon-btn" id="mobilePrevBtn" aria-label="Previous"><i
+          class="fa-solid fa-backward-step"></i></button>
+      <button class="icon-btn play-btn" id="mobilePlayBtn" aria-label="Play"><i class="fa-solid fa-play"></i></button>
       <button class="icon-btn" id="mobileNextBtn" aria-label="Next"><i class="fa-solid fa-forward-step"></i></button>
       <button class="icon-btn" id="mobileRepeatBtn" aria-label="Repeat"><i class="fa-solid fa-repeat"></i></button>
     </div>
@@ -436,23 +480,26 @@
   <!-- ============ SPOTIFY BLEND MODAL ============ -->
   <div class="modal-backdrop modal-blend-backdrop" id="blendModalBackdrop" style="display:none;">
     <div class="modal-card modal-blend-card">
-      <button class="modal-close-btn" id="blendModalCloseBtn" aria-label="Close Blend modal"><i class="fa-solid fa-xmark"></i></button>
+      <button class="modal-close-btn" id="blendModalCloseBtn" aria-label="Close Blend modal"><i
+          class="fa-solid fa-xmark"></i></button>
       <div class="blend-modal-header">
         <div class="blend-modal-badge">
           <svg viewBox="0 0 24 24" width="36" height="36" fill="none">
-            <circle cx="8.5" cy="12" r="7" fill="#1ED760" fill-opacity="0.85"/>
-            <circle cx="15.5" cy="12" r="7" fill="#1DB954" fill-opacity="0.85"/>
+            <circle cx="8.5" cy="12" r="7" fill="#1ED760" fill-opacity="0.85" />
+            <circle cx="15.5" cy="12" r="7" fill="#1DB954" fill-opacity="0.85" />
           </svg>
         </div>
         <h2 class="blend-modal-title">Create a Blend</h2>
-        <p class="blend-modal-sub">Combine your music tastes with a friend into a shared, living playlist with taste match scores.</p>
+        <p class="blend-modal-sub">Combine your music tastes with a friend into a shared, living playlist with taste
+          match scores.</p>
       </div>
 
       <!-- Friend Selector -->
       <div class="blend-friend-section">
         <span class="blend-label">Choose a friend or music companion</span>
         <div class="blend-companions-grid" id="blendCompanionsGrid">
-          <button type="button" class="blend-companion-card active" data-companion="arijit" data-name="Arijit Soulmate" data-vibe="romantic" data-avatar="covers/extracted/sp-81.jpg">
+          <button type="button" class="blend-companion-card active" data-companion="arijit" data-name="Arijit Soulmate"
+            data-vibe="romantic" data-avatar="covers/extracted/sp-81.jpg">
             <img src="covers/extracted/sp-81.jpg" alt="Arijit" class="blend-comp-avatar" />
             <div class="blend-comp-info">
               <span class="blend-comp-name">Arijit Soulmate</span>
@@ -460,7 +507,8 @@
             </div>
             <span class="blend-comp-match">92% Match</span>
           </button>
-          <button type="button" class="blend-companion-card" data-companion="punjabi" data-name="Diljit & Swag Crew" data-vibe="punjabi" data-avatar="covers/extracted/sp-22.jpg">
+          <button type="button" class="blend-companion-card" data-companion="punjabi" data-name="Diljit & Swag Crew"
+            data-vibe="punjabi" data-avatar="covers/extracted/sp-22.jpg">
             <img src="covers/extracted/sp-22.jpg" alt="Diljit" class="blend-comp-avatar" />
             <div class="blend-comp-info">
               <span class="blend-comp-name">Diljit & Swag Crew</span>
@@ -468,7 +516,8 @@
             </div>
             <span class="blend-comp-match">88% Match</span>
           </button>
-          <button type="button" class="blend-companion-card" data-companion="lofi" data-name="Late Night Sukoon" data-vibe="indie_lofi" data-avatar="covers/extracted/sp-1065.jpg">
+          <button type="button" class="blend-companion-card" data-companion="lofi" data-name="Late Night Sukoon"
+            data-vibe="indie_lofi" data-avatar="covers/extracted/sp-1065.jpg">
             <img src="covers/extracted/sp-1065.jpg" alt="Sukoon" class="blend-comp-avatar" />
             <div class="blend-comp-info">
               <span class="blend-comp-name">Late Night Sukoon</span>
@@ -476,7 +525,8 @@
             </div>
             <span class="blend-comp-match">96% Match</span>
           </button>
-          <button type="button" class="blend-companion-card" data-companion="party" data-name="Honey Singh Hype Squad" data-vibe="party" data-avatar="covers/extracted/sp-182.jpg">
+          <button type="button" class="blend-companion-card" data-companion="party" data-name="Honey Singh Hype Squad"
+            data-vibe="party" data-avatar="covers/extracted/sp-182.jpg">
             <img src="covers/extracted/sp-182.jpg" alt="Party" class="blend-comp-avatar" />
             <div class="blend-comp-info">
               <span class="blend-comp-name">Honey Singh Hype</span>
@@ -489,7 +539,8 @@
         <!-- Custom Friend Input -->
         <div class="blend-custom-friend-wrap">
           <label for="blendCustomFriendInput" class="blend-custom-label">Or blend with another friend by name:</label>
-          <input type="text" id="blendCustomFriendInput" class="blend-custom-input" placeholder="e.g. Aryan, Priya, Rahul..." maxlength="30" />
+          <input type="text" id="blendCustomFriendInput" class="blend-custom-input"
+            placeholder="e.g. Aryan, Priya, Rahul..." maxlength="30" />
         </div>
       </div>
 
@@ -506,7 +557,8 @@
   <!-- ============ CREATE FOLDER MODAL ============ -->
   <div class="modal-backdrop modal-folder-backdrop" id="folderModalBackdrop" style="display:none;">
     <div class="modal-card modal-folder-card">
-      <button class="modal-close-btn" id="folderModalCloseBtn" aria-label="Close Folder modal"><i class="fa-solid fa-xmark"></i></button>
+      <button class="modal-close-btn" id="folderModalCloseBtn" aria-label="Close Folder modal"><i
+          class="fa-solid fa-xmark"></i></button>
       <div class="folder-modal-header">
         <div class="folder-modal-icon">
           <i class="fa-regular fa-folder-open"></i>
@@ -516,7 +568,8 @@
       </div>
       <div class="folder-modal-body">
         <label for="folderNameInput" class="folder-input-label">Folder name</label>
-        <input type="text" id="folderNameInput" class="folder-name-input" placeholder="New Folder" value="New Folder" maxlength="40" />
+        <input type="text" id="folderNameInput" class="folder-name-input" placeholder="New Folder" value="New Folder"
+          maxlength="40" />
       </div>
       <div class="folder-modal-footer">
         <button type="button" class="btn btn-secondary" id="folderModalCancelBtn">Cancel</button>
@@ -527,104 +580,8 @@
 
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="data/songs.js"></script>
-  <script src="script.js"></script>
+  <script src="data/songs.js?v=20260920_0600"></script>
+  <script src="script.js?v=20260920_0600"></script>
 </body>
-</html>
-=======
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Spotify - Your favourite music is here</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-        <link rel="stylesheet" href="style.css">
-        </head>
-<body>
-    <nav>
-        <ul>
-            <li class="brand"><img src="logo.png" alt="Spotify"> Spotify</li>
-            <li>Home</li>
-            <li>About</li>
-        </ul>
-    </nav>
 
-    <div class="container">
-        <div class="songList">
-            <h1>Best of NCS - No Copyright Sounds</h1>
-            <div class="songItemContainer">
-                <div class="songItem">
-                    <img alt="1">
-                    <span class="songName">Let me Love You</span>
-                    <span class="songlistplay"><span class="timestamp">05:34 <i id="0" class="far songItemPlay fa-play-circle"></i> </span></span>
-                </div>
-                <div class="songItem">
-                    <img alt="1">
-                    <span class="songName">Let me Love You</span>
-                    <span class="songlistplay"><span class="timestamp">05:34 <i id="1" class="far songItemPlay fa-play-circle"></i> </span></span>
-                </div>
-                <div class="songItem">
-                    <img alt="1">
-                    <span class="songName">Let me Love You</span>
-                    <span class="songlistplay"><span class="timestamp">05:34 <i id="2" class="far songItemPlay fa-play-circle"></i> </span></span>
-                </div>
-                <div class="songItem">
-                    <img alt="1">
-                    <span class="songName">Let me Love You</span>
-                    <span class="songlistplay"><span class="timestamp">05:34 <i id="3" class="far songItemPlay fa-play-circle"></i> </span></span>
-                </div>
-                <div class="songItem">
-                    <img alt="1">
-                    <span class="songName">Let me Love You</span>
-                    <span class="songlistplay"><span class="timestamp">05:34 <i id="4" class="far songItemPlay fa-play-circle"></i> </span></span>
-                </div>
-                <div class="songItem">
-                    <img alt="1">
-                    <span class="songName">Let me Love You</span>
-                    <span class="songlistplay"><span class="timestamp">05:34 <i id="5" class="far songItemPlay fa-play-circle"></i> </span></span>
-                </div>
-                <div class="songItem">
-                    <img alt="1">
-                    <span class="songName">Let me Love You</span>
-                    <span class="songlistplay"><span class="timestamp">05:34 <i id="6" class="far songItemPlay fa-play-circle"></i> </span></span>
-                </div>
-                <div class="songItem">
-                    <img alt="1">
-                    <span class="songName">Let me Love You</span>
-                    <span class="songlistplay"><span class="timestamp">05:34 <i id="7" class="far songItemPlay fa-play-circle"></i> </span></span>
-                </div>
-                <div class="songItem">
-                    <img alt="1">
-                    <span class="songName">Let me Love You</span>
-                    <span class="songlistplay"><span class="timestamp">05:34 <i id="8" class="far songItemPlay fa-play-circle"></i> </span></span>
-                </div>
-                <div class="songItem">
-                    <img alt="1">
-                    <span class="songName">Let me Love You</span>
-                    <span class="songlistplay"><span class="timestamp">05:34 <i id="9" class="far songItemPlay fa-play-circle"></i> </span></span>
-                </div>
-            </div>
-        </div>
-        <div class="songBanner"></div>
-    </div>
-
-    <div class="bottom">
-        <input type="range" name="range" id="myProgressBar" min="0" value="0" max="100">
-        <div class="icons">
-            <!-- fontawesome icons -->
-            <i class="fas fa-3x fa-step-backward" id="previous"></i>
-            <i class="far fa-3x fa-play-circle" id="masterPlay"></i>
-            <i class="fas fa-3x fa-step-forward" id="next"></i> 
-        
-        </div>
-        <div class="songInfo">
-            <img src="playing.gif" width="42px" alt="" id="gif"> <span id="masterSongName">Warriyo - Mortals [NCS Release]</span>
-        </div>
-    </div>
-    <script src="script.js"></script>
-    <script src="https://kit.fontawesome.com/26504e4a1f.js" crossorigin="anonymous"></script>
-</body>
 </html>
->>>>>>> 6c9c715834c72b472dae61949893ddbde10ccccd
