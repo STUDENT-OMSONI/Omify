@@ -1,0 +1,298 @@
+/* ================================================================
+   responsive.css — Mobile refinements layered on top of style.css
+   No existing styles are changed; this file only adds
+   overrides inside media-query scopes.
+   ================================================================ */
+
+/* ============================================================
+   ≤ 900 px  — primary mobile fixes
+   (style.css already switches to single-column layout here)
+   ============================================================ */
+@media (max-width: 900px) {
+
+  /* --- Topbar: let it grow taller and wrap instead of cramming --- */
+  .topbar {
+    height: auto !important;
+    min-height: var(--topbar-h);
+    flex-wrap: wrap;
+    padding: 8px 12px !important;
+    gap: 8px;
+  }
+
+  /* Nav controls (hamburger, …, ◀ ▶) shrink-wrap to the left */
+  .topbar-nav-controls {
+    order: 1;
+    flex: 0 0 auto;
+  }
+
+  /* Right actions (queue, bell, theme, profile) — push to far right */
+  .topbar-right-actions {
+    order: 2;
+    flex: 0 0 auto;
+    margin-left: auto;
+    gap: 4px;
+  }
+
+  /* Search bar drops to its own row and takes full width */
+  .topbar-search-group {
+    order: 3;
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+  .topbar-search-box {
+    width: 100%;
+    height: 40px;
+  }
+  .topbar-home-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+  }
+
+  /* Hide the Spotify (…) menu and forward/back on mobile — they duplicate sidebar/mobile-nav */
+  .topbar-menu-wrapper,
+  .topbar-hist-btn {
+    display: none !important;
+  }
+
+  /* --- Quickplay grid: 1-col on narrow, 2-col on wider mobile --- */
+  .home-quickplay-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .home-quickplay-card {
+    height: 56px;
+  }
+  .home-quickplay-card img {
+    width: 56px;
+    height: 56px;
+  }
+  .home-quickplay-title {
+    font-size: 0.82rem;
+  }
+
+  /* Filter chips: scroll, don't wrap */
+  .home-filter-chips {
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  /* View header tighter on mobile */
+  .view-header {
+    margin-bottom: 18px;
+  }
+
+  /* Section spacing */
+  .section {
+    margin-bottom: 28px;
+  }
+
+  /* Popover dropdowns: constrain width on mobile */
+  .popover-dropdown {
+    width: calc(100vw - 24px) !important;
+    max-width: 360px;
+    right: -8px;
+  }
+
+  /* Profile dropdown stays narrow */
+  .profile-dropdown {
+    width: 200px !important;
+  }
+
+  /* Modal cards: fit in viewport */
+  .modal-blend-card,
+  .modal-folder-card {
+    width: 92vw !important;
+    max-width: 480px !important;
+    padding: 20px !important;
+  }
+  .blend-companions-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Queue panel full-width on mobile */
+  .queue-panel {
+    width: 100vw;
+    right: -100vw;
+  }
+
+  /* Sidebar resizer hidden on mobile (sidebar is already a slide-over) */
+  .sidebar-resizer {
+    display: none !important;
+  }
+
+  /* Taste / section horizontal scrollers: ensure cards don't overflow */
+  .shelf-scroll {
+    gap: 12px;
+  }
+  .media-card {
+    min-width: 140px;
+    max-width: 160px;
+  }
+}
+
+/* ============================================================
+   ≤ 600 px  — tighter phone layout
+   ============================================================ */
+@media (max-width: 600px) {
+
+  /* Even more compact topbar */
+  .topbar {
+    padding: 6px 10px !important;
+  }
+  .topbar-right-actions {
+    gap: 2px;
+  }
+  .topbar-action-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 0.95rem;
+  }
+  .topbar-avatar-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 1.15rem;
+  }
+
+  /* Player bar: tighter */
+  .player-bar {
+    padding: 0 8px !important;
+    height: 62px !important;
+  }
+  .now-art {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  .now-title {
+    font-size: 0.82rem;
+  }
+  .now-artist {
+    font-size: 0.7rem;
+  }
+
+  /* Mobile nav — bump the bottom to stay above new player height */
+  .mobile-nav {
+    bottom: 62px !important;
+    height: 52px;
+  }
+  .mnav-link {
+    font-size: 1rem;
+    padding: 6px 10px;
+  }
+  .mnav-link span {
+    font-size: 0.55rem;
+  }
+
+  /* Adjust view-container bottom padding for shorter player + nav */
+  .view-container {
+    padding-bottom: calc(62px + 52px + 12px) !important;
+  }
+
+  /* Toast above the new bar heights */
+  .toast-container,
+  .toast {
+    bottom: calc(62px + 52px + 10px) !important;
+  }
+
+  /* View header */
+  .view-header h1 {
+    font-size: 1.4rem;
+  }
+  .view-header p {
+    font-size: 0.84rem;
+  }
+
+  /* Quick grid single column */
+  .quick-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Quickplay grid tighter */
+  .home-quickplay-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  /* Card grid 2 columns */
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+  }
+
+  /* Detail hero smaller art */
+  .detail-hero img {
+    width: 140px !important;
+    height: 140px !important;
+  }
+  .detail-hero-meta h1 {
+    font-size: 1.4rem !important;
+  }
+
+  /* Catalog hero */
+  .catalog-hero h1 {
+    font-size: 1.6rem;
+  }
+
+  /* Track rows — tighter */
+  .track-row {
+    grid-template-columns: 20px 36px 1fr 50px !important;
+    padding: 6px 8px;
+    gap: 8px;
+  }
+  .track-art {
+    width: 36px;
+    height: 36px;
+  }
+  .track-title {
+    font-size: 0.84rem;
+  }
+  .track-artist {
+    font-size: 0.72rem;
+  }
+
+  /* Section head */
+  .section-head h2 {
+    font-size: 1.1rem;
+  }
+
+  /* Settings page */
+  .settings-section {
+    padding: 16px;
+  }
+}
+
+/* ============================================================
+   ≤ 380 px  — very small phones
+   ============================================================ */
+@media (max-width: 380px) {
+
+  .home-quickplay-grid {
+    grid-template-columns: 1fr;
+  }
+  .home-quickplay-card {
+    height: 52px;
+  }
+  .home-quickplay-card img {
+    width: 52px;
+    height: 52px;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px;
+  }
+
+  .view-container {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .topbar {
+    padding: 4px 8px !important;
+  }
+
+  .view-header h1 {
+    font-size: 1.2rem;
+  }
+}
