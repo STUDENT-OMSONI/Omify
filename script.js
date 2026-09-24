@@ -593,6 +593,21 @@
     }
   });
 }
+function getCleanAudioUrl(song) {
+  if (!song) return "";
+
+  const raw = String(song.audioUrl || "").trim();
+
+  if (!raw) return "";
+
+  // Only accept real HTTP/HTTPS backend audio URLs.
+  // Ignore old local Spotify playlist paths.
+  if (!/^https?:\/\//i.test(raw)) {
+    return "";
+  }
+
+  return raw;
+}
   function loadAndPlayCurrent() {
     const song = currentSong();
     if (!song) return;
