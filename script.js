@@ -559,23 +559,40 @@
     loadAndPlayCurrent();
   }
 
-function getCleanAudioUrl(song) {
-  if (!song) return "";
+  function registerSongs(songs) {
+  if (!Array.isArray(songs)) return;
 
-  const raw = song.audioUrl || song.audioSrc || "";
+  songs.forEach((raw) => {
+    const norm = normalizeApiSong(raw);
+    if (!norm) return;
 
-  if (!raw) return "";
+    const existing = songById.get(norm.id);
 
-  try {
-    // Do NOT decode/re-encode signed S3 URLs.
-    // The signature depends on the exact URL.
-    return raw.trim();
-  } catch (e) {
-    console.warn("Omify: invalid audio URL", e);
-    return "";
-  }
+    if (existing) {
+      existing.id = norm.id;
+      existing.title = norm.title;
+      existing.artist = norm.artist;
+      existing.album = norm.album;
+      existing.albumArt = norm.albumArt;
+      existing.audioUrl = norm.audioUrl;
+      existing.duration = norm.duration;
+      existing.genre = norm.genre;
+      existing.language = norm.language;
+      existing.mood = norm.mood;
+      existing.country = norm.country;
+      existing.releaseYear = norm.releaseYear;
+      existing.releaseDate = norm.releaseDate;
+      existing.source = norm.source;
+      existing.playCount = norm.playCount;
+      existing.clusterId = norm.clusterId;
+      existing.reason = norm.reason;
+      existing.score = norm.score;
+    } else {
+      songById.set(norm.id, norm);
+      SONGS.push(norm);
+    }
+  });
 }
-
   function loadAndPlayCurrent() {
     const song = currentSong();
     if (!song) return;
@@ -584,8 +601,7 @@ function getCleanAudioUrl(song) {
     if (!cleanUrl) {
       // Automatic smart recovery: attach playable audio from the artist's library hits
       const artistSeed = (song.artist || "").split(",")[0].split("&")[0].trim().toLowerCase();
-      const fallback = SONGS.find((s) => s.artist && s.artist.toLowerCase().includes(artistSeed) && getCleanAudioUrl(s))
-        || SONGS.find((s) => getCleanAudioUrl(s));
+
       if (fallback) {
         song.audioUrl = fallback.audioUrl;
         song.duration = fallback.duration || song.duration || 180;
