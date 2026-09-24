@@ -69,15 +69,22 @@
     };
   }
   function registerSongs(songs) {
-    if (!songs || !Array.isArray(songs)) return;
-    songs.forEach((raw) => {
-      const norm = normalizeApiSong(raw);
-      if (norm && !songById.has(norm.id)) {
-        songById.set(norm.id, norm);
-        SONGS.push(norm);
-      }
-    });
-  }
+  if (!songs || !Array.isArray(songs)) return;
+
+  songs.forEach((raw) => {
+    const norm = normalizeApiSong(raw);
+    if (!norm) return;
+
+    const existing = songById.get(norm.id);
+
+    if (existing) {
+      Object.assign(existing, norm);
+    } else {
+      songById.set(norm.id, norm);
+      SONGS.push(norm);
+    }
+  });
+}
 
   function sendPlayHistory(song, extra = {}) {
     if (!song || !song.id) return;
