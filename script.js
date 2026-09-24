@@ -28,71 +28,46 @@
 
   function normalizeApiSong(s) {
     if (!s) return null;
+
     return {
       id: String(s.id),
       title: s.title || "Unknown Title",
       artist: s.artist || "Unknown Artist",
       album: s.album || "Single",
-    
-function normalizeApiSong(s) {
-  if (!s) return null;
 
-  return {
-    id: String(s.id),
-    title: s.title || "Unknown Title",
-    artist: s.artist || "Unknown Artist",
-    album: s.album || "Single",
+      albumArt:
+        resolveBackendAssetUrl(
+          s.album_art || s.albumArt || ""
+        ) || "assets/music-cover.svg",
 
-    albumArt:
-      resolveBackendAssetUrl(
-        s.album_art || s.albumArt || ""
-      ) || "assets/music-cover.svg",
+      audioUrl: s.audio_url || s.audioUrl || "",
 
-    audioUrl: s.audio_url || s.audioUrl || "",
-
-    duration: Number(s.duration || 0),
-    genre: s.genre || "",
-    language: s.language || "",
-    mood: s.mood || "",
-    country: s.country || "",
-
-    releaseYear:
-      s.release_year || s.releaseYear || 2024,
-
-    releaseDate:
-      s.release_date || s.releaseDate || null,
-
-    source:
-      s.source ||
-      (String(s.id).startsWith("mb-")
-        ? "musicbrainz"
-        : "omify_js"),
-
-    playCount:
-      s.play_count || s.playCount || 0,
-
-    clusterId: s.cluster_id,
-    reason: s.reason || null,
-    score: s.score != null ? s.score : null,
-  };
-}
-
-
-      duration: s.duration || 0,
+      duration: Number(s.duration || 0),
       genre: s.genre || "",
       language: s.language || "",
       mood: s.mood || "",
       country: s.country || "",
-      releaseYear: s.release_year || s.releaseYear || 2024,
-      releaseDate: s.release_date || s.releaseDate || null,
-      source: s.source || (String(s.id).startsWith("mb-") ? "musicbrainz" : "omify_js"),
-      playCount: s.play_count || s.playCount || 0,
+
+      releaseYear:
+        s.release_year || s.releaseYear || 2024,
+
+      releaseDate:
+        s.release_date || s.releaseDate || null,
+
+      source:
+        s.source ||
+        (String(s.id).startsWith("mb-")
+          ? "musicbrainz"
+          : "omify_js"),
+
+      playCount:
+        s.play_count || s.playCount || 0,
+
       clusterId: s.cluster_id,
       reason: s.reason || null,
       score: s.score != null ? s.score : null,
     };
   }
-
   function registerSongs(songs) {
     if (!songs || !Array.isArray(songs)) return;
     songs.forEach((raw) => {
@@ -577,7 +552,7 @@ function normalizeApiSong(s) {
     loadAndPlayCurrent();
   }
 
- function getCleanAudioUrl(song) {
+function getCleanAudioUrl(song) {
   if (!song) return "";
 
   const raw = song.audioUrl || song.audioSrc || "";
