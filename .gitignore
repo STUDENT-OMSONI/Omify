@@ -62,3 +62,11 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+# SQLite database
+Backend/omify.db
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

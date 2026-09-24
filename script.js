@@ -15,7 +15,7 @@
   const albumById = new Map(ALBUMS.map((a) => [a.id, a]));
 
   // ---------------------------------------------------------------- backend ML engine
-  const API_BASE = "http://localhost:8000";
+ const API_BASE = "https://omify-backend.onrender.com";
 
   function normalizeApiSong(s) {
     if (!s) return null;
