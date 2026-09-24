@@ -473,7 +473,7 @@
     if (img.dataset.errorHandled) return;
     img.dataset.errorHandled = "true";
     img.classList.add("img-error");
-    img.src = "assets/logo.svg";
+    img.src = "/assets/logo.svg";
   }
 
   // Global image error handler
@@ -593,37 +593,23 @@
     }
   });
 }
-function getCleanAudioUrl(song) {
-  if (!song) return "";
+  function getCleanAudioUrl(song) {
+    if (!song) return "";
 
-  const raw = String(song.audioUrl || "").trim();
+    const raw = String(song.audioUrl || song.audioSrc || "").trim();
 
-  if (!raw) return "";
+    if (!raw || !/^https?:\/\//i.test(raw)) {
+      return "";
+    }
 
-  // Only accept real HTTP/HTTPS backend audio URLs.
-  // Ignore old local Spotify playlist paths.
-  if (!/^https?:\/\//i.test(raw)) {
-    return "";
+    // Keep signed Backblaze URLs exactly as returned by the backend.
+    return raw;
   }
-
-  return raw;
-}
   function loadAndPlayCurrent() {
     const song = currentSong();
     if (!song) return;
 
     let cleanUrl = getCleanAudioUrl(song);
-    if (!cleanUrl) {
-      // Automatic smart recovery: attach playable audio from the artist's library hits
-      const artistSeed = (song.artist || "").split(",")[0].split("&")[0].trim().toLowerCase();
-
-      if (fallback) {
-        song.audioUrl = fallback.audioUrl;
-        song.duration = fallback.duration || song.duration || 180;
-        cleanUrl = getCleanAudioUrl(fallback);
-      }
-    }
-
     if (!cleanUrl) {
       updateNowPlayingUI(song, false);
       setPlayIcon(false);
