@@ -6,25 +6,33 @@
 (function () {
   "use strict";
 
+  // ---------------------------------------------------------------- backend ML engine
+  const API_BASE = "https://omify-backend.onrender.com";
+  function resolveBackendAssetUrl(url) {
+    if (!url) return "";
+    if (/^https?:\/\//i.test(url) || url.startsWith("data:") || url.startsWith("blob:")) {
+      return url;
+    }
+
+    const clean = url.replace(/^\/+/, "");
+    return `${API_BASE}/${clean}`;
+  }
+
   const SONGS = window.OMIFY_SONGS || window.SONGS || window.APP_SONGS || [];
   const ARTISTS = window.OMIFY_ARTISTS || window.ARTISTS || [];
   const ALBUMS = window.OMIFY_ALBUMS || window.ALBUMS || [];
 
   const songById = new Map(SONGS.map((s) => [s.id, s]));
+
+  SONGS.forEach((song) => {
+    if (!song) return;
+    if (song.albumArt) {
+      song.albumArt = resolveBackendAssetUrl(song.albumArt);
+    }
+  });
+
   const artistById = new Map(ARTISTS.map((a) => [a.id, a]));
   const albumById = new Map(ALBUMS.map((a) => [a.id, a]));
-
-  // ---------------------------------------------------------------- backend ML engine
- const API_BASE = "https://omify-backend.onrender.com";
- function resolveBackendAssetUrl(url) {
-  if (!url) return "";
-  if (/^https?:\/\//i.test(url) || url.startsWith("data:") || url.startsWith("blob:")) {
-    return url;
-  }
-
-  const clean = url.replace(/^\/+/, "");
-  return `${API_BASE}/${clean}`;
-}
 
   function normalizeApiSong(s) {
     if (!s) return null;
@@ -38,7 +46,7 @@
       albumArt:
         resolveBackendAssetUrl(
           s.album_art || s.albumArt || ""
-        ) || "assets/music-cover.svg",
+        ) || "/assets/music-cover.svg",
 
       audioUrl: s.audio_url || s.audioUrl || "",
 
@@ -69,22 +77,22 @@
     };
   }
   function registerSongs(songs) {
-  if (!songs || !Array.isArray(songs)) return;
+    if (!Array.isArray(songs)) return;
 
-  songs.forEach((raw) => {
-    const norm = normalizeApiSong(raw);
-    if (!norm) return;
+    songs.forEach((raw) => {
+      const norm = normalizeApiSong(raw);
+      if (!norm) return;
 
-    const existing = songById.get(norm.id);
+      const existing = songById.get(norm.id);
 
-    if (existing) {
-      Object.assign(existing, norm);
-    } else {
-      songById.set(norm.id, norm);
-      SONGS.push(norm);
-    }
-  });
-}
+      if (existing) {
+        Object.assign(existing, norm);
+      } else {
+        songById.set(norm.id, norm);
+        SONGS.push(norm);
+      }
+    });
+  }
 
   function sendPlayHistory(song, extra = {}) {
     if (!song || !song.id) return;
@@ -214,8 +222,8 @@
     s.title = title || s.title;
     s.artist = artist || s.artist;
 
-    if (!s.albumArt || s.albumArt === "assets/logo.svg") {
-      s.albumArt = "assets/music-cover.svg";
+    if (!s.albumArt || s.albumArt === "/assets/logo.svg") {
+      s.albumArt = "/assets/music-cover.svg";
     }
 
     // Thematic classification based on sanitized title, artist, composer, album & language
@@ -378,11 +386,11 @@
       const p = loadJSON(STORE_KEYS.profile, {
         username: "Om Soni",
         bio: "",
-        avatar: "assets/logo.svg",
+        avatar: "/assets/logo.svg",
       });
       if (!p.username || p.username === "You") p.username = "Om Soni";
       if (typeof p.bio === "undefined") p.bio = "";
-      if (!p.avatar || p.avatar === "logo.png" || p.avatar === "assets/logo.png") p.avatar = "assets/logo.svg";
+      if (!p.avatar || p.avatar === "logo.png" || p.avatar === "assets/logo.png") p.avatar = "/assets/logo.svg";
       return p;
     })(),
     queue: SONGS.map(s => s.id), // entire verified catalog queued for Next / Prev
@@ -559,40 +567,6 @@
     loadAndPlayCurrent();
   }
 
-  function registerSongs(songs) {
-  if (!Array.isArray(songs)) return;
-
-  songs.forEach((raw) => {
-    const norm = normalizeApiSong(raw);
-    if (!norm) return;
-
-    const existing = songById.get(norm.id);
-
-    if (existing) {
-      existing.id = norm.id;
-      existing.title = norm.title;
-      existing.artist = norm.artist;
-      existing.album = norm.album;
-      existing.albumArt = norm.albumArt;
-      existing.audioUrl = norm.audioUrl;
-      existing.duration = norm.duration;
-      existing.genre = norm.genre;
-      existing.language = norm.language;
-      existing.mood = norm.mood;
-      existing.country = norm.country;
-      existing.releaseYear = norm.releaseYear;
-      existing.releaseDate = norm.releaseDate;
-      existing.source = norm.source;
-      existing.playCount = norm.playCount;
-      existing.clusterId = norm.clusterId;
-      existing.reason = norm.reason;
-      existing.score = norm.score;
-    } else {
-      songById.set(norm.id, norm);
-      SONGS.push(norm);
-    }
-  });
-}
   function getCleanAudioUrl(song) {
     if (!song) return "";
 
@@ -611,13 +585,8 @@
 
     let cleanUrl = getCleanAudioUrl(song);
     if (!cleanUrl) {
-      updateNowPlayingUI(song, false);
+      console.warn("Omify: no valid audio URL for", song);
       setPlayIcon(false);
-      toast(`Couldn't play "${song.title}" — audio source not found.`);
-      recordRecentlyPlayed(song.id);
-      sendPlayHistory(song, { completed: false, skipped: false });
-      renderQueuePanel();
-      refreshVisibleTrackRows();
       return;
     }
 
@@ -1429,7 +1398,7 @@
 
     const backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
-    let workingArt = song.albumArt || "assets/music-cover.svg";
+    let workingArt = song.albumArt || "/assets/music-cover.svg";
 
     backdrop.innerHTML = `
       <div class="modal modal-customize-song" role="dialog" aria-modal="true" aria-labelledby="customSongTitle">
@@ -1604,7 +1573,7 @@
   function openAddSongModal() {
     const backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
-    let workingArt = "assets/music-cover.svg";
+    let workingArt = "/assets/music-cover.svg";
     let workingAudio = "";
 
     backdrop.innerHTML = `
@@ -1798,7 +1767,7 @@
     return `
       <div class="media-card ${isCurrent ? "playing" : ""} ${isCurrentPlaying ? "active-playing" : ""}" data-open="1" ${id ? `data-id="${id}"` : ""} ${kind ? `data-kind="${kind}"` : ""}>
         <div class="art-wrap ${round ? "round" : ""}">
-          <img src="${art}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.onerror=null;this.src='assets/music-cover.svg';" />
+          <img src="${art}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.onerror=null;this.src='/assets/music-cover.svg';" />
           ${scorePct ? `<span class="ai-match-badge" title="AI Recommendation Match: ${scorePct}%"><i class="fa-solid fa-wand-magic-sparkles"></i> ${scorePct}%</span>` : ""}
           <button class="play-fab" aria-label="${isCurrentPlaying ? "Pause" : "Play"} ${escapeHtml(title)}"><i class="fa-solid ${isCurrentPlaying ? "fa-pause" : "fa-play"}"></i></button>
           ${kind === "song" && id ? `<button class="card-edit-btn" data-edit-song="${id}" title="Customize song details" aria-label="Customize song details"><i class="fa-solid fa-pen"></i></button>` : ""}
@@ -2216,8 +2185,8 @@
       }
 
       const songIds = topSongs.map((s) => s.id).concat(matched.map((s) => s.id).filter((id) => !topSongs.some((t) => t.id === id)));
-      const topArts = topSongs.map((s) => s.albumArt || "assets/music-cover.svg");
-      const artSrc = topArts[0] || "assets/music-cover.svg";
+      const topArts = topSongs.map((s) => s.albumArt || "/assets/music-cover.svg");
+      const artSrc = topArts[0] || "/assets/music-cover.svg";
       return {
         ...item,
         songIds,
@@ -2231,15 +2200,15 @@
   function tastePlaylistCardHtml(pl) {
     const topArts = (pl.topArts && pl.topArts.length >= 4)
       ? pl.topArts
-      : (pl.songIds || []).slice(0, 4).map((sid) => songById.get(sid)?.albumArt || "assets/music-cover.svg");
+      : (pl.songIds || []).slice(0, 4).map((sid) => songById.get(sid)?.albumArt || "/assets/music-cover.svg");
     const glowColor = pl.color || "#1ED760";
 
     const mosaicHtml = `
       <div class="taste-mosaic-grid">
-        <div class="taste-mosaic-cell cell-1"><img src="${topArts[0] || 'assets/music-cover.svg'}" alt="${escapeHtml(pl.name)} art 1" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
-        <div class="taste-mosaic-cell cell-2"><img src="${topArts[1] || 'assets/music-cover.svg'}" alt="${escapeHtml(pl.name)} art 2" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
-        <div class="taste-mosaic-cell cell-3"><img src="${topArts[2] || 'assets/music-cover.svg'}" alt="${escapeHtml(pl.name)} art 3" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
-        <div class="taste-mosaic-cell cell-4"><img src="${topArts[3] || 'assets/music-cover.svg'}" alt="${escapeHtml(pl.name)} art 4" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
+        <div class="taste-mosaic-cell cell-1"><img src="${topArts[0] || '/assets/music-cover.svg'}" alt="${escapeHtml(pl.name)} art 1" loading="lazy" onerror="this.src='/assets/music-cover.svg'" /></div>
+        <div class="taste-mosaic-cell cell-2"><img src="${topArts[1] || '/assets/music-cover.svg'}" alt="${escapeHtml(pl.name)} art 2" loading="lazy" onerror="this.src='/assets/music-cover.svg'" /></div>
+        <div class="taste-mosaic-cell cell-3"><img src="${topArts[2] || '/assets/music-cover.svg'}" alt="${escapeHtml(pl.name)} art 3" loading="lazy" onerror="this.src='/assets/music-cover.svg'" /></div>
+        <div class="taste-mosaic-cell cell-4"><img src="${topArts[3] || '/assets/music-cover.svg'}" alt="${escapeHtml(pl.name)} art 4" loading="lazy" onerror="this.src='/assets/music-cover.svg'" /></div>
       </div>
     `;
 
@@ -2291,12 +2260,12 @@
         const comp = (song.composer || "").toLowerCase();
         return art.includes(s.query) || comp.includes(s.query);
       });
-      const art = extractedSong?.albumArt || artistObj?.image || topSong?.albumArt || "assets/music-cover.svg";
+      const art = extractedSong?.albumArt || artistObj?.image || topSong?.albumArt || "/assets/music-cover.svg";
       const count = getSongsBySinger(s.query, 100).length;
       return `
             <div class="media-card" data-kind="artist" data-singer-query="${escapeHtml(s.query)}" data-singer-name="${escapeHtml(s.name)}" title="${escapeHtml(s.name)} · ${escapeHtml(s.desc)}">
               <div class="art-wrap round" style="box-shadow: 0 8px 24px rgba(0,0,0,0.45);">
-                <img src="${art}" alt="${escapeHtml(s.name)}" loading="lazy" onerror="this.onerror=null;this.src='assets/music-cover.svg';" />
+                <img src="${art}" alt="${escapeHtml(s.name)}" loading="lazy" onerror="this.onerror=null;this.src='/assets/music-cover.svg';" />
                 <button class="play-fab" aria-label="Play ${escapeHtml(s.name)}"><i class="fa-solid fa-play"></i></button>
               </div>
               <div class="card-title">${escapeHtml(s.name)}</div>
@@ -2406,7 +2375,7 @@
       const isCurrentPlaying = isCurrent && state.isPlaying;
       return `
             <div class="home-quickplay-card ${isCurrent ? "playing" : ""} ${isCurrentPlaying ? "active-playing" : ""}" data-song-id="${s.id}">
-              <img src="${s.albumArt}" alt="${escapeHtml(s.title)}" loading="lazy" onerror="this.onerror=null;this.src='assets/music-cover.svg';" />
+              <img src="${s.albumArt}" alt="${escapeHtml(s.title)}" loading="lazy" onerror="this.onerror=null;this.src='/assets/music-cover.svg';" />
               <span class="home-quickplay-title">${escapeHtml(s.title)}</span>
               <button class="home-quickplay-play" aria-label="${isCurrentPlaying ? "Pause" : "Play"}"><i class="fa-solid ${isCurrentPlaying ? "fa-pause" : "fa-play"}"></i></button>
             </div>`;
@@ -2807,10 +2776,10 @@
   }
 
   function songToCard(song) {
-    if (!song) return { art: "assets/music-cover.svg", title: "Unknown", sub: "", id: "" };
+    if (!song) return { art: "/assets/music-cover.svg", title: "Unknown", sub: "", id: "" };
     return {
       kind: "song",
-      art: song.albumArt || "assets/music-cover.svg",
+      art: song.albumArt || "/assets/music-cover.svg",
       title: song.title,
       sub: song.artist,
       id: song.id,
@@ -3084,7 +3053,7 @@
             <section class="section">
               <div class="section-head"><h2>Top Result</h2></div>
               <div class="search-top-result" data-top-song="${topSong.id}">
-                <img src="${topSong.albumArt}" alt="${escapeHtml(topSong.title)}" onerror="this.src='assets/music-cover.svg'" />
+                <img src="${topSong.albumArt}" alt="${escapeHtml(topSong.title)}" onerror="this.src='/assets/music-cover.svg'" />
                 <div class="search-top-title">${escapeHtml(topSong.title)}</div>
                 <div class="search-top-sub">
                   <span class="search-top-type">Song</span>
@@ -3125,7 +3094,7 @@
       // Playlists section
       if (activeFilter === "All" || activeFilter === "Playlists") {
         if (matchPlaylists.length) {
-          html += sectionBlock(`Playlists (${matchPlaylists.length})`, `<div class="card-grid">${matchPlaylists.map((p) => mediaCard({ art: p.artSrc || (p.songIds[0] ? (songById.get(p.songIds[0]) || {}).albumArt || "assets/music-cover.svg" : "assets/music-cover.svg"), title: p.name, sub: `${p.songIds.length} songs` })).join("")}</div>`);
+          html += sectionBlock(`Playlists (${matchPlaylists.length})`, `<div class="card-grid">${matchPlaylists.map((p) => mediaCard({ art: p.artSrc || (p.songIds[0] ? (songById.get(p.songIds[0]) || {}).albumArt || "/assets/music-cover.svg" : "/assets/music-cover.svg"), title: p.name, sub: `${p.songIds.length} songs` })).join("")}</div>`);
         }
       }
 
@@ -3395,7 +3364,7 @@
         <div class="category-tile-title">${escapeHtml(cat.name)}</div>
         <div class="category-tile-count">${count} tracks</div>
         <div class="category-tile-art-wrap">
-          <img src="${cat.art}" alt="${escapeHtml(cat.name)}" class="category-tile-art" loading="lazy" onerror="this.onerror=null;this.src='assets/music-cover.svg';" />
+          <img src="${cat.art}" alt="${escapeHtml(cat.name)}" class="category-tile-art" loading="lazy" onerror="this.onerror=null;this.src='/assets/music-cover.svg';" />
         </div>
       </div>
     `;
@@ -3453,7 +3422,7 @@
     elDOM.view.innerHTML = `
       <div class="detail-hero" style="background: linear-gradient(180deg, ${cat.c1}88 0%, rgba(18,18,18,0.9) 100%);">
         <div class="art-wrap" style="width:200px;height:200px;border-radius:var(--radius-md);overflow:hidden;flex:0 0 auto;box-shadow:0 16px 36px rgba(0,0,0,0.65);">
-          <img src="${cat.art}" alt="${escapeHtml(cat.name)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='assets/music-cover.svg'" />
+          <img src="${cat.art}" alt="${escapeHtml(cat.name)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/assets/music-cover.svg'" />
         </div>
         <div class="detail-hero-meta">
           <span class="kicker">Category</span>
@@ -3973,7 +3942,7 @@
     const grid = document.getElementById("playlistGrid");
     state.playlists.forEach((p) => {
       const card = document.createElement("div");
-      const artSrc = p.artSrc || (p.songIds[0] && songById.get(p.songIds[0]) ? songById.get(p.songIds[0]).albumArt : "assets/music-cover.svg");
+      const artSrc = p.artSrc || (p.songIds[0] && songById.get(p.songIds[0]) ? songById.get(p.songIds[0]).albumArt : "/assets/music-cover.svg");
       card.innerHTML = mediaCard({ art: artSrc, title: p.name, sub: `${p.songIds.length} songs`, id: p.id, kind: "playlist" });
       const node = card.firstElementChild;
       node.addEventListener("click", (e) => {
@@ -4055,20 +4024,20 @@
     const isMasterVault = playlist.id === "pl-all-1098-songs";
     const isSavedInLibrary = state.playlists.some((p) => p.name === playlist.name);
     const topSongs = (playlist.songIds || []).slice(0, 4).map((sid) => songById.get(sid)).filter(Boolean);
-    const artSrc = playlist.artSrc || (playlist.songIds[0] && songById.get(playlist.songIds[0]) ? songById.get(playlist.songIds[0]).albumArt : "assets/music-cover.svg");
+    const artSrc = playlist.artSrc || (playlist.songIds[0] && songById.get(playlist.songIds[0]) ? songById.get(playlist.songIds[0]).albumArt : "/assets/music-cover.svg");
 
     const heroArts = (playlist.topArts && playlist.topArts.length >= 4)
       ? playlist.topArts
-      : topSongs.map(s => s.albumArt || "assets/music-cover.svg");
+      : topSongs.map(s => s.albumArt || "/assets/music-cover.svg");
     while (heroArts.length < 4) heroArts.push(artSrc);
 
     const heroArtHtml = (isCuratedTaste && heroArts.length >= 4)
       ? `<div class="art-wrap taste-hero-mosaic-wrap">
           <div class="taste-mosaic-grid">
-            <div class="taste-mosaic-cell cell-1"><img src="${heroArts[0]}" alt="" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
-            <div class="taste-mosaic-cell cell-2"><img src="${heroArts[1]}" alt="" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
-            <div class="taste-mosaic-cell cell-3"><img src="${heroArts[2]}" alt="" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
-            <div class="taste-mosaic-cell cell-4"><img src="${heroArts[3]}" alt="" loading="lazy" onerror="this.src='assets/music-cover.svg'" /></div>
+            <div class="taste-mosaic-cell cell-1"><img src="${heroArts[0]}" alt="" loading="lazy" onerror="this.src='/assets/music-cover.svg'" /></div>
+            <div class="taste-mosaic-cell cell-2"><img src="${heroArts[1]}" alt="" loading="lazy" onerror="this.src='/assets/music-cover.svg'" /></div>
+            <div class="taste-mosaic-cell cell-3"><img src="${heroArts[2]}" alt="" loading="lazy" onerror="this.src='/assets/music-cover.svg'" /></div>
+            <div class="taste-mosaic-cell cell-4"><img src="${heroArts[3]}" alt="" loading="lazy" onerror="this.src='/assets/music-cover.svg'" /></div>
           </div>
           <div class="taste-art-overlay"></div>
           <div class="taste-eq-anim">
@@ -4306,7 +4275,7 @@
         <div class="about-hero-card">
           <div class="about-brand-row">
             <div class="about-brand-icon-wrap">
-              <img src="assets/logo.svg" alt="Omify" class="about-brand-logo" />
+              <img src="/assets/logo.svg" alt="Omify" class="about-brand-logo" />
               <span class="about-status-indicator" title="Audio Engine Online"></span>
             </div>
             <div style="flex:1;min-width:0;">
@@ -4512,7 +4481,7 @@
   function updateTopbarProfileUI() {
     const topbarProfileBtn = document.getElementById("topbarProfileBtn");
     if (topbarProfileBtn) {
-      const avatarSrc = state.profile.avatar || "assets/logo.svg";
+      const avatarSrc = state.profile.avatar || "/assets/logo.svg";
       topbarProfileBtn.innerHTML = `<img src="${avatarSrc}" alt="${escapeHtml(state.profile.username || 'Profile')}" class="topbar-avatar-img" />`;
       topbarProfileBtn.classList.add("has-avatar-img");
     }
@@ -4520,7 +4489,7 @@
     const profileDropdown = document.getElementById("profileDropdown");
     if (profileDropdown) {
       let ddHeader = profileDropdown.querySelector(".profile-dropdown-header");
-      const avatarSrc = state.profile.avatar || "assets/logo.svg";
+      const avatarSrc = state.profile.avatar || "/assets/logo.svg";
       const headerContent = `
         <img src="${avatarSrc}" class="profile-dd-avatar" alt="User Avatar" />
         <div class="profile-dd-meta">
@@ -4546,7 +4515,7 @@
   function openEditProfileModal() {
     const backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
-    let workingAvatar = state.profile.avatar || "assets/logo.svg";
+    let workingAvatar = state.profile.avatar || "/assets/logo.svg";
     let initialBio = state.profile.bio || "";
 
     const presetsHtml = AVATAR_PRESETS.map((p) => {
@@ -4653,7 +4622,7 @@
     });
 
     modalRemoveBtn.addEventListener("click", () => {
-      workingAvatar = "assets/logo.svg";
+      workingAvatar = "/assets/logo.svg";
       modalPreviewImg.src = workingAvatar;
       presetsList.querySelectorAll(".avatar-preset-btn").forEach((b) => {
         b.classList.remove("active");
@@ -4721,7 +4690,7 @@
     const topGenres = Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([g]) => g);
     const topLangs = Object.entries(langCount).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([l]) => l);
 
-    const avatarSrc = state.profile.avatar || "assets/logo.svg";
+    const avatarSrc = state.profile.avatar || "/assets/logo.svg";
 
     elDOM.view.innerHTML = `
       <div class="detail-hero round profile-hero">
@@ -4914,7 +4883,7 @@
       return `
         <div class="catalog-song-card ${isCurrent ? "playing" : ""} ${isCurrentPlaying ? "active-playing" : ""}" data-song-id="${s.id}">
           <div class="catalog-card-art-wrap">
-            <img src="${s.albumArt}" alt="${escapeHtml(s.title)}" loading="lazy" onerror="this.src='assets/music-cover.svg'" />
+            <img src="${s.albumArt}" alt="${escapeHtml(s.title)}" loading="lazy" onerror="this.src='/assets/music-cover.svg'" />
             <button class="play-fab" aria-label="${isCurrentPlaying ? "Pause" : "Play"} ${escapeHtml(s.title)}"><i class="fa-solid ${isCurrentPlaying ? "fa-pause" : "fa-play"}"></i></button>
           </div>
           <div class="catalog-card-title" title="${escapeHtml(s.title)}">${escapeHtml(s.title)}</div>
@@ -5004,7 +4973,7 @@
           const slug = genre.toLowerCase().replace(/[^a-z0-9]/g, "-");
           return `
                   <div class="catalog-genre-tile" data-genre="${escapeHtml(genre)}" data-slug="${slug}" style="--genre-color:${color};">
-                    <img src="${topSong.albumArt}" alt="" class="genre-tile-bg" loading="lazy" onerror="this.src='assets/music-cover.svg'" />
+                    <img src="${topSong.albumArt}" alt="" class="genre-tile-bg" loading="lazy" onerror="this.src='/assets/music-cover.svg'" />
                     <div class="genre-tile-overlay"></div>
                     <div class="genre-tile-content">
                       <i class="fa-solid ${icon}"></i>
@@ -5060,7 +5029,7 @@
           const topSong = mSongs.sort((a, b) => b.playCount - a.playCount)[0];
           return `
                   <div class="catalog-mood-tile" data-mood="${escapeHtml(mood)}" style="--genre-color:${color};">
-                    <img src="${topSong.albumArt}" alt="" class="genre-tile-bg" loading="lazy" onerror="this.src='assets/music-cover.svg'" />
+                    <img src="${topSong.albumArt}" alt="" class="genre-tile-bg" loading="lazy" onerror="this.src='/assets/music-cover.svg'" />
                     <div class="genre-tile-overlay"></div>
                     <div class="genre-tile-content">
                       <i class="fa-solid ${icon}"></i>
@@ -5392,7 +5361,7 @@
     const localTracks = SONGS.slice(0, 10);
     elDOM.view.innerHTML = `
       <div class="detail-hero">
-        <img src="${localTracks[0]?.albumArt || 'assets/music-cover.svg'}" alt="Local Files" style="border-radius:var(--radius-md);box-shadow:0 12px 36px rgba(0,0,0,0.5);" onerror="this.onerror=null;this.src='assets/music-cover.svg';" />
+        <img src="${localTracks[0]?.albumArt || '/assets/music-cover.svg'}" alt="Local Files" style="border-radius:var(--radius-md);box-shadow:0 12px 36px rgba(0,0,0,0.5);" onerror="this.onerror=null;this.src='/assets/music-cover.svg';" />
         <div class="detail-hero-meta">
           <span class="kicker">Playlist</span>
           <h1>Local Files</h1>
@@ -5992,7 +5961,7 @@
       creator: username,
       description: `Created by ${username}`,
       vibeTag: "sukoon",
-      artSrc: "assets/music-cover.svg",
+      artSrc: "/assets/music-cover.svg",
       songIds: [],
       createdAt: Date.now(),
       isUserCustom: true
@@ -6053,7 +6022,7 @@
             id: "custom",
             name: val,
             vibe: "sukoon",
-            avatar: "assets/logo.svg"
+            avatar: "/assets/logo.svg"
           };
         }
       };
@@ -6596,7 +6565,7 @@
       const is1098 = p.id === "pl-all-1098-songs";
       const isPinned = is1098 || p.isPinned || libState.pins.has(p.id);
       const firstSong = p.songIds && p.songIds[0] ? songById.get(p.songIds[0]) : null;
-      const art = p.artSrc || (firstSong ? firstSong.albumArt : "assets/music-cover.svg");
+      const art = p.artSrc || (firstSong ? firstSong.albumArt : "/assets/music-cover.svg");
       const vibe = p.vibeTag || detectItemVibe(p.name + " " + (p.description || ""));
       const creatorName = p.creator || state.profile?.username || "Om Soni";
 
@@ -6630,7 +6599,7 @@
       const isPinned = libState.pins.has(m.id);
       const matchedSongs = SONGS.filter(m.filter || (() => false));
       const firstSong = matchedSongs[0] || null;
-      const art = firstSong ? firstSong.albumArt : "assets/music-cover.svg";
+      const art = firstSong ? firstSong.albumArt : "/assets/music-cover.svg";
       const isMixPlaying = isPlaying && curSong && matchedSongs.some(s => s.id === curSong.id);
       const vibe = (m.id.includes("romantic") || m.id.includes("lofi") || m.id.includes("nostalgia") || m.id === "taste-daily-1" || m.id === "taste-daily-4") ? "sukoon" : "hype";
 
@@ -6668,7 +6637,7 @@
         subtitle: `${isPinned ? '<i class="fa-solid fa-thumbtack pin-badge" title="Pinned"></i> ' : ''}<span class="sub-type">Artist</span>`,
         plainSubtitle: "Artist",
         extra: "Artist",
-        art: a.image || a.avatar || "assets/music-cover.svg",
+        art: a.image || a.avatar || "/assets/music-cover.svg",
         isLikedBadge: false,
         isRound: true,
         route: "artist/" + a.id,
@@ -6696,7 +6665,7 @@
         plainSubtitle: `Album • ${alb.artist}`,
         extra: "Album",
         dateAddedStr: "Saved",
-        art: alb.albumArt || alb.coverArt || "assets/music-cover.svg",
+        art: alb.albumArt || alb.coverArt || "/assets/music-cover.svg",
         isLikedBadge: false,
         isRound: false,
         route: "album/" + alb.id,
@@ -6854,7 +6823,7 @@
             ? `<div class="liked-art-badge" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);"><i class="fa-solid fa-compact-disc"></i></div>`
             : item.isLocalFilesBadge
               ? `<div class="local-files-badge"><i class="fa-solid fa-folder"></i></div>`
-              : `<img src="${escapeHtml(item.art)}" alt="${escapeHtml(item.title)}" class="lib-item-art ${item.isRound ? 'round-art' : ''}" onerror="this.onerror=null;this.src='assets/music-cover.svg';" loading="lazy" />`;
+              : `<img src="${escapeHtml(item.art)}" alt="${escapeHtml(item.title)}" class="lib-item-art ${item.isRound ? 'round-art' : ''}" onerror="this.onerror=null;this.src='/assets/music-cover.svg';" loading="lazy" />`;
 
       return `
         <div class="lib-item ${item.isPlaying ? 'active-playing' : ''} ${isChild ? 'lib-child-item' : ''}" data-id="${item.id}" data-route="${item.route || ''}" data-lib-type="${item.type}">
@@ -6894,7 +6863,7 @@
       const childItemsHtml = (item.childPlaylists || []).map(cp => {
         const isPlPlaying = isPlaying && curSong && (cp.songIds || []).includes(curSong.id);
         const firstSong = cp.songIds && cp.songIds[0] ? songById.get(cp.songIds[0]) : null;
-        const art = cp.artSrc || (firstSong ? firstSong.albumArt : "assets/music-cover.svg");
+        const art = cp.artSrc || (firstSong ? firstSong.albumArt : "/assets/music-cover.svg");
         const vibe = cp.vibeTag || detectItemVibe(cp.name + " " + (cp.description || ""));
         const creatorName = cp.creator || state.profile?.username || "Om Soni";
         return renderLibItem({
