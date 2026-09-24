@@ -16,6 +16,15 @@
 
   // ---------------------------------------------------------------- backend ML engine
  const API_BASE = "https://omify-backend.onrender.com";
+ function resolveBackendAssetUrl(url) {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url) || url.startsWith("data:") || url.startsWith("blob:")) {
+    return url;
+  }
+
+  const clean = url.replace(/^\/+/, "");
+  return `${API_BASE}/${clean}`;
+}
 
   function normalizeApiSong(s) {
     if (!s) return null;
@@ -24,8 +33,51 @@
       title: s.title || "Unknown Title",
       artist: s.artist || "Unknown Artist",
       album: s.album || "Single",
-      albumArt: s.album_art || s.albumArt || "assets/music-cover.svg",
-      audioUrl: s.audio_url || s.audioUrl || "",
+    
+function normalizeApiSong(s) {
+  if (!s) return null;
+
+  return {
+    id: String(s.id),
+    title: s.title || "Unknown Title",
+    artist: s.artist || "Unknown Artist",
+    album: s.album || "Single",
+
+    albumArt:
+      resolveBackendAssetUrl(
+        s.album_art || s.albumArt || ""
+      ) || "assets/music-cover.svg",
+
+    audioUrl: s.audio_url || s.audioUrl || "",
+
+    duration: Number(s.duration || 0),
+    genre: s.genre || "",
+    language: s.language || "",
+    mood: s.mood || "",
+    country: s.country || "",
+
+    releaseYear:
+      s.release_year || s.releaseYear || 2024,
+
+    releaseDate:
+      s.release_date || s.releaseDate || null,
+
+    source:
+      s.source ||
+      (String(s.id).startsWith("mb-")
+        ? "musicbrainz"
+        : "omify_js"),
+
+    playCount:
+      s.play_count || s.playCount || 0,
+
+    clusterId: s.cluster_id,
+    reason: s.reason || null,
+    score: s.score != null ? s.score : null,
+  };
+}
+
+
       duration: s.duration || 0,
       genre: s.genre || "",
       language: s.language || "",
@@ -525,16 +577,22 @@
     loadAndPlayCurrent();
   }
 
-  function getCleanAudioUrl(song) {
-    if (!song) return "";
-    const raw = song.audioUrl || song.audioSrc || "";
-    if (!raw) return "";
-    try {
-      return encodeURI(decodeURIComponent(raw));
-    } catch (e) {
-      return raw;
-    }
+ function getCleanAudioUrl(song) {
+  if (!song) return "";
+
+  const raw = song.audioUrl || song.audioSrc || "";
+
+  if (!raw) return "";
+
+  try {
+    // Do NOT decode/re-encode signed S3 URLs.
+    // The signature depends on the exact URL.
+    return raw.trim();
+  } catch (e) {
+    console.warn("Omify: invalid audio URL", e);
+    return "";
   }
+}
 
   function loadAndPlayCurrent() {
     const song = currentSong();
