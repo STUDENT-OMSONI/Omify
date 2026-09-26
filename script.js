@@ -300,6 +300,37 @@
   }
   refreshSongMaps();
 
+  // Pull the full catalog's real audio URLs (and fresh cover art) from the
+  // backend on load. Without this, only songs surfaced by /api/made-for-you,
+  // /api/new-releases, /api/trending, or /api/foreign-music ever get a real
+  // audioUrl — every other song (most of the Home page) stays silent.
+  async function hydrateAllSongsFromBackend() {
+    try {
+      const first = await fetch(`${API_BASE}/api/songs?limit=1200`);
+      if (!first.ok) return;
+      const data = await first.json();
+      if (!data || !Array.isArray(data.items)) return;
+
+      registerSongs(data.items);
+
+      const total = Number(data.total) || data.items.length;
+      let loaded = data.items.length;
+      while (loaded < total) {
+        const res = await fetch(`${API_BASE}/api/songs?limit=1200&offset=${loaded}`);
+        if (!res.ok) break;
+        const page = await res.json();
+        if (!page || !Array.isArray(page.items) || !page.items.length) break;
+        registerSongs(page.items);
+        loaded += page.items.length;
+      }
+
+      refreshSongMaps();
+      console.log(`Omify: hydrated ${loaded} songs with live backend audio URLs`);
+    } catch (err) {
+      console.warn("Omify: full catalog hydration failed", err);
+    }
+  }
+
   // Target authentic user library playlists matching real Spotify screenshot (Image 1)
   const DEFAULT_USER_PLAYLISTS = [
     {
@@ -5448,7 +5479,8 @@
   }
 
   window.addEventListener("hashchange", router);
-  window.addEventListener("DOMContentLoaded", () => {
+  window.addEventListener("DOMContentLoaded", async () => {
+    await hydrateAllSongsFromBackend();
     if (!location.hash) location.hash = "#/home";
     updateTopbarProfileUI();
     router();
