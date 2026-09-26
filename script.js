@@ -7321,3 +7321,5 @@
 
   console.log(`Omify loaded — ${SONGS.length} songs, ${ARTISTS.length} artists, ${ALBUMS.length} albums in catalog`);
 })();
+
+  window.OMIFY_DEBUG = { SONGS, songById, registerSongs, normalizeApiSong, getCleanAudioUrl, hydrateAllSongsFromBackend, API_BASE };
