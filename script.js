@@ -86,6 +86,15 @@
       const existing = songById.get(norm.id);
 
       if (existing) {
+        // A partial payload (Made For You / Trending / New Releases often
+        // omit audio_url or album_art to stay small) must never overwrite
+        // a real value we already hydrated with an empty/placeholder one.
+        if (!norm.audioUrl && existing.audioUrl) {
+          norm.audioUrl = existing.audioUrl;
+        }
+        if ((!norm.albumArt || norm.albumArt === "/assets/music-cover.svg") && existing.albumArt) {
+          norm.albumArt = existing.albumArt;
+        }
         Object.assign(existing, norm);
       } else {
         songById.set(norm.id, norm);
