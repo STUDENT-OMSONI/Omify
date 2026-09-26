@@ -305,34 +305,46 @@
   // /api/new-releases, /api/trending, or /api/foreign-music ever get a real
   // audioUrl — every other song (most of the Home page) stays silent.
   async function hydrateAllSongsFromBackend() {
-    const PAGE_SIZE = 100; // backend rejects large limits (422) — stay conservative
+    const PAGE_SIZE = 100;
     try {
-      let offset = 0;
-      let total = Infinity;
-      let loaded = 0;
-      let guard = 0; // safety cap so a bad response can't loop forever
-
-      while (offset < total && guard < 50) {
-        guard++;
-        const res = await fetch(`${API_BASE}/api/songs?limit=${PAGE_SIZE}&offset=${offset}`);
-        if (!res.ok) {
-          console.warn(`Omify: /api/songs page at offset ${offset} returned ${res.status}`);
-          break;
-        }
-        const data = await res.json();
-        if (!data || !Array.isArray(data.items) || !data.items.length) break;
-
-        registerSongs(data.items);
-        loaded += data.items.length;
-        total = Number(data.total) || loaded;
-        offset += data.items.length;
+      const first = await fetch(`${API_BASE}/api/songs?limit=${PAGE_SIZE}&offset=0`);
+      if (!first.ok) {
+        console.warn(`Omify: /api/songs page at offset 0 returned ${first.status}`);
+        return;
       }
+      const firstData = await first.json();
+      if (!firstData || !Array.isArray(firstData.items)) return;
+
+      registerSongs(firstData.items);
+      let loaded = firstData.items.length;
+      const total = Number(firstData.total) || loaded;
+
+      const offsets = [];
+      for (let off = loaded; off < total; off += PAGE_SIZE) offsets.push(off);
+
+      const pages = await Promise.all(
+        offsets.map((off) =>
+          fetch(`${API_BASE}/api/songs?limit=${PAGE_SIZE}&offset=${off}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null)
+        )
+      );
+      pages.forEach((page) => {
+        if (page && Array.isArray(page.items) && page.items.length) {
+          registerSongs(page.items);
+          loaded += page.items.length;
+        }
+      });
 
       refreshSongMaps();
-      refreshVisibleTrackRows();
       console.log(`Omify: hydrated ${loaded} songs with live backend audio URLs`);
     } catch (err) {
       console.warn("Omify: full catalog hydration failed", err);
+    } finally {
+      // Refresh whatever's on screen so audio URLs & art update without
+      // making the user wait for this before seeing the page at all.
+      router();
+      renderSidebarLibrary();
     }
   }
 
@@ -5484,11 +5496,11 @@
   }
 
   window.addEventListener("hashchange", router);
-  window.addEventListener("DOMContentLoaded", async () => {
-    await hydrateAllSongsFromBackend();
+  window.addEventListener("DOMContentLoaded", () => {
     if (!location.hash) location.hash = "#/home";
     updateTopbarProfileUI();
-    router();
+    router(); // paint immediately with local catalog
+    hydrateAllSongsFromBackend(); // fetch real audio/art in background, then refresh
   });
 
   // global search input wires into the search route
