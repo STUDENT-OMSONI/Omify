@@ -305,26 +305,31 @@
   // /api/new-releases, /api/trending, or /api/foreign-music ever get a real
   // audioUrl — every other song (most of the Home page) stays silent.
   async function hydrateAllSongsFromBackend() {
+    const PAGE_SIZE = 100; // backend rejects large limits (422) — stay conservative
     try {
-      const first = await fetch(`${API_BASE}/api/songs?limit=1200`);
-      if (!first.ok) return;
-      const data = await first.json();
-      if (!data || !Array.isArray(data.items)) return;
+      let offset = 0;
+      let total = Infinity;
+      let loaded = 0;
+      let guard = 0; // safety cap so a bad response can't loop forever
 
-      registerSongs(data.items);
+      while (offset < total && guard < 50) {
+        guard++;
+        const res = await fetch(`${API_BASE}/api/songs?limit=${PAGE_SIZE}&offset=${offset}`);
+        if (!res.ok) {
+          console.warn(`Omify: /api/songs page at offset ${offset} returned ${res.status}`);
+          break;
+        }
+        const data = await res.json();
+        if (!data || !Array.isArray(data.items) || !data.items.length) break;
 
-      const total = Number(data.total) || data.items.length;
-      let loaded = data.items.length;
-      while (loaded < total) {
-        const res = await fetch(`${API_BASE}/api/songs?limit=1200&offset=${loaded}`);
-        if (!res.ok) break;
-        const page = await res.json();
-        if (!page || !Array.isArray(page.items) || !page.items.length) break;
-        registerSongs(page.items);
-        loaded += page.items.length;
+        registerSongs(data.items);
+        loaded += data.items.length;
+        total = Number(data.total) || loaded;
+        offset += data.items.length;
       }
 
       refreshSongMaps();
+      refreshVisibleTrackRows();
       console.log(`Omify: hydrated ${loaded} songs with live backend audio URLs`);
     } catch (err) {
       console.warn("Omify: full catalog hydration failed", err);
