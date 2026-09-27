@@ -497,6 +497,19 @@
     })(),
     queue: SONGS.map(s => s.id), // entire verified catalog queued for Next / Prev
     currentIndex: 0,
+    get currentSongId() {
+      if (this.currentIndex >= 0 && this.queue && this.currentIndex < this.queue.length) {
+        return this.queue[this.currentIndex] || null;
+      }
+      return null;
+    },
+    set currentSongId(val) {
+      if (!val) return;
+      if (this.queue) {
+        const idx = this.queue.indexOf(val);
+        if (idx >= 0) this.currentIndex = idx;
+      }
+    },
     shuffle: false,
     repeat: "off", // off | all | one
     folders: loadJSON(STORE_KEYS.folders, []),
@@ -860,16 +873,16 @@
       playQueue(SONGS.map((s) => s.id), 0);
       return;
     }
-    const expectedSrc = getCleanAudioUrl(song);
-    const currentFileName = audio.src ? decodeURIComponent(audio.src).split("/").pop() : "";
-    const expectedFileName = expectedSrc ? decodeURIComponent(expectedSrc).split("/").pop() : "";
 
-    if (!audio.src || !currentFileName || currentFileName !== expectedFileName) {
-      loadAndPlayCurrent();
+    // 1. If currently playing, ALWAYS pause and turn off immediately!
+    if (!audio.paused) {
+      audio.pause();
+      setPlayIcon(false);
       return;
     }
 
-    if (audio.paused) {
+    // 2. If paused and already loaded with audio source, resume smoothly!
+    if (audio.src && audio.currentTime >= 0 && !audio.ended) {
       const p = audio.play();
       if (p !== undefined) {
         p.then(() => {
@@ -878,11 +891,12 @@
           console.warn("Omify: playback toggle error", e);
           loadAndPlayCurrent();
         });
+        return;
       }
-    } else {
-      audio.pause();
-      setPlayIcon(false);
     }
+
+    // 3. Otherwise, load and play current song
+    loadAndPlayCurrent();
   }
 
   function playNext(auto) {
@@ -2746,7 +2760,8 @@
             }
             const pl = state.playlists.find((p) => p.id === plId);
             if (pl && pl.songIds && pl.songIds.length) {
-              if (state.isPlaying && (pl.songIds || []).includes(state.currentSongId)) {
+              const cur = currentSong();
+              if (state.isPlaying && cur && (pl.songIds || []).includes(cur.id)) {
                 togglePlay();
               } else {
                 playQueue(pl.songIds, 0);
@@ -2759,14 +2774,20 @@
       const songId = card.dataset.songId;
       card.addEventListener("click", (e) => {
         if (e.target.closest(".home-quickplay-play")) return;
-        const s = songById.get(songId);
-        if (s) openSongContext(s);
+        const cur = currentSong();
+        if (cur && cur.id === songId) {
+          togglePlay();
+        } else {
+          const s = songById.get(songId);
+          if (s) openSongContext(s);
+        }
       });
       const playBtn = card.querySelector(".home-quickplay-play");
       if (playBtn) {
         playBtn.addEventListener("click", (e) => {
           e.stopPropagation();
-          if (state.currentSongId === songId) {
+          const cur = currentSong();
+          if (cur && cur.id === songId) {
             togglePlay();
           } else {
             playQueue([songId], 0);
@@ -2781,14 +2802,20 @@
       const songId = card.dataset.songId;
       card.addEventListener("click", (e) => {
         if (e.target.closest(".play-fab")) return;
-        const s = songById.get(songId);
-        if (s) openSongContext(s);
+        const cur = currentSong();
+        if (cur && cur.id === songId) {
+          togglePlay();
+        } else {
+          const s = songById.get(songId);
+          if (s) openSongContext(s);
+        }
       });
       const fab = card.querySelector(".play-fab");
       if (fab) {
         fab.addEventListener("click", (e) => {
           e.stopPropagation();
-          if (state.currentSongId === songId) {
+          const cur = currentSong();
+          if (cur && cur.id === songId) {
             togglePlay();
           } else {
             playQueue([songId], 0);
@@ -2947,7 +2974,8 @@
       if (fab) {
         fab.addEventListener("click", (e) => {
           e.stopPropagation();
-          if (state.currentSongId && pl.songIds.includes(state.currentSongId)) {
+          const cur = currentSong();
+          if (cur && pl.songIds.includes(cur.id)) {
             togglePlay();
           } else if (pl.songIds.length) {
             playQueue(pl.songIds, 0);
@@ -3034,7 +3062,8 @@
       if (fab) {
         fab.addEventListener("click", (e) => {
           e.stopPropagation();
-          if (state.currentSongId === song.id) {
+          const cur = currentSong();
+          if (cur && cur.id === song.id) {
             togglePlay();
           } else {
             playQueue([song.id], 0);
@@ -3045,7 +3074,8 @@
       // Card body click
       card.addEventListener("click", (e) => {
         if (e.target.closest(".play-fab") || e.target.closest(".card-edit-btn")) return;
-        if (state.currentSongId === song.id) {
+        const cur = currentSong();
+        if (cur && cur.id === song.id) {
           togglePlay();
         } else {
           openSongContext(song);
@@ -5288,12 +5318,13 @@
 
       bindTrackRows(elDOM.view);
 
-      // Bind all catalog song cards (click anywhere to play/view, or play fab to immediately play)
+      // Bind all catalog song cards (click anywhere to play/view, or play fab to immediately play/pause)
       elDOM.view.querySelectorAll(".catalog-song-card").forEach(card => {
         const songId = card.dataset.songId;
         card.addEventListener("click", (e) => {
           if (e.target.closest(".play-fab")) return;
-          if (state.currentSongId === songId) {
+          const cur = currentSong();
+          if (cur && cur.id === songId) {
             togglePlay();
           } else {
             const song = songById.get(songId);
@@ -5306,7 +5337,8 @@
         if (fab) {
           fab.addEventListener("click", (e) => {
             e.stopPropagation();
-            if (state.currentSongId === songId) {
+            const cur = currentSong();
+            if (cur && cur.id === songId) {
               togglePlay();
             } else {
               playQueue([songId], 0);

@@ -777,6 +777,24 @@
   .catalog-card-art-wrap .play-fab {
     display: none !important;
   }
+  .catalog-song-card.active-playing .catalog-card-art-wrap .play-fab {
+    display: flex !important;
+    width: 34px !important;
+    height: 34px !important;
+    bottom: 6px !important;
+    right: 6px !important;
+    font-size: 0.85rem !important;
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 10px rgba(30, 215, 96, 0.4) !important;
+  }
+  .catalog-song-card.active-playing {
+    background: rgba(30, 215, 96, 0.1) !important;
+    border-color: rgba(30, 215, 96, 0.35) !important;
+  }
+  .catalog-song-card.active-playing .catalog-card-title {
+    color: var(--signal) !important;
+  }
   .catalog-card-title,
   .catalog-cards-grid .catalog-card-title {
     font-size: 0.82rem !important;
