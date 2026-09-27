@@ -282,7 +282,7 @@ def search_catalog(
             "title": al[0],
             "artist": al[1],
             "song_count": al[2],
-            "album_art": al[3],
+          "album_art": get_cover_url(al[3]),
             "release_year": al[4],
         }
         for al in album_rows
@@ -357,7 +357,7 @@ def get_artists(
             "name": r[0],
             "country": r[1],
             "song_count": r[2],
-            "sample_art": r[3],
+           "sample_art": get_cover_url(r[3]),
         }
         for r in rows
     ]
@@ -402,7 +402,7 @@ def get_albums(
             "artist": r[1],
             "release_year": r[2],
             "song_count": r[3],
-            "album_art": r[4],
+         "album_art": get_cover_url(r[4]),
         }
         for r in rows
     ]
