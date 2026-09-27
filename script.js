@@ -314,9 +314,9 @@
   // /api/new-releases, /api/trending, or /api/foreign-music ever get a real
   // audioUrl — every other song (most of the Home page) stays silent.
   async function hydrateAllSongsFromBackend() {
-    const PAGE_SIZE = 100; // backend rejects large limits (422) — stay conservative
+    const PAGE_SIZE = 50; // backend rejects large limits (422) — stay conservative
     try {
-      const first = await fetch(`${API_BASE}/api/songs?limit=${PAGE_SIZE}&offset=0`);
+      const first = await fetch(`${API_BASE}/api/songs?limit=${PAGE_SIZE}&skip=0`);
       if (!first.ok) {
         console.warn(`Omify: /api/songs page at offset 0 returned ${first.status}`);
         return;
@@ -333,7 +333,7 @@
 
       const pages = await Promise.all(
         offsets.map((off) =>
-          fetch(`${API_BASE}/api/songs?limit=${PAGE_SIZE}&offset=${off}`)
+          fetch(`${API_BASE}/api/songs?limit=${PAGE_SIZE}&skip=${off}`)
             .then((r) => (r.ok ? r.json() : null))
             .catch(() => null)
         )
