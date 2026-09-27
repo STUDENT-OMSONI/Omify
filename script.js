@@ -10,11 +10,52 @@
   const API_BASE = "https://omify-backend.onrender.com";
   function resolveBackendAssetUrl(url) {
     if (!url) return "";
-    if (/^https?:\/\//i.test(url) || url.startsWith("data:") || url.startsWith("blob:")) {
+
+    // Keep data/blob URLs unchanged.
+    if (url.startsWith("data:") || url.startsWith("blob:")) {
       return url;
     }
 
+    const FRONTEND_BASE = "https://omify-pearl.vercel.app";
+
+    // Cover images belong to the Vercel frontend.
+    if (/^https?:\/\//i.test(url)) {
+      try {
+        const parsed = new URL(url);
+
+        if (/\/covers\/(extracted|web)\//i.test(parsed.pathname)) {
+          const filename = decodeURIComponent(
+            parsed.pathname.split("/").pop() || ""
+          );
+
+          return filename
+            ? `${FRONTEND_BASE}/covers/web/${encodeURIComponent(filename)}`
+            : "";
+        }
+
+        return url;
+      } catch {
+        return url;
+      }
+    }
+
     const clean = url.replace(/^\/+/, "");
+
+    // Local cover paths should always use Vercel.
+    if (clean.startsWith("covers/")) {
+      const filename = clean.split("/").pop();
+
+      return filename
+        ? `${FRONTEND_BASE}/covers/web/${encodeURIComponent(filename)}`
+        : "";
+    }
+
+    // Frontend assets also belong to Vercel.
+    if (clean.startsWith("assets/")) {
+      return `${FRONTEND_BASE}/${clean}`;
+    }
+
+    // Audio and other backend assets continue using Render.
     return `${API_BASE}/${clean}`;
   }
 
@@ -384,7 +425,7 @@
       name: "Dil Na Jaaneya",
       creator: "Om Soni",
       vibeTag: "sukoon",
-      artSrc: "sp-81.jpg",
+      artSrc: "covers/web/sp-81.jpg",
       songIds: ["sp-81", "sp-874", "sp-294"],
       createdAt: 1700000004000
     },
@@ -393,7 +434,7 @@
       name: "Raabta",
       creator: "Om Soni",
       vibeTag: "sukoon",
-      artSrc: "sp-700.jpg",
+      artSrc: "covers/web/sp-700.jpg",
       songIds: ["sp-700", "sp-346", "sp-1065"],
       createdAt: 1700000003000
     },
@@ -402,7 +443,7 @@
       name: "Enna Sona",
       creator: "Om Soni",
       vibeTag: "sukoon",
-      artSrc: "sp-294.jpg",
+      artSrc: "covers/web/sp-294.jpg",
       songIds: ["sp-294", "sp-869", "sp-870"],
       createdAt: 1700000002000
     },
@@ -411,7 +452,7 @@
       name: "Matargashti",
       creator: "Om Soni",
       vibeTag: "sukoon",
-      artSrc: "sp-885.jpg",
+      artSrc: "covers/web/sp-885.jpg",
       songIds: ["sp-885", "sp-567", "sp-789"],
       createdAt: 1700000001000
     }
@@ -3326,7 +3367,7 @@
       filter: (s) => s.genre === "International Pop" || (s.genre === "Pop" && s.mood === "Romantic")
     },
     {
-      name: "Turkish Pop", c1: "#C97A5A", c2: "#8E4E32", art: "sp-81.jpg",
+      name: "Turkish Pop", c1: "#C97A5A", c2: "#8E4E32", art: "covers/web/sp-81.jpg",
       filter: (s) => (s.mood === "Romantic" || s.mood === "Chill") && (s.genre === "Bollywood" || s.genre === "Pop")
     },
     {
@@ -6043,7 +6084,7 @@
     id: "arijit",
     name: "Arijit Soulmate",
     vibe: "romantic",
-    avatar: "sp-81.jpg"
+    avatar: "covers/web/sp-81.jpg"
   };
 
   function openBlendModal() {
@@ -6594,7 +6635,7 @@
     const arijit = ARTISTS.find(a => a.name.toLowerCase().includes("arijit")) || {
       id: "arijit-singh-21",
       name: "Arijit Singh",
-      image: "sp-81.jpg",
+      image: "covers/web/sp-81.jpg",
       songIds: []
     };
     const isArijitPlaying = isPlaying && curSong && curSong.artist && curSong.artist.toLowerCase().includes("arijit");
@@ -6605,7 +6646,7 @@
       subtitle: `${isArijitPlaying ? '<span class="lib-playing-eq" title="Playing"><span></span><span></span><span></span><span></span></span> ' : ''}<span class="sub-type">Artist</span>`,
       plainSubtitle: "Artist",
       extra: "Artist",
-      art: arijit.image || "sp-81.jpg",
+      art: arijit.image || "covers/web/sp-81.jpg",
       isLikedBadge: false,
       isRound: true,
       route: "artist/" + arijit.id,
@@ -7321,3 +7362,4 @@
 
   console.log(`Omify loaded — ${SONGS.length} songs, ${ARTISTS.length} artists, ${ALBUMS.length} albums in catalog`);
 })();
+
