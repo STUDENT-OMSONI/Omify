@@ -5567,6 +5567,7 @@
     const [pathPart, queryPart] = hash.split("?");
     const segments = pathPart.split("/").filter(Boolean);
     const routeName = segments[0] || "home";
+    document.body.dataset.route = routeName;
     const params = segments.slice(1);
     const query = new URLSearchParams(queryPart || "");
 

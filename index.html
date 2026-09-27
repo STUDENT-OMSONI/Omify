@@ -18,10 +18,10 @@
     integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="style.css?v=20260920_2315" />
-  <link rel="stylesheet" href="responsive.css?v=20260927_2000" />
+  <link rel="stylesheet" href="responsive.css?v=20260927_2130" />
 </head>
 
-<body>
+<body data-route="home">
   <noscript>
     <div
       style="padding:40px;text-align:center;color:#C9C2CE;font-family:sans-serif;background:#0D0B0F;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;">
@@ -242,8 +242,14 @@
     <!-- ============ MAIN COLUMN ============ -->
     <div class="main-column">
       <header class="topbar">
-        <button class="icon-btn only-mobile" id="mobileMenuBtn" aria-label="Open menu"><i
-            class="fa-solid fa-bars"></i></button>
+        <div class="mobile-topbar-left only-mobile">
+          <button class="icon-btn only-mobile" id="mobileMenuBtn" aria-label="Open menu"><i
+              class="fa-solid fa-bars"></i></button>
+          <a href="#/home" class="mobile-brand-link" id="mobileBrandLink">
+            <span class="mobile-brand-icon"><i class="fa-brands fa-spotify"></i></span>
+            <span class="mobile-brand-name">Omify</span>
+          </a>
+        </div>
 
         <!-- Left Nav Controls: Window menu (...), Back (<), Forward (>) -->
         <div class="topbar-nav-controls">
@@ -295,6 +301,7 @@
 
         <!-- Right Side Actions: Notifications, Social, Profile -->
         <div class="topbar-right-actions">
+          <a href="#/search" class="icon-btn topbar-action-btn only-mobile" id="mobileSearchShortcut" title="Search" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></a>
           <button class="icon-btn topbar-action-btn" id="queueBtn" title="Queue" aria-label="Open queue"><i
               class="fa-solid fa-list-ol"></i></button>
 
@@ -590,7 +597,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script src="data/songs.js?v=20260920_0600"></script>
-  <script src="script.js?v=20260920_0600"></script>
+  <script src="script.js?v=20260927_2130"></script>
 </body>
 
 </html>
