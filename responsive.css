@@ -1,11 +1,46 @@
 /* ================================================================
-   responsive.css — Mobile refinements layered on top of style.css
-   No existing styles are changed; this file only adds
+   responsive.css — Mobile & Tablet refinements layered on top of style.css
+   No existing styles in style.css are changed; this file only adds
    overrides inside media-query scopes.
    ================================================================ */
 
 /* ============================================================
-   ≤ 900 px  — primary mobile fixes
+   ≤ 1024 px — Tablet refinements
+   ============================================================ */
+@media (max-width: 1024px) {
+
+  /* Section head: prevent nav arrows from wrapping to next line */
+  .section-head {
+    gap: 12px;
+    align-items: center;
+  }
+  .section-head > div:first-child {
+    min-width: 0;
+    flex: 1;
+  }
+  .section-head > div:first-child h2 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Shelf pill badges smaller */
+  .shelf-pill-badge {
+    font-size: 0.68rem;
+    padding: 3px 8px;
+  }
+
+  /* Home header responsive */
+  .home-header-row {
+    gap: 12px;
+  }
+  .home-header-title-group h1 {
+    font-size: 1.8rem;
+  }
+}
+
+/* ============================================================
+   ≤ 900 px — Primary mobile fixes
    (style.css already switches to single-column layout here)
    ============================================================ */
 @media (max-width: 900px) {
@@ -55,7 +90,29 @@
     display: none !important;
   }
 
-  /* --- Quickplay grid: 1-col on narrow, 2-col on wider mobile --- */
+  /* --- Home header --- */
+  .home-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .home-header-title-group h1 {
+    font-size: 1.6rem;
+  }
+  .home-header-sub {
+    font-size: 0.84rem;
+  }
+  .home-header-actions {
+    width: 100%;
+  }
+  .home-action-btn {
+    font-size: 0.78rem;
+    padding: 7px 14px;
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* --- Quickplay grid: 2-col on mobile --- */
   .home-quickplay-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 8px;
@@ -71,21 +128,121 @@
   .home-quickplay-title {
     font-size: 0.82rem;
   }
+  .home-quickplay-play {
+    width: 34px;
+    height: 34px;
+    font-size: 0.82rem;
+    margin-right: 8px;
+  }
 
-  /* Filter chips: scroll, don't wrap */
+  /* --- Filter chips: horizontal scroll, no wrap --- */
   .home-filter-chips {
     gap: 6px;
     margin-bottom: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-chip {
+    font-size: 0.78rem;
+    padding: 6px 12px;
   }
 
-  /* View header tighter on mobile */
-  .view-header {
-    margin-bottom: 18px;
+  /* --- MFY shelf pills: ensure smooth touch scrolling --- */
+  .mfy-shelf-pills {
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+    padding: 4px 0 10px 0;
+  }
+  .mfy-pill {
+    font-size: 0.74rem;
+    padding: 5px 11px;
+    gap: 5px;
+  }
+
+  /* --- Section head: tighter, prevent overflow --- */
+  .section-head {
+    gap: 8px;
+    flex-wrap: nowrap;
+    margin-bottom: 12px;
+  }
+  .section-head > div:first-child p {
+    font-size: 0.72rem !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .section-head h2 {
+    font-size: 1.15rem;
+  }
+  .shelf-pill-badge {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    gap: 3px;
+  }
+  .shelf-pill-badge i {
+    font-size: 0.55rem;
+  }
+
+  /* --- Shelf navigation buttons: bigger touch targets --- */
+  .shelf-nav-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 0.85rem;
+  }
+
+  /* --- Horizontal scroll rows: touch-friendly, cards sized for mobile --- */
+  .home-scroll-row {
+    gap: 12px;
+    padding-bottom: 10px;
+    -webkit-overflow-scrolling: touch;
+    scroll-padding: 0 12px;
+  }
+  .home-scroll-row .media-card {
+    flex: 0 0 156px;
+    width: 156px;
+    min-width: 156px;
+    max-width: 156px;
+  }
+
+  .taste-scroll-row {
+    gap: 12px;
+    padding: 8px 4px 16px 4px;
+    margin: -8px -4px 0 -4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .taste-playlist-card {
+    flex: 0 0 170px;
+    width: 170px;
+    min-width: 170px;
+  }
+
+  .popular-singers-shelf {
+    gap: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .popular-singers-shelf .media-card {
+    flex: 0 0 150px;
+    width: 150px;
+    min-width: 150px;
+  }
+
+  /* --- Home scroll row (Jump Back In): smaller cards --- */
+  .home-jumpin-card {
+    flex: 0 0 156px;
+    width: 156px;
+    min-width: 156px;
+    max-width: 156px;
+    padding: 12px;
   }
 
   /* Section spacing */
   .section {
     margin-bottom: 28px;
+  }
+
+  /* View header tighter on mobile */
+  .view-header {
+    margin-bottom: 18px;
   }
 
   /* Popover dropdowns: constrain width on mobile */
@@ -122,18 +279,62 @@
     display: none !important;
   }
 
-  /* Taste / section horizontal scrollers: ensure cards don't overflow */
-  .shelf-scroll {
+  /* --- Player bar mobile cleanup: hide desktop-only buttons --- */
+  .player-bar .now-action-dismiss,
+  .player-bar .edit-song-btn {
+    display: none !important;
+  }
+  /* Keep like-btn but smaller */
+  .player-bar .like-btn {
+    font-size: 0.9rem;
+    padding: 4px;
+  }
+  /* Add a play/pause indicator chevron on mobile player bar */
+  .player-now-playing {
+    max-width: 100%;
+    flex: 1;
+    cursor: pointer;
+  }
+
+  /* Taste card text sizing */
+  .taste-title {
+    font-size: 0.86rem;
+  }
+  .taste-sub {
+    font-size: 0.72rem;
+  }
+
+  /* Media card padding smaller */
+  .media-card {
+    padding: 10px;
+  }
+  .media-card .art-wrap {
+    margin-bottom: 10px;
+  }
+
+  /* Card grid responsive */
+  .card-grid {
     gap: 12px;
   }
-  .media-card {
-    min-width: 140px;
-    max-width: 160px;
+
+  /* Mobile player overlay: better spacing */
+  .mobile-player-overlay .mobile-player-art {
+    width: min(280px, 70vw);
+    height: min(280px, 70vw);
+  }
+
+  /* Blend & folder modals */
+  .blend-companion-card {
+    padding: 10px;
+  }
+  .blend-comp-avatar {
+    width: 42px;
+    height: 42px;
   }
 }
 
 /* ============================================================
-   ≤ 600 px  — tighter phone layout
+   ≤ 600 px — Tighter phone layout
    ============================================================ */
 @media (max-width: 600px) {
 
@@ -220,6 +421,55 @@
     gap: 10px;
   }
 
+  /* Horizontal scroll row cards even smaller */
+  .home-scroll-row .media-card {
+    flex: 0 0 140px;
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
+    padding: 8px;
+  }
+
+  .taste-playlist-card {
+    flex: 0 0 150px;
+    width: 150px;
+    min-width: 150px;
+    padding: 10px;
+  }
+
+  .popular-singers-shelf .media-card {
+    flex: 0 0 130px;
+    width: 130px;
+    min-width: 130px;
+    padding: 8px;
+  }
+
+  .home-jumpin-card {
+    flex: 0 0 140px;
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
+    padding: 10px;
+  }
+
+  /* Section head tighter */
+  .section-head h2 {
+    font-size: 1.05rem;
+  }
+  .section-head > div:first-child p {
+    display: none !important;
+  }
+  .shelf-pill-badge {
+    display: none;
+  }
+
+  /* Shelf nav buttons */
+  .shelf-nav-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+  }
+
   /* Detail hero smaller art */
   .detail-hero img {
     width: 140px !important;
@@ -251,19 +501,70 @@
     font-size: 0.72rem;
   }
 
-  /* Section head */
-  .section-head h2 {
-    font-size: 1.1rem;
-  }
-
   /* Settings page */
   .settings-section {
     padding: 16px;
   }
+
+  /* Home header even tighter */
+  .home-header-title-group h1 {
+    font-size: 1.35rem;
+  }
+
+  /* Taste card text */
+  .taste-title {
+    font-size: 0.8rem;
+  }
+  .taste-sub {
+    font-size: 0.68rem;
+  }
+
+  /* Card reason on AI recs */
+  .card-reason {
+    font-size: 0.62rem;
+  }
+  .ai-match-badge {
+    font-size: 0.58rem;
+    padding: 2px 6px;
+  }
+
+  /* MFY pills tighter */
+  .mfy-pill {
+    font-size: 0.7rem;
+    padding: 4px 10px;
+  }
+
+  /* Play FAB smaller on cards */
+  .taste-playlist-card .play-fab {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+    bottom: 8px;
+    right: 8px;
+  }
+
+  /* Media card play FAB */
+  .media-card .play-fab {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+    bottom: 8px;
+    right: 8px;
+  }
+
+  /* Smaller profile avatar on mobile */
+  .profile-avatar-container {
+    width: 120px;
+    height: 120px;
+    flex: 0 0 120px;
+  }
+  .profile-display-name {
+    font-size: 1.6rem;
+  }
 }
 
 /* ============================================================
-   ≤ 380 px  — very small phones
+   ≤ 380 px — Very small phones (iPhone SE, etc.)
    ============================================================ */
 @media (max-width: 380px) {
 
@@ -294,5 +595,155 @@
 
   .view-header h1 {
     font-size: 1.2rem;
+  }
+
+  .home-header-title-group h1 {
+    font-size: 1.2rem;
+  }
+
+  /* Even smaller scroll cards */
+  .home-scroll-row .media-card {
+    flex: 0 0 125px;
+    width: 125px;
+    min-width: 125px;
+    max-width: 125px;
+    padding: 7px;
+  }
+
+  .taste-playlist-card {
+    flex: 0 0 135px;
+    width: 135px;
+    min-width: 135px;
+    padding: 8px;
+  }
+
+  .home-jumpin-card {
+    flex: 0 0 125px;
+    width: 125px;
+    min-width: 125px;
+    max-width: 125px;
+    padding: 8px;
+  }
+
+  .popular-singers-shelf .media-card {
+    flex: 0 0 115px;
+    width: 115px;
+    min-width: 115px;
+    padding: 7px;
+  }
+
+  /* Filter chips even smaller */
+  .filter-chip {
+    font-size: 0.72rem;
+    padding: 5px 10px;
+  }
+
+  .mfy-pill {
+    font-size: 0.65rem;
+    padding: 4px 8px;
+  }
+
+  /* Section head cleanup */
+  .section-head h2 {
+    font-size: 0.95rem;
+  }
+
+  /* Shelf nav buttons inline, even smaller */
+  .shelf-nav-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.7rem;
+  }
+
+  /* Home action buttons stack */
+  .home-header-actions {
+    flex-direction: column;
+  }
+  .home-action-btn {
+    width: 100%;
+    font-size: 0.74rem;
+    padding: 8px 12px;
+  }
+}
+
+/* ============================================================
+   Touch device enhancements — improve touch scrolling
+   ============================================================ */
+@media (hover: none) and (pointer: coarse) {
+  /* Ensure all horizontal scrollers have touch momentum scrolling */
+  .home-scroll-row,
+  .taste-scroll-row,
+  .popular-singers-shelf,
+  .home-filter-chips,
+  .mfy-shelf-pills,
+  .library-filter-chips {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: auto; /* disable smooth scroll for touch — feels laggy */
+  }
+
+  /* Hide shelf nav buttons on touch devices — let users swipe instead */
+  .shelf-nav-btn {
+    display: none;
+  }
+
+  /* Make play FABs always visible on touch (no hover state) */
+  .taste-playlist-card .play-fab,
+  .home-quickplay-card .home-quickplay-play {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  .media-card .play-fab {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  /* Bigger tap targets for mobile nav */
+  .mnav-link {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Player bar — tap to open mobile player */
+  .player-now-playing {
+    cursor: pointer;
+  }
+
+  /* Disable hover transform effects on touch — prevents janky taps */
+  .media-card:hover {
+    transform: none;
+  }
+  .taste-playlist-card:hover {
+    transform: none;
+  }
+  .home-quickplay-card:hover {
+    transform: none;
+  }
+  .quick-card:hover {
+    transform: none;
+  }
+  .home-jumpin-card:hover {
+    transform: none;
+  }
+
+  /* Active state feedback instead of hover */
+  .media-card:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+  .taste-playlist-card:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+  .home-quickplay-card:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+  .quick-card:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+  .home-jumpin-card:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
   }
 }
