@@ -4,7 +4,7 @@ Router for Songs, Search, Artists, Albums, and Taxonomy metadata.
 
 import os
 from typing import Optional, List
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 
 import boto3
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -97,6 +97,37 @@ def get_b2_url(audio_url: Optional[str]) -> Optional[str]:
     except Exception:
         # If B2 cannot generate a URL, don't crash the whole API.
         return None
+
+
+def get_cover_url(album_art: Optional[str]) -> Optional[str]:
+    """
+    Convert the database album_art path into the public Vercel
+    cover image URL.
+
+    Example:
+        covers/extracted/sp-10.jpg
+        ->
+        https://omify-pearl.vercel.app/covers/web/sp-10.jpg
+    """
+
+    if not album_art:
+        return None
+
+    # Keep an existing HTTP/HTTPS URL unchanged.
+    if album_art.startswith("http://") or album_art.startswith("https://"):
+        return album_art
+
+    filename = os.path.basename(unquote(album_art))
+
+    if not filename:
+        return None
+
+    frontend_url = os.getenv(
+        "FRONTEND_URL",
+        "https://omify-pearl.vercel.app",
+    ).rstrip("/")
+
+    return f"{frontend_url}/covers/web/{quote(filename)}"
 
 
 def song_to_read(song: Song) -> SongRead:
