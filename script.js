@@ -314,7 +314,7 @@
   // /api/new-releases, /api/trending, or /api/foreign-music ever get a real
   // audioUrl — every other song (most of the Home page) stays silent.
   async function hydrateAllSongsFromBackend() {
-    const PAGE_SIZE = 100;
+    const PAGE_SIZE = 100; // backend rejects large limits (422) — stay conservative
     try {
       const first = await fetch(`${API_BASE}/api/songs?limit=${PAGE_SIZE}&offset=0`);
       if (!first.ok) {
@@ -5508,8 +5508,8 @@
   window.addEventListener("DOMContentLoaded", () => {
     if (!location.hash) location.hash = "#/home";
     updateTopbarProfileUI();
-    router(); // paint immediately with local catalog
-    hydrateAllSongsFromBackend(); // fetch real audio/art in background, then refresh
+    router();                       // paint immediately with local catalog
+    hydrateAllSongsFromBackend();   // fetch real audio/art in background, then refresh
   });
 
   // global search input wires into the search route
@@ -7320,6 +7320,4 @@
   syncBackendState();
 
   console.log(`Omify loaded — ${SONGS.length} songs, ${ARTISTS.length} artists, ${ALBUMS.length} albums in catalog`);
-
-  window.OMIFY_DEBUG = { SONGS, registerSongs, normalizeApiSong, getCleanAudioUrl, hydrateAllSongsFromBackend, API_BASE };
 })();
