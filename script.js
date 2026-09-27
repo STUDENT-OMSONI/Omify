@@ -375,7 +375,7 @@
       name: "Aaj Ki Raat",
       creator: "Om Soni",
       vibeTag: "party",
-      artSrc: "covers/extracted/sp-22.jpg",
+      artSrc: "covers/web/sp-22.jpg",
       songIds: ["sp-22", "sp-182", "sp-234"],
       createdAt: 1700000005000
     },
@@ -384,7 +384,7 @@
       name: "Dil Na Jaaneya",
       creator: "Om Soni",
       vibeTag: "sukoon",
-      artSrc: "covers/extracted/sp-81.jpg",
+      artSrc: "sp-81.jpg",
       songIds: ["sp-81", "sp-874", "sp-294"],
       createdAt: 1700000004000
     },
@@ -393,7 +393,7 @@
       name: "Raabta",
       creator: "Om Soni",
       vibeTag: "sukoon",
-      artSrc: "covers/extracted/sp-700.jpg",
+      artSrc: "sp-700.jpg",
       songIds: ["sp-700", "sp-346", "sp-1065"],
       createdAt: 1700000003000
     },
@@ -402,7 +402,7 @@
       name: "Enna Sona",
       creator: "Om Soni",
       vibeTag: "sukoon",
-      artSrc: "covers/extracted/sp-294.jpg",
+      artSrc: "sp-294.jpg",
       songIds: ["sp-294", "sp-869", "sp-870"],
       createdAt: 1700000002000
     },
@@ -411,7 +411,7 @@
       name: "Matargashti",
       creator: "Om Soni",
       vibeTag: "sukoon",
-      artSrc: "covers/extracted/sp-885.jpg",
+      artSrc: "sp-885.jpg",
       songIds: ["sp-885", "sp-567", "sp-789"],
       createdAt: 1700000001000
     }
@@ -2228,12 +2228,12 @@
 
       // Prioritize songs with REAL extracted album art covers so all 4 boxes have real logos!
       const sortedMatched = [...matched].sort((a, b) => {
-        const aReal = (a.albumArt && a.albumArt.includes("covers/extracted")) ? 1 : 0;
-        const bReal = (b.albumArt && b.albumArt.includes("covers/extracted")) ? 1 : 0;
+        const aReal = (a.albumArt && a.albumArt.includes("covers/web")) ? 1 : 0;
+        const bReal = (b.albumArt && b.albumArt.includes("covers/web")) ? 1 : 0;
         return bReal - aReal;
       });
 
-      const realSongs = sortedMatched.filter((s) => s.albumArt && s.albumArt.includes("covers/extracted"));
+      const realSongs = sortedMatched.filter((s) => s.albumArt && s.albumArt.includes("covers/web"));
       let topSongs = realSongs.slice(0, 4);
       // If fewer than 4 extracted, fill strictly from SAME MATCHED theme (never random cross-theme songs!)
       if (topSongs.length < 4) {
@@ -2310,7 +2310,7 @@
         const comp = (song.composer || "").toLowerCase();
         const tit = (song.title || "").toLowerCase();
         return (art.includes(s.query) || comp.includes(s.query) || tit.includes(s.query)) &&
-          song.albumArt && song.albumArt.startsWith("covers/extracted");
+          song.albumArt && song.albumArt.startsWith("covers/web");
       });
       const topSong = SONGS.find((song) => {
         const art = (song.artist || "").toLowerCase();
@@ -3259,157 +3259,157 @@
   // ---------------------------------------------------------------- Browse & Categories
   const CATEGORIES = [
     {
-      name: "New Releases", c1: "#2563EB", c2: "#1E40AF", art: "covers/extracted/sp-247.jpg",
+      name: "New Releases", c1: "#2563EB", c2: "#1E40AF", art: "sp-247.jpg",
       isNewRelease: true,
       filter: (s) => (s.releaseYear >= 2024 || (s.releaseDate && s.releaseDate >= "2024"))
     },
     {
-      name: "Pop", c1: "#E8A33D", c2: "#C9793A", art: "covers/extracted/sp-4.jpg",
+      name: "Pop", c1: "#E8A33D", c2: "#C9793A", art: "sp-4.jpg",
       filter: (s) => s.theme === "international" || (s.genre && s.genre.includes("Pop")) || s.mood === "Chill"
     },
     {
-      name: "Bollywood", c1: "#E11D48", c2: "#881337", art: "covers/extracted/sp-20.jpg",
+      name: "Bollywood", c1: "#E11D48", c2: "#881337", art: "sp-20.jpg",
       filter: (s) => s.theme === "bollywood_hits" || s.genre === "Bollywood" || s.theme === "romantic"
     },
     {
-      name: "Hip-Hop", c1: "#D9704F", c2: "#A34934", art: "covers/extracted/sp-11.jpg",
+      name: "Hip-Hop", c1: "#D9704F", c2: "#A34934", art: "sp-11.jpg",
       filter: (s) => s.theme === "hiphop" || (s.genre && (s.genre.includes("Hip-Hop") || s.genre.includes("Rap"))) || (s.title + " " + s.artist).toLowerCase().includes("rap")
     },
     {
-      name: "Punjabi", c1: "#F97316", c2: "#7C2D12", art: "covers/extracted/sp-14.jpg",
+      name: "Punjabi", c1: "#F97316", c2: "#7C2D12", art: "sp-14.jpg",
       filter: (s) => s.theme === "punjabi" || (s.genre && s.genre.includes("Punjabi")) || s.language === "Punjabi"
     },
     {
-      name: "Indie", c1: "#9E8FCF", c2: "#6A5A9E", art: "covers/extracted/sp-19.jpg",
+      name: "Indie", c1: "#9E8FCF", c2: "#6A5A9E", art: "sp-19.jpg",
       filter: (s) => s.theme === "indie_lofi" || s.genre === "Indie / Acoustic"
     },
     {
-      name: "Romantic", c1: "#D96C8F", c2: "#A34160", art: "covers/extracted/sp-114.jpg",
+      name: "Romantic", c1: "#D96C8F", c2: "#A34160", art: "sp-114.jpg",
       filter: (s) => s.theme === "romantic" || s.mood === "Romantic"
     },
     {
-      name: "Rock", c1: "#8E6B9E", c2: "#5C4270", art: "covers/extracted/sp-98.jpg",
+      name: "Rock", c1: "#8E6B9E", c2: "#5C4270", art: "sp-98.jpg",
       filter: (s) => {
         const a = (s.title + " " + s.artist + " " + (s.genre || "") + " " + (s.mood || "")).toLowerCase();
         return a.includes("rock") || a.includes("guitar") || a.includes("band") || s.mood === "Energetic";
       }
     },
     {
-      name: "Indie Rock", c1: "#B07D62", c2: "#6D4C3D", art: "covers/extracted/sp-94.jpg",
+      name: "Indie Rock", c1: "#B07D62", c2: "#6D4C3D", art: "sp-94.jpg",
       filter: (s) => {
         const a = (s.title + " " + s.artist + " " + (s.genre || "")).toLowerCase();
         return s.genre === "Indie / Acoustic" || a.includes("shukla") || a.includes("rock") || a.includes("acoustic") || s.mood === "Energetic" || s.mood === "Upbeat";
       }
     },
     {
-      name: "Classical", c1: "#8B8492", c2: "#5C5563", art: "covers/extracted/sp-26.jpg",
+      name: "Classical", c1: "#8B8492", c2: "#5C5563", art: "sp-26.jpg",
       filter: (s) => (s.title + " " + s.artist + " " + (s.composer || "")).toLowerCase().includes("rahman") || (s.title + " " + s.artist).toLowerCase().includes("kishore") || (s.title + " " + s.artist).toLowerCase().includes("raga") || s.releaseYear < 2010
     },
     {
-      name: "K-Pop", c1: "#E087A6", c2: "#A65273", art: "covers/extracted/sp-206.jpg",
+      name: "K-Pop", c1: "#E087A6", c2: "#A65273", art: "sp-206.jpg",
       filter: (s) => s.genre === "International Pop" || (s.language === "English" && s.mood === "Energetic") || (s.title + " " + s.artist).toLowerCase().includes("dua")
     },
     {
-      name: "J-Pop", c1: "#E8A33D", c2: "#B96E2A", art: "covers/extracted/sp-241.jpg",
+      name: "J-Pop", c1: "#E8A33D", c2: "#B96E2A", art: "sp-241.jpg",
       filter: (s) => (s.genre === "International Pop" || s.genre === "Pop") && (s.mood === "Upbeat" || s.mood === "Uplifting")
     },
     {
-      name: "Latin Pop", c1: "#D9704F", c2: "#B04A2C", art: "covers/extracted/sp-108.jpg",
+      name: "Latin Pop", c1: "#D9704F", c2: "#B04A2C", art: "sp-108.jpg",
       filter: (s) => s.mood === "Party" || s.mood === "Energetic" || (s.title + " " + s.artist).toLowerCase().includes("dance")
     },
     {
-      name: "Afrobeats", c1: "#E8B23D", c2: "#B9832A", art: "covers/extracted/sp-75.jpg",
+      name: "Afrobeats", c1: "#E8B23D", c2: "#B9832A", art: "sp-75.jpg",
       filter: (s) => (s.artist + " " + s.title).toLowerCase().includes("dhillon") || (s.artist + " " + s.title).toLowerCase().includes("shubh") || s.mood === "Hype"
     },
     {
-      name: "French Pop", c1: "#8E9ECF", c2: "#5A6A9E", art: "covers/extracted/sp-278.jpg",
+      name: "French Pop", c1: "#8E9ECF", c2: "#5A6A9E", art: "sp-278.jpg",
       filter: (s) => s.genre === "International Pop" || (s.genre === "Pop" && s.mood === "Romantic")
     },
     {
-      name: "Turkish Pop", c1: "#C97A5A", c2: "#8E4E32", art: "covers/extracted/sp-81.jpg",
+      name: "Turkish Pop", c1: "#C97A5A", c2: "#8E4E32", art: "sp-81.jpg",
       filter: (s) => (s.mood === "Romantic" || s.mood === "Chill") && (s.genre === "Bollywood" || s.genre === "Pop")
     },
     {
-      name: "Arabic Pop", c1: "#C9A33D", c2: "#8E722A", art: "covers/extracted/sp-21.jpg",
+      name: "Arabic Pop", c1: "#C9A33D", c2: "#8E722A", art: "sp-21.jpg",
       filter: (s) => (s.artist + " " + s.title).toLowerCase().includes("atif") || (s.title + " " + s.artist).toLowerCase().includes("sufi") || (s.mood === "Sukoon")
     },
     {
-      name: "MPB", c1: "#6FA5A0", c2: "#3E706B", art: "covers/extracted/sp-25.jpg",
+      name: "MPB", c1: "#6FA5A0", c2: "#3E706B", art: "sp-25.jpg",
       filter: (s) => s.genre === "Indie / Acoustic" || s.mood === "Sukoon"
     },
     {
-      name: "Reggaeton", c1: "#E087A6", c2: "#B04A7A", art: "covers/extracted/sp-15.jpg",
+      name: "Reggaeton", c1: "#E087A6", c2: "#B04A7A", art: "sp-15.jpg",
       filter: (s) => s.mood === "Party" || s.mood === "Hype" || (s.genre && s.genre.includes("Dance"))
     },
     {
-      name: "Mandopop", c1: "#D9704F", c2: "#B04A2C", art: "covers/extracted/sp-5.jpg",
+      name: "Mandopop", c1: "#D9704F", c2: "#B04A2C", art: "sp-5.jpg",
       filter: (s) => (s.genre === "Pop" || s.genre === "Indie / Acoustic") && s.mood === "Chill"
     },
     {
-      name: "C-Pop", c1: "#E8A33D", c2: "#B96E2A", art: "covers/extracted/sp-7.png",
+      name: "C-Pop", c1: "#E8A33D", c2: "#B96E2A", art: "sp-7.png",
       filter: (s) => (s.genre === "Pop" || s.genre === "Bollywood") && s.mood === "Romantic"
     },
     {
-      name: "European Pop", c1: "#8E9ECF", c2: "#5A6A9E", art: "covers/extracted/sp-448.jpg",
+      name: "European Pop", c1: "#8E9ECF", c2: "#5A6A9E", art: "sp-448.jpg",
       filter: (s) => s.genre === "International Pop" || (s.language === "English")
     },
     {
-      name: "Lo-Fi", c1: "#7A8FA0", c2: "#4E5F6E", art: "covers/extracted/sp-95.jpg",
+      name: "Lo-Fi", c1: "#7A8FA0", c2: "#4E5F6E", art: "sp-95.jpg",
       filter: (s) => s.theme === "indie_lofi" || (s.title + " " + s.artist).toLowerCase().includes("lofi") || (s.title + " " + s.artist).toLowerCase().includes("chill")
     },
     {
-      name: "Chill", c1: "#6FA5A0", c2: "#3E706B", art: "covers/extracted/sp-8.jpg",
+      name: "Chill", c1: "#6FA5A0", c2: "#3E706B", art: "sp-8.jpg",
       filter: (s) => s.theme === "indie_lofi" || s.mood === "Chill" || s.mood === "Sukoon"
     },
     {
-      name: "Workout", c1: "#D9524F", c2: "#A3312E", art: "covers/extracted/sp-74.jpg",
+      name: "Workout", c1: "#D9524F", c2: "#A3312E", art: "sp-74.jpg",
       filter: (s) => s.theme === "workout" || s.mood === "Energetic" || (s.bpm && s.bpm >= 120) || (s.theme === "punjabi" && /swag|drill/i.test(s.title))
     },
     {
-      name: "Focus", c1: "#5C8ACF", c2: "#39609E", art: "covers/extracted/sp-96.jpg",
+      name: "Focus", c1: "#5C8ACF", c2: "#39609E", art: "sp-96.jpg",
       filter: (s) => s.mood === "Sukoon" || s.mood === "Chill" || s.genre === "Indie / Acoustic"
     },
     {
-      name: "Party", c1: "#E85A9E", c2: "#B23271", art: "covers/extracted/sp-28.jpg",
+      name: "Party", c1: "#E85A9E", c2: "#B23271", art: "sp-28.jpg",
       filter: (s) => s.theme === "party" || s.mood === "Party" || (s.artist + " " + s.title).toLowerCase().includes("honey singh")
     },
     {
-      name: "Sad", c1: "#6E7A9E", c2: "#414E70", art: "covers/extracted/sp-10.jpg",
+      name: "Sad", c1: "#6E7A9E", c2: "#414E70", art: "sp-10.jpg",
       filter: (s) => s.mood === "Sukoon" || (s.title + " " + s.artist).toLowerCase().includes("alvida") || (s.title + " " + s.artist).toLowerCase().includes("judai") || (s.title + " " + s.artist).toLowerCase().includes("dard") || (s.artist + " " + s.title).toLowerCase().includes("kk")
     },
     {
-      name: "Uplifting", c1: "#E8B23D", c2: "#B9832A", art: "covers/extracted/sp-13.jpg",
+      name: "Uplifting", c1: "#E8B23D", c2: "#B9832A", art: "sp-13.jpg",
       filter: (s) => s.mood === "Uplifting" || s.mood === "Upbeat"
     },
     {
-      name: "Energetic", c1: "#D9524F", c2: "#A3312E", art: "covers/extracted/sp-71.jpg",
+      name: "Energetic", c1: "#D9524F", c2: "#A3312E", art: "sp-71.jpg",
       filter: (s) => s.mood === "Energetic" || s.mood === "Hype"
     },
     {
-      name: "Instrumental", c1: "#8B8492", c2: "#5C5563", art: "covers/extracted/sp-42.jpg",
+      name: "Instrumental", c1: "#8B8492", c2: "#5C5563", art: "sp-42.jpg",
       filter: (s) => (s.title + " " + s.artist).toLowerCase().includes("theme") || (s.title + " " + s.artist).toLowerCase().includes("instrumental") || s.mood === "Sukoon"
     },
     {
-      name: "Sufi & Devotional", c1: "#A855F7", c2: "#6B21A8", art: "covers/extracted/sp-22.jpg",
+      name: "Sufi & Devotional", c1: "#A855F7", c2: "#6B21A8", art: "sp-22.jpg",
       filter: (s) => {
         const a = (s.title + " " + s.artist + " " + (s.composer || "")).toLowerCase();
         return a.includes("sufi") || a.includes("kun faya") || a.includes("arziyan") || a.includes("khwaja") || a.includes("ali") || a.includes("rahat") || a.includes("kailash") || s.mood === "Sukoon";
       }
     },
     {
-      name: "R&B", c1: "#C9793A", c2: "#8E4E2A", art: "covers/extracted/sp-136.jpg",
+      name: "R&B", c1: "#C9793A", c2: "#8E4E2A", art: "sp-136.jpg",
       filter: (s) => s.mood === "Romantic" || s.mood === "Sukoon" || (s.title + " " + s.artist).toLowerCase().includes("soul")
     },
     {
-      name: "Electronic", c1: "#4FA6C9", c2: "#2E6B85", art: "covers/extracted/sp-471.jpg",
+      name: "Electronic", c1: "#4FA6C9", c2: "#2E6B85", art: "sp-471.jpg",
       filter: (s) => (s.genre && s.genre.includes("Electronic")) || s.mood === "Party" || (s.title + " " + s.artist).toLowerCase().includes("edm") || (s.title + " " + s.artist).toLowerCase().includes("remix")
     },
     {
-      name: "Jazz", c1: "#B98D3E", c2: "#7A5A22", art: "covers/extracted/sp-764.jpg",
+      name: "Jazz", c1: "#B98D3E", c2: "#7A5A22", art: "sp-764.jpg",
       filter: (s) => s.mood === "Sukoon" || s.mood === "Chill" || (s.title + " " + s.artist).toLowerCase().includes("acoustic")
     },
     {
-      name: "Haryanvi", c1: "#10B981", c2: "#064E3B", art: "covers/extracted/sp-16.jpg",
+      name: "Haryanvi", c1: "#10B981", c2: "#064E3B", art: "sp-16.jpg",
       filter: (s) => s.genre === "Haryanvi" || s.language === "Haryanvi"
     }
   ];
@@ -3466,7 +3466,7 @@
       name,
       c1: "#1ed760",
       c2: "#064e3b",
-      art: "covers/extracted/sp-20.jpg",
+      art: "sp-20.jpg",
       filter: (s) => (s.genre && s.genre.toLowerCase().includes((name || "").toLowerCase())) || (s.mood && s.mood.toLowerCase().includes((name || "").toLowerCase()))
     };
 
@@ -6043,7 +6043,7 @@
     id: "arijit",
     name: "Arijit Soulmate",
     vibe: "romantic",
-    avatar: "covers/extracted/sp-81.jpg"
+    avatar: "sp-81.jpg"
   };
 
   function openBlendModal() {
@@ -6594,7 +6594,7 @@
     const arijit = ARTISTS.find(a => a.name.toLowerCase().includes("arijit")) || {
       id: "arijit-singh-21",
       name: "Arijit Singh",
-      image: "covers/extracted/sp-81.jpg",
+      image: "sp-81.jpg",
       songIds: []
     };
     const isArijitPlaying = isPlaying && curSong && curSong.artist && curSong.artist.toLowerCase().includes("arijit");
@@ -6605,7 +6605,7 @@
       subtitle: `${isArijitPlaying ? '<span class="lib-playing-eq" title="Playing"><span></span><span></span><span></span><span></span></span> ' : ''}<span class="sub-type">Artist</span>`,
       plainSubtitle: "Artist",
       extra: "Artist",
-      art: arijit.image || "covers/extracted/sp-81.jpg",
+      art: arijit.image || "sp-81.jpg",
       isLikedBadge: false,
       isRound: true,
       route: "artist/" + arijit.id,
