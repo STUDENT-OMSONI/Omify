@@ -78,16 +78,26 @@
   .mobile-brand-link {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 8px !important;
     text-decoration: none !important;
     color: var(--text-heading) !important;
   }
-  .mobile-brand-icon i {
-    color: #1ed760 !important;
-    font-size: 1.3rem !important;
+  .mobile-brand-logo {
+    width: 26px !important;
+    height: 26px !important;
+    object-fit: contain !important;
+    display: block !important;
+    filter: drop-shadow(0 0 6px rgba(30, 215, 96, 0.45)) !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.2s ease !important;
+  }
+  .mobile-brand-link:hover .mobile-brand-logo,
+  .mobile-brand-link:active .mobile-brand-logo {
+    transform: scale(1.06) !important;
   }
   .mobile-brand-name {
-    font-size: 1.15rem !important;
+    font-family: var(--font-display, 'Outfit', sans-serif) !important;
+    font-size: 1.18rem !important;
     font-weight: 800 !important;
     letter-spacing: -0.02em !important;
     color: var(--text-heading) !important;
