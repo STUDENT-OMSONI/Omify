@@ -18,7 +18,7 @@
     integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="style.css?v=20260920_2315" />
-<link rel="stylesheet" href="responsive.css?v=20260927_1830" />
+  <link rel="stylesheet" href="responsive.css?v=20260927_2000" />
 </head>
 
 <body>
@@ -413,6 +413,14 @@
           aria-label="Save to Your Library"><i class="fa-solid fa-circle-plus"></i></button>
         <button class="icon-btn edit-song-btn" id="nowEditBtn" title="Customize this song" aria-label="Customize song"
           style="display:none;"><i class="fa-solid fa-pen-to-square"></i></button>
+        <div class="mobile-player-controls only-mobile">
+          <button class="icon-btn mobile-bar-play-btn" id="mobileBarPlayBtn" aria-label="Play or Pause" title="Play or Pause">
+            <i class="fa-solid fa-play"></i>
+          </button>
+        </div>
+        <div class="mobile-player-progress-bar only-mobile" id="mobilePlayerProgressBar">
+          <div class="mobile-player-progress-fill" id="mobilePlayerProgressFill"></div>
+        </div>
       </div>
 
       <div class="player-center">

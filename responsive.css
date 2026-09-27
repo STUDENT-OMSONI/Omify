@@ -1,15 +1,25 @@
 /* ================================================================
-   responsive.css — Mobile & Tablet refinements layered on top of style.css
-   No existing styles in style.css are changed; this file only adds
-   overrides inside media-query scopes.
+   responsive.css — Authentic Spotify Mobile & Tablet Design
+   Layers on top of style.css to deliver a true-to-life Spotify
+   experience on phone and tablet viewports.
    ================================================================ */
 
 /* ============================================================
    ≤ 1024 px — Tablet refinements
    ============================================================ */
 @media (max-width: 1024px) {
+  .track-row {
+    grid-template-columns: 28px 40px 1fr 80px 70px;
+  }
+  .track-album {
+    display: none;
+  }
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+  }
 
-  /* Section head: prevent nav arrows from wrapping to next line */
+  /* Section head alignment */
   .section-head {
     gap: 12px;
     align-items: center;
@@ -18,732 +28,839 @@
     min-width: 0;
     flex: 1;
   }
-  .section-head > div:first-child h2 {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
 
-  /* Shelf pill badges smaller */
-  .shelf-pill-badge {
-    font-size: 0.68rem;
-    padding: 3px 8px;
-  }
-
-  /* Home header responsive */
   .home-header-row {
     gap: 12px;
-  }
-  .home-header-title-group h1 {
-    font-size: 1.8rem;
   }
 }
 
 /* ============================================================
-   ≤ 900 px — Primary mobile fixes
-   (style.css already switches to single-column layout here)
+   ≤ 900 px — Authentic Spotify Mobile Core
    ============================================================ */
 @media (max-width: 900px) {
 
-  /* --- Topbar: let it grow taller and wrap instead of cramming --- */
+  /* --- Topbar: compact single row, zero wrapping --- */
   .topbar {
-    height: auto !important;
-    min-height: var(--topbar-h);
-    flex-wrap: wrap;
-    padding: 8px 12px !important;
-    gap: 8px;
+    height: 54px !important;
+    min-height: 54px !important;
+    padding: 0 14px !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    background: rgba(18, 18, 18, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
   }
 
-  /* Nav controls (hamburger, …, ◀ ▶) shrink-wrap to the left */
-  .topbar-nav-controls {
-    order: 1;
-    flex: 0 0 auto;
-  }
-
-  /* Right actions (queue, bell, theme, profile) — push to far right */
-  .topbar-right-actions {
-    order: 2;
-    flex: 0 0 auto;
-    margin-left: auto;
-    gap: 4px;
-  }
-
-  /* Search bar drops to its own row and takes full width */
-  .topbar-search-group {
-    order: 3;
-    flex: 1 1 100%;
-    max-width: 100%;
-  }
-  .topbar-search-box {
-    width: 100%;
-    height: 40px;
-  }
-  .topbar-home-btn {
-    width: 38px;
-    height: 38px;
-    font-size: 1rem;
-  }
-
-  /* Hide the Spotify (…) menu and forward/back on mobile — they duplicate sidebar/mobile-nav */
-  .topbar-menu-wrapper,
-  .topbar-hist-btn {
-    display: none !important;
-  }
-
-  /* --- Home header --- */
-  .home-header-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .home-header-title-group h1 {
-    font-size: 1.6rem;
-  }
-  .home-header-sub {
-    font-size: 0.84rem;
-  }
-  .home-header-actions {
-    width: 100%;
-  }
-  .home-action-btn {
-    font-size: 0.78rem;
-    padding: 7px 14px;
-    flex: 1;
-    justify-content: center;
-  }
-
-  /* --- Quickplay grid: 2-col on mobile --- */
-  .home-quickplay-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 8px;
-    margin-bottom: 24px;
-  }
-  .home-quickplay-card {
-    height: 56px;
-  }
-  .home-quickplay-card img {
-    width: 56px;
-    height: 56px;
-  }
-  .home-quickplay-title {
-    font-size: 0.82rem;
-  }
-  .home-quickplay-play {
-    width: 34px;
-    height: 34px;
-    font-size: 0.82rem;
-    margin-right: 8px;
-  }
-
-  /* --- Filter chips: horizontal scroll, no wrap --- */
-  .home-filter-chips {
-    gap: 6px;
-    margin-bottom: 16px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .filter-chip {
-    font-size: 0.78rem;
-    padding: 6px 12px;
-  }
-
-  /* --- MFY shelf pills: ensure smooth touch scrolling --- */
-  .mfy-shelf-pills {
-    -webkit-overflow-scrolling: touch;
-    gap: 6px;
-    padding: 4px 0 10px 0;
-  }
-  .mfy-pill {
-    font-size: 0.74rem;
-    padding: 5px 11px;
-    gap: 5px;
-  }
-
-  /* --- Section head: tighter, prevent overflow --- */
-  .section-head {
-    gap: 8px;
-    flex-wrap: nowrap;
-    margin-bottom: 12px;
-  }
-  .section-head > div:first-child p {
-    font-size: 0.72rem !important;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .section-head h2 {
-    font-size: 1.15rem;
-  }
-  .shelf-pill-badge {
-    font-size: 0.6rem;
-    padding: 2px 6px;
-    gap: 3px;
-  }
-  .shelf-pill-badge i {
-    font-size: 0.55rem;
-  }
-
-  /* --- Shelf navigation buttons: bigger touch targets --- */
-  .shelf-nav-btn {
+  /* Left nav: hamburger only */
+  .only-mobile#mobileMenuBtn {
+    display: inline-flex !important;
     width: 36px;
     height: 36px;
-    font-size: 0.85rem;
-  }
-
-  /* --- Horizontal scroll rows: touch-friendly, cards sized for mobile --- */
-  .home-scroll-row {
-    gap: 12px;
-    padding-bottom: 10px;
-    -webkit-overflow-scrolling: touch;
-    scroll-padding: 0 12px;
-  }
-  .home-scroll-row .media-card {
-    flex: 0 0 156px;
-    width: 156px;
-    min-width: 156px;
-    max-width: 156px;
-  }
-
-  .taste-scroll-row {
-    gap: 12px;
-    padding: 8px 4px 16px 4px;
-    margin: -8px -4px 0 -4px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .taste-playlist-card {
-    flex: 0 0 170px;
-    width: 170px;
-    min-width: 170px;
-  }
-
-  .popular-singers-shelf {
-    gap: 12px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .popular-singers-shelf .media-card {
-    flex: 0 0 150px;
-    width: 150px;
-    min-width: 150px;
-  }
-
-  /* --- Home scroll row (Jump Back In): smaller cards --- */
-  .home-jumpin-card {
-    flex: 0 0 156px;
-    width: 156px;
-    min-width: 156px;
-    max-width: 156px;
-    padding: 12px;
-  }
-
-  /* Section spacing */
-  .section {
-    margin-bottom: 28px;
-  }
-
-  /* View header tighter on mobile */
-  .view-header {
-    margin-bottom: 18px;
-  }
-
-  /* Popover dropdowns: constrain width on mobile */
-  .popover-dropdown {
-    width: calc(100vw - 24px) !important;
-    max-width: 360px;
-    right: -8px;
-  }
-
-  /* Profile dropdown stays narrow */
-  .profile-dropdown {
-    width: 200px !important;
-  }
-
-  /* Modal cards: fit in viewport */
-  .modal-blend-card,
-  .modal-folder-card {
-    width: 92vw !important;
-    max-width: 480px !important;
-    padding: 20px !important;
-  }
-  .blend-companions-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Queue panel full-width on mobile */
-  .queue-panel {
-    width: 100vw;
-    right: -100vw;
-  }
-
-  /* Sidebar resizer hidden on mobile (sidebar is already a slide-over) */
-  .sidebar-resizer {
-    display: none !important;
-  }
-
-  /* --- Player bar mobile cleanup: hide desktop-only buttons --- */
-  .player-bar .now-action-dismiss,
-  .player-bar .edit-song-btn {
-    display: none !important;
-  }
-  /* Keep like-btn but smaller */
-  .player-bar .like-btn {
-    font-size: 0.9rem;
-    padding: 4px;
-  }
-  /* Add a play/pause indicator chevron on mobile player bar */
-  .player-now-playing {
-    max-width: 100%;
-    flex: 1;
-    cursor: pointer;
-  }
-
-  /* Taste card text sizing */
-  .taste-title {
-    font-size: 0.86rem;
-  }
-  .taste-sub {
-    font-size: 0.72rem;
-  }
-
-  /* Media card padding smaller */
-  .media-card {
-    padding: 10px;
-  }
-  .media-card .art-wrap {
-    margin-bottom: 10px;
-  }
-
-  /* Card grid responsive */
-  .card-grid {
-    gap: 12px;
-  }
-
-  /* Mobile player overlay: better spacing */
-  .mobile-player-overlay .mobile-player-art {
-    width: min(280px, 70vw);
-    height: min(280px, 70vw);
-  }
-
-  /* Blend & folder modals */
-  .blend-companion-card {
-    padding: 10px;
-  }
-  .blend-comp-avatar {
-    width: 42px;
-    height: 42px;
-  }
-}
-
-/* ============================================================
-   ≤ 600 px — Tighter phone layout
-   ============================================================ */
-@media (max-width: 600px) {
-
-  /* Even more compact topbar */
-  .topbar {
-    padding: 6px 10px !important;
-  }
-  .topbar-right-actions {
-    gap: 2px;
-  }
-  .topbar-action-btn {
-    width: 34px;
-    height: 34px;
-    font-size: 0.95rem;
-  }
-  .topbar-avatar-btn {
-    width: 34px;
-    height: 34px;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-heading, #ffffff);
     font-size: 1.15rem;
   }
 
-  /* Player bar: tighter */
-  .player-bar {
-    padding: 0 8px !important;
-    height: 62px !important;
+  .topbar-nav-controls {
+    display: none !important; /* Hide desktop dots and hist buttons */
   }
+
+  /* Center search group on mobile */
+  .topbar-search-group {
+    flex: 1 1 auto !important;
+    max-width: 320px !important;
+    margin: 0 !important;
+    gap: 8px !important;
+  }
+  .topbar-home-btn {
+    display: none !important; /* Mobile bottom nav has home tab */
+  }
+  .topbar-search-box {
+    height: 36px !important;
+    padding: 0 10px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 9999px !important;
+  }
+  .topbar-search-box input {
+    font-size: 0.82rem !important;
+  }
+  .search-box-divider,
+  .search-browse-link {
+    display: none !important;
+  }
+
+  /* Right actions: clean icons */
+  .topbar-right-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin-left: 0 !important;
+  }
+  .topbar-action-btn#queueBtn {
+    display: none !important; /* Mobile has queue in player overlay */
+  }
+  .topbar-action-btn {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 0.95rem !important;
+  }
+  .topbar-avatar-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 1.1rem !important;
+  }
+
+  /* --- Mobile Bottom Nav Bar (At the VERY BOTTOM) --- */
+  .mobile-nav {
+    display: flex !important;
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: 56px !important;
+    background: rgba(18, 18, 18, 0.98) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+    z-index: 95 !important;
+    padding: 0 4px !important;
+  }
+  .mnav-link {
+    color: #b3b3b3 !important;
+    font-size: 1.05rem !important;
+    padding: 6px 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 3px !important;
+    text-decoration: none !important;
+    transition: color 0.15s ease !important;
+    flex: 1 !important;
+  }
+  .mnav-link.active,
+  .mnav-link:hover {
+    color: #ffffff !important;
+  }
+  .mnav-link.active i {
+    color: #1ed760 !important;
+  }
+  .mnav-link span {
+    font-size: 0.65rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  /* --- Mini Player Bar (Floats right ABOVE the bottom navigation bar) --- */
+  .player-bar {
+    position: fixed !important;
+    left: 8px !important;
+    right: 8px !important;
+    bottom: 62px !important;
+    height: 56px !important;
+    width: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: #282828 !important;
+    background: linear-gradient(180deg, #323232 0%, #222222 100%) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65) !important;
+    padding: 0 10px 0 8px !important;
+    z-index: 90 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .player-now-playing {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    cursor: pointer !important;
+    position: relative !important;
+  }
+  .player-now-playing.is-empty {
+    display: none !important;
+  }
+
   .now-art {
     width: 40px !important;
     height: 40px !important;
+    border-radius: 4px !important;
+    flex-shrink: 0 !important;
+    object-fit: cover !important;
+  }
+
+  .now-meta {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    overflow: hidden !important;
   }
   .now-title {
-    font-size: 0.82rem;
+    font-size: 0.84rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.25 !important;
   }
   .now-artist {
-    font-size: 0.7rem;
+    font-size: 0.72rem !important;
+    color: #b3b3b3 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.25 !important;
   }
 
-  /* Mobile nav — bump the bottom to stay above new player height */
-  .mobile-nav {
-    bottom: 62px !important;
-    height: 52px;
-  }
-  .mnav-link {
-    font-size: 1rem;
-    padding: 6px 10px;
-  }
-  .mnav-link span {
-    font-size: 0.55rem;
-  }
-
-  /* Adjust view-container bottom padding for shorter player + nav */
-  .view-container {
-    padding-bottom: calc(62px + 52px + 12px) !important;
-  }
-
-  /* Toast above the new bar heights */
-  .toast-container,
-  .toast {
-    bottom: calc(62px + 52px + 10px) !important;
-  }
-
-  /* View header */
-  .view-header h1 {
-    font-size: 1.4rem;
-  }
-  .view-header p {
-    font-size: 0.84rem;
-  }
-
-  /* Quick grid single column */
-  .quick-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Quickplay grid tighter */
-  .home-quickplay-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-
-  /* Card grid 2 columns */
-  .card-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px;
-  }
-
-  /* Horizontal scroll row cards even smaller */
-  .home-scroll-row .media-card {
-    flex: 0 0 140px;
-    width: 140px;
-    min-width: 140px;
-    max-width: 140px;
-    padding: 8px;
-  }
-
-  .taste-playlist-card {
-    flex: 0 0 150px;
-    width: 150px;
-    min-width: 150px;
-    padding: 10px;
-  }
-
-  .popular-singers-shelf .media-card {
-    flex: 0 0 130px;
-    width: 130px;
-    min-width: 130px;
-    padding: 8px;
-  }
-
-  .home-jumpin-card {
-    flex: 0 0 140px;
-    width: 140px;
-    min-width: 140px;
-    max-width: 140px;
-    padding: 10px;
-  }
-
-  /* Section head tighter */
-  .section-head h2 {
-    font-size: 1.05rem;
-  }
-  .section-head > div:first-child p {
+  /* Desktop player buttons hidden on mobile */
+  .player-bar .now-action-dismiss,
+  .player-bar .edit-song-btn,
+  .player-center,
+  .player-extra {
     display: none !important;
   }
-  .shelf-pill-badge {
-    display: none;
+
+  /* Mobile like button & mini play button */
+  .player-bar .like-btn {
+    display: inline-flex !important;
+    font-size: 1rem !important;
+    color: #b3b3b3 !important;
+    padding: 6px !important;
+    background: none !important;
+    border: none !important;
+    flex-shrink: 0 !important;
+  }
+  .player-bar .like-btn.liked {
+    color: #1ed760 !important;
   }
 
-  /* Shelf nav buttons */
-  .shelf-nav-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 0.75rem;
+  .mobile-player-controls {
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+  }
+  .mobile-bar-play-btn {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.88rem !important;
+    margin-left: 6px !important;
+    border: none !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+    transition: transform 0.1s ease !important;
+  }
+  .mobile-bar-play-btn:active {
+    transform: scale(0.92) !important;
   }
 
-  /* Detail hero smaller art */
-  .detail-hero img {
-    width: 140px !important;
-    height: 140px !important;
+  /* Slim progress bar along bottom of mini player card */
+  .mobile-player-progress-bar {
+    display: block !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 8px !important;
+    right: 8px !important;
+    height: 2px !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-radius: 2px !important;
+    overflow: hidden !important;
   }
-  .detail-hero-meta h1 {
-    font-size: 1.4rem !important;
-  }
-
-  /* Catalog hero */
-  .catalog-hero h1 {
-    font-size: 1.6rem;
-  }
-
-  /* Track rows — tighter */
-  .track-row {
-    grid-template-columns: 20px 36px 1fr 50px !important;
-    padding: 6px 8px;
-    gap: 8px;
-  }
-  .track-art {
-    width: 36px;
-    height: 36px;
-  }
-  .track-title {
-    font-size: 0.84rem;
-  }
-  .track-artist {
-    font-size: 0.72rem;
+  .mobile-player-progress-fill {
+    height: 100% !important;
+    width: 0% !important;
+    background: #1ed760 !important;
+    border-radius: 2px !important;
+    transition: width 0.15s linear !important;
   }
 
-  /* Settings page */
-  .settings-section {
-    padding: 16px;
+  /* --- View Container Clearance for Mini Player + Bottom Nav --- */
+  .view-container {
+    padding: 16px 16px calc(56px + 62px + 24px) 16px !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
   }
 
-  /* Home header even tighter */
+  /* --- Toast above mini-player --- */
+  .toast,
+  .toast-container {
+    bottom: calc(56px + 62px + 12px) !important;
+    z-index: 100 !important;
+  }
+
+  /* --- Home Header: Spotify Mobile Greeting --- */
+  .home-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    margin-bottom: 14px !important;
+  }
   .home-header-title-group h1 {
-    font-size: 1.35rem;
+    font-size: 1.45rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    margin: 0 !important;
+  }
+  .home-header-sub {
+    font-size: 0.78rem !important;
+    color: #b3b3b3 !important;
+    margin: 0 !important;
+  }
+  /* On mobile, tuck the custom song upload button into an unobtrusive single row */
+  .home-header-actions {
+    display: flex !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin-top: 4px !important;
+  }
+  .home-action-btn {
+    font-size: 0.72rem !important;
+    padding: 6px 12px !important;
+    border-radius: 9999px !important;
+    flex: 1 !important;
+    justify-content: center !important;
+  }
+  .home-action-btn.secondary {
+    display: none !important; /* Hide customizer button on mobile home to keep view clean */
   }
 
-  /* Taste card text */
+  /* --- Filter Chips (Horizontal swipe with edge bleed) --- */
+  .home-filter-chips {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 8px !important;
+    margin: 0 -16px 16px -16px !important;
+    padding: 4px 16px 8px 16px !important;
+  }
+  .home-filter-chips::-webkit-scrollbar {
+    display: none !important;
+  }
+  .filter-chip {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    border-radius: 9999px !important;
+    padding: 7px 14px !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #b3b3b3 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  .filter-chip.active {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+    font-weight: 700 !important;
+  }
+
+  /* --- Quickplay Grid (2 columns, 52px height) --- */
+  .home-quickplay-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    margin-bottom: 22px !important;
+  }
+  .home-quickplay-card {
+    height: 52px !important;
+    border-radius: 4px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    overflow: hidden !important;
+    gap: 8px !important;
+  }
+  .home-quickplay-card img {
+    width: 52px !important;
+    height: 52px !important;
+    border-radius: 0 !important;
+    flex-shrink: 0 !important;
+  }
+  .home-quickplay-title {
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    line-height: 1.25 !important;
+    padding-right: 6px !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+  }
+  .home-quickplay-play {
+    display: none !important; /* Hide hover play button on touch cards */
+  }
+
+  /* ============================================================
+     MADE FOR YOU & HORIZONTAL SHELVES (Crucial Mobile Fix)
+     ============================================================ */
+  .section {
+    margin-bottom: 28px !important;
+  }
+
+  .section-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+  .section-head > div:first-child {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  .section-head h2 {
+    font-size: 1.22rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .section-head > div:first-child p {
+    font-size: 0.74rem !important;
+    color: #b3b3b3 !important;
+    margin: 2px 0 0 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .shelf-pill-badge {
+    display: inline-flex !important;
+    font-size: 0.6rem !important;
+    padding: 2px 6px !important;
+    gap: 3px !important;
+    border-radius: 4px !important;
+    margin-bottom: 3px !important;
+  }
+
+  /* On mobile, HIDE the left/right arrow buttons completely — users swipe! */
+  .shelf-nav-btn {
+    display: none !important;
+  }
+
+  .section-head a {
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    color: #b3b3b3 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    padding: 4px 0 !important;
+  }
+
+  /* --- Category / Mood Pills in Made For You Section --- */
+  .mfy-shelf-pills {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    gap: 8px !important;
+    margin: 0 -16px 12px -16px !important;
+    padding: 4px 16px 8px 16px !important;
+  }
+  .mfy-shelf-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+  .mfy-pill {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    border-radius: 9999px !important;
+    padding: 6px 13px !important;
+    font-size: 0.76rem !important;
+    font-weight: 600 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #b3b3b3 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  }
+  .mfy-pill.active {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+    font-weight: 700 !important;
+  }
+  .mfy-pill i {
+    font-size: 0.75rem !important;
+  }
+
+  /* --- Horizontal Scroll Rows (Made For You, Jump In, Taste, Singers) --- */
+  .home-scroll-row,
+  .taste-scroll-row,
+  .popular-singers-shelf {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    scroll-behavior: auto !important; /* Touch feels much more responsive without forced smooth lag */
+    scroll-snap-type: none !important; /* Disable stiff snap so swipe is buttery smooth */
+    gap: 12px !important;
+    margin: 0 -16px 0 -16px !important;
+    padding: 4px 16px 16px 16px !important;
+    align-items: stretch !important;
+  }
+  .home-scroll-row::-webkit-scrollbar,
+  .taste-scroll-row::-webkit-scrollbar,
+  .popular-singers-shelf::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Individual Song Cards in Made For You & Home Shelves */
+  .home-scroll-row .media-card {
+    flex: 0 0 144px !important;
+    width: 144px !important;
+    min-width: 144px !important;
+    max-width: 144px !important;
+    padding: 9px !important;
+    background: #181818 !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+    cursor: pointer !important;
+  }
+  .home-scroll-row .media-card .art-wrap {
+    width: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 6px !important;
+    margin-bottom: 8px !important;
+    overflow: hidden !important;
+    position: relative !important;
+  }
+  .home-scroll-row .media-card .art-wrap img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    border-radius: 6px !important;
+  }
+
+  /* In real Spotify, the whole card is tapped to play — hide the desktop pencil edit and play circle */
+  .home-scroll-row .media-card .card-edit-btn,
+  .media-card .card-edit-btn {
+    display: none !important;
+  }
+  .home-scroll-row .media-card .play-fab,
+  .media-card .play-fab {
+    display: none !important;
+  }
+
+  /* AI match badge (sleek, subtle pill in top-left) */
+  .home-scroll-row .media-card .ai-match-badge,
+  .media-card .ai-match-badge {
+    top: 6px !important;
+    left: 6px !important;
+    font-size: 0.6rem !important;
+    font-weight: 700 !important;
+    padding: 2px 5px !important;
+    border-radius: 3px !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    border: 1px solid rgba(29, 185, 84, 0.4) !important;
+    color: #1db954 !important;
+  }
+
+  /* Card Typography */
+  .home-scroll-row .media-card .card-title,
+  .media-card .card-title {
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin-bottom: 2px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.25 !important;
+  }
+  .home-scroll-row .media-card .card-sub,
+  .media-card .card-sub {
+    font-size: 0.72rem !important;
+    color: #b3b3b3 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.25 !important;
+  }
+  .home-scroll-row .media-card .card-reason,
+  .media-card .card-reason {
+    font-size: 0.66rem !important;
+    color: #1db954 !important;
+    font-weight: 500 !important;
+    margin-top: 3px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Taste Playlist Cards */
+  .taste-playlist-card {
+    flex: 0 0 156px !important;
+    width: 156px !important;
+    min-width: 156px !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+  }
+  .taste-playlist-card .taste-art-wrap {
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+  }
+  .taste-playlist-card .play-fab {
+    display: none !important;
+  }
   .taste-title {
-    font-size: 0.8rem;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    margin-top: 6px !important;
   }
   .taste-sub {
-    font-size: 0.68rem;
+    font-size: 0.7rem !important;
   }
 
-  /* Card reason on AI recs */
-  .card-reason {
-    font-size: 0.62rem;
+  /* Jump Back In Cards */
+  .home-jumpin-card {
+    flex: 0 0 144px !important;
+    width: 144px !important;
+    min-width: 144px !important;
+    max-width: 144px !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
   }
-  .ai-match-badge {
-    font-size: 0.58rem;
-    padding: 2px 6px;
+  .home-jumpin-art img {
+    border-radius: 6px !important;
   }
-
-  /* MFY pills tighter */
-  .mfy-pill {
-    font-size: 0.7rem;
-    padding: 4px 10px;
+  .home-jumpin-card .play-fab {
+    display: none !important;
   }
-
-  /* Play FAB smaller on cards */
-  .taste-playlist-card .play-fab {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
-    bottom: 8px;
-    right: 8px;
+  .home-jumpin-title {
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
   }
-
-  /* Media card play FAB */
-  .media-card .play-fab {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
-    bottom: 8px;
-    right: 8px;
+  .home-jumpin-sub {
+    font-size: 0.72rem !important;
   }
 
-  /* Smaller profile avatar on mobile */
-  .profile-avatar-container {
-    width: 120px;
-    height: 120px;
-    flex: 0 0 120px;
+  /* Popular Singers (circular cards) */
+  .popular-singers-shelf .media-card {
+    flex: 0 0 130px !important;
+    width: 130px !important;
+    min-width: 130px !important;
+    padding: 8px !important;
+    text-align: center !important;
   }
-  .profile-display-name {
-    font-size: 1.6rem;
+  .popular-singers-shelf .media-card .card-title,
+  .popular-singers-shelf .media-card .card-sub {
+    text-align: center !important;
+  }
+
+  /* Card Grid (for Views like Search Results, Category Playlists, Albums) */
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  .card-grid .media-card {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* --- Track Rows on Mobile (Search, Playlists, Catalog, Liked Songs) --- */
+  .track-row {
+    grid-template-columns: 42px 1fr 36px !important;
+    gap: 10px !important;
+    padding: 8px 4px !important;
+    align-items: center !important;
+  }
+  .track-num {
+    display: none !important; /* Hide track numbers on mobile */
+  }
+  .track-art {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 4px !important;
+    grid-column: 1 !important;
+  }
+  .track-meta {
+    grid-column: 2 !important;
+    min-width: 0 !important;
+  }
+  .track-title {
+    font-size: 0.86rem !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    line-height: 1.25 !important;
+  }
+  .track-artist {
+    font-size: 0.74rem !important;
+    color: #b3b3b3 !important;
+    line-height: 1.25 !important;
+  }
+  .track-album,
+  .track-duration {
+    display: none !important;
+  }
+  .track-actions {
+    grid-column: 3 !important;
+    justify-content: flex-end !important;
+  }
+
+  /* --- Full Screen Mobile Player Overlay --- */
+  .mobile-player-overlay {
+    background: #121212 !important;
+    background: linear-gradient(180deg, #2a2a2a 0%, #121212 100%) !important;
+    padding: 24px 20px !important;
+    justify-content: space-between !important;
+  }
+  .mobile-player-overlay .close-mobile-player {
+    top: 14px !important;
+    left: 14px !important;
+    font-size: 1.2rem !important;
+    color: #b3b3b3 !important;
+  }
+  .mobile-player-overlay .mobile-player-art {
+    width: min(290px, 75vw) !important;
+    height: min(290px, 75vw) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75) !important;
+    margin: auto 0 !important;
+  }
+  .mobile-player-overlay .mobile-player-meta h2 {
+    font-size: 1.35rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin-bottom: 4px !important;
+  }
+  .mobile-player-overlay .mobile-player-meta p {
+    font-size: 0.9rem !important;
+    color: #b3b3b3 !important;
+  }
+  .mobile-player-overlay .mobile-player-seek {
+    max-width: 100% !important;
+    margin: 8px 0 !important;
+  }
+  .mobile-player-overlay .mobile-player-controls {
+    gap: 16px !important;
+    margin-bottom: 12px !important;
+  }
+  .mobile-player-overlay .play-btn {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 1.3rem !important;
+  }
+
+  /* --- Popover Dropdowns (Notifications, Profile) --- */
+  .popover-dropdown {
+    width: calc(100vw - 20px) !important;
+    max-width: 360px !important;
+    right: -6px !important;
+  }
+  .profile-dropdown {
+    width: 190px !important;
+    right: 0 !important;
+  }
+
+  /* Modals */
+  .modal-blend-card,
+  .modal-folder-card {
+    width: 92vw !important;
+    max-width: 440px !important;
+    padding: 18px !important;
+  }
+  .sidebar-resizer {
+    display: none !important;
   }
 }
 
 /* ============================================================
-   ≤ 380 px — Very small phones (iPhone SE, etc.)
+   ≤ 420 px — Smaller Phones (iPhone 13 mini, SE, etc.)
    ============================================================ */
-@media (max-width: 380px) {
+@media (max-width: 420px) {
+  .view-container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
 
-  .home-quickplay-grid {
-    grid-template-columns: 1fr;
+  .home-scroll-row,
+  .taste-scroll-row,
+  .popular-singers-shelf,
+  .mfy-shelf-pills,
+  .home-filter-chips {
+    margin-left: -12px !important;
+    margin-right: -12px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
   }
-  .home-quickplay-card {
-    height: 52px;
+
+  .home-scroll-row .media-card {
+    flex: 0 0 136px !important;
+    width: 136px !important;
+    min-width: 136px !important;
+    max-width: 136px !important;
+    padding: 8px !important;
   }
-  .home-quickplay-card img {
-    width: 52px;
-    height: 52px;
+
+  .home-header-title-group h1 {
+    font-size: 1.3rem !important;
   }
 
   .card-grid {
     grid-template-columns: 1fr 1fr !important;
-    gap: 8px;
+    gap: 8px !important;
   }
 
-  .view-container {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-  }
-
-  .topbar {
-    padding: 4px 8px !important;
-  }
-
-  .view-header h1 {
-    font-size: 1.2rem;
-  }
-
-  .home-header-title-group h1 {
-    font-size: 1.2rem;
-  }
-
-  /* Even smaller scroll cards */
-  .home-scroll-row .media-card {
-    flex: 0 0 125px;
-    width: 125px;
-    min-width: 125px;
-    max-width: 125px;
-    padding: 7px;
-  }
-
-  .taste-playlist-card {
-    flex: 0 0 135px;
-    width: 135px;
-    min-width: 135px;
-    padding: 8px;
-  }
-
-  .home-jumpin-card {
-    flex: 0 0 125px;
-    width: 125px;
-    min-width: 125px;
-    max-width: 125px;
-    padding: 8px;
-  }
-
-  .popular-singers-shelf .media-card {
-    flex: 0 0 115px;
-    width: 115px;
-    min-width: 115px;
-    padding: 7px;
-  }
-
-  /* Filter chips even smaller */
-  .filter-chip {
-    font-size: 0.72rem;
-    padding: 5px 10px;
-  }
-
-  .mfy-pill {
-    font-size: 0.65rem;
-    padding: 4px 8px;
-  }
-
-  /* Section head cleanup */
-  .section-head h2 {
-    font-size: 0.95rem;
-  }
-
-  /* Shelf nav buttons inline, even smaller */
-  .shelf-nav-btn {
-    width: 28px;
-    height: 28px;
-    font-size: 0.7rem;
-  }
-
-  /* Home action buttons stack */
-  .home-header-actions {
-    flex-direction: column;
-  }
-  .home-action-btn {
-    width: 100%;
-    font-size: 0.74rem;
-    padding: 8px 12px;
+  .home-quickplay-title {
+    font-size: 0.74rem !important;
   }
 }
 
 /* ============================================================
-   Touch device enhancements — improve touch scrolling
+   Touch-specific Interactions (Smooth Feedback)
    ============================================================ */
 @media (hover: none) and (pointer: coarse) {
-  /* Ensure all horizontal scrollers have touch momentum scrolling */
   .home-scroll-row,
   .taste-scroll-row,
   .popular-singers-shelf,
   .home-filter-chips,
-  .mfy-shelf-pills,
-  .library-filter-chips {
+  .mfy-shelf-pills {
     -webkit-overflow-scrolling: touch;
-    scroll-behavior: auto; /* disable smooth scroll for touch — feels laggy */
+    scroll-behavior: auto;
   }
 
-  /* Hide shelf nav buttons on touch devices — let users swipe instead */
-  .shelf-nav-btn {
-    display: none;
-  }
-
-  /* Make play FABs always visible on touch (no hover state) */
-  .taste-playlist-card .play-fab,
-  .home-quickplay-card .home-quickplay-play {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  .media-card .play-fab {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-
-  /* Bigger tap targets for mobile nav */
-  .mnav-link {
-    min-width: 44px;
-    min-height: 44px;
-  }
-
-  /* Player bar — tap to open mobile player */
-  .player-now-playing {
-    cursor: pointer;
-  }
-
-  /* Disable hover transform effects on touch — prevents janky taps */
-  .media-card:hover {
-    transform: none;
-  }
-  .taste-playlist-card:hover {
-    transform: none;
-  }
-  .home-quickplay-card:hover {
-    transform: none;
-  }
-  .quick-card:hover {
-    transform: none;
-  }
-  .home-jumpin-card:hover {
-    transform: none;
-  }
-
-  /* Active state feedback instead of hover */
-  .media-card:active {
-    transform: scale(0.97);
-    transition: transform 0.1s ease;
-  }
-  .taste-playlist-card:active {
-    transform: scale(0.97);
-    transition: transform 0.1s ease;
-  }
+  /* Card tap active feedback */
+  .media-card:active,
+  .taste-playlist-card:active,
   .home-quickplay-card:active {
-    transform: scale(0.97);
-    transition: transform 0.1s ease;
+    transform: scale(0.97) !important;
+    transition: transform 0.1s ease !important;
   }
-  .quick-card:active {
-    transform: scale(0.97);
-    transition: transform 0.1s ease;
-  }
-  .home-jumpin-card:active {
-    transform: scale(0.97);
-    transition: transform 0.1s ease;
+  .media-card:hover,
+  .taste-playlist-card:hover,
+  .home-quickplay-card:hover {
+    transform: none !important;
   }
 }

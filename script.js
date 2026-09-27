@@ -130,7 +130,11 @@
         // A partial payload (Made For You / Trending / New Releases often
         // omit audio_url or album_art to stay small) must never overwrite
         // a real value we already hydrated with an empty/placeholder one.
-        if (!norm.audioUrl && existing.audioUrl) {
+        const isNormHttp = norm.audioUrl && /^https?:\/\//i.test(norm.audioUrl);
+        const isExistingHttp = existing.audioUrl && /^https?:\/\//i.test(existing.audioUrl);
+        if (!isNormHttp && isExistingHttp) {
+          norm.audioUrl = existing.audioUrl;
+        } else if (!norm.audioUrl && existing.audioUrl) {
           norm.audioUrl = existing.audioUrl;
         }
         if ((!norm.albumArt || norm.albumArt === "/assets/music-cover.svg") && existing.albumArt) {
@@ -677,14 +681,38 @@
     // Keep signed Backblaze URLs exactly as returned by the backend.
     return raw;
   }
-  function loadAndPlayCurrent() {
+  async function loadAndPlayCurrent() {
     const song = currentSong();
     if (!song) return;
 
+    // Immediately update now playing UI with song metadata so player reflects selection right away
+    updateNowPlayingUI(song, false);
+
     let cleanUrl = getCleanAudioUrl(song);
+
+    // If song does not have a playable https:// URL, immediately fetch live signed URL from backend
+    if (!cleanUrl && song.id) {
+      try {
+        const res = await fetch(`${API_BASE}/api/songs/${encodeURIComponent(song.id)}`);
+        if (res.ok) {
+          const fresh = await res.json();
+          if (fresh && fresh.audio_url && /^https?:\/\//i.test(fresh.audio_url)) {
+            song.audioUrl = fresh.audio_url;
+            if (fresh.album_art) song.albumArt = fresh.album_art;
+            cleanUrl = fresh.audio_url;
+            const mapped = songById.get(song.id);
+            if (mapped) mapped.audioUrl = fresh.audio_url;
+          }
+        }
+      } catch (err) {
+        console.warn("Omify: live audio URL hydration error for", song.id, err);
+      }
+    }
+
     if (!cleanUrl) {
       console.warn("Omify: no valid audio URL for", song);
       setPlayIcon(false);
+      toast(`Audio unavailable for "${song.title}"`);
       return;
     }
 
@@ -780,6 +808,12 @@
     const mobileIcon = elDOM.mobilePlayBtn?.querySelector("i");
     if (mobileIcon) mobileIcon.className = isPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
     if (elDOM.mobilePlayBtn) elDOM.mobilePlayBtn.setAttribute("aria-label", isPlaying ? "Pause" : "Play");
+
+    // Sync mobile mini-player bar play button
+    const barMobileIcon = document.getElementById("mobileBarPlayBtn")?.querySelector("i");
+    if (barMobileIcon) barMobileIcon.className = isPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+    const mobileBarBtn = document.getElementById("mobileBarPlayBtn");
+    if (mobileBarBtn) mobileBarBtn.setAttribute("aria-label", isPlaying ? "Pause" : "Play");
 
     if (elDOM.playerBar && elDOM.playerBar.classList) {
       if (typeof elDOM.playerBar.classList.toggle === "function") elDOM.playerBar.classList.toggle("is-playing", isPlaying);
@@ -1173,6 +1207,8 @@
         updateRangeFill(elDOM.mobilePlayerSeek);
       }
       if (elDOM.mobilePlayerCurTime) elDOM.mobilePlayerCurTime.textContent = fmtTime(cur);
+      const barFill = document.getElementById("mobilePlayerProgressFill");
+      if (barFill) barFill.style.width = `${progress}%`;
     }
     if (elDOM.durTime) elDOM.durTime.textContent = fmtTime(dur);
     if (elDOM.mobilePlayerDurTime) elDOM.mobilePlayerDurTime.textContent = fmtTime(dur);
@@ -1335,12 +1371,20 @@
     });
   }
 
+  const mobileBarPlayBtn = document.getElementById("mobileBarPlayBtn");
+  if (mobileBarPlayBtn) {
+    mobileBarPlayBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      togglePlay();
+    });
+  }
+
   // ------------------------------------------------------- mobile player
   // Open mobile player on tap of player-bar now-playing area (mobile only)
   if (elDOM.playerNowPlaying) {
     elDOM.playerNowPlaying.addEventListener("click", (e) => {
       if (window.innerWidth > 900) return;
-      if (e.target.closest(".like-btn")) return;
+      if (e.target.closest(".like-btn") || e.target.closest("#mobileBarPlayBtn") || e.target.closest(".now-action-dismiss")) return;
       if (!currentSong()) return;
       openMobilePlayer();
     });

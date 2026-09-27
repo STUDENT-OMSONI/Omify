@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.song import SongRead
 from app.schemas.recommendation import RecommendationResponse, RecommendationItem
+from app.routers.songs import song_to_read
 from app.services.recommendation_engine import (
     get_made_for_you,
     get_trending_songs,
@@ -34,7 +35,7 @@ def made_for_you_endpoint(
     raw_recs = get_made_for_you(db, limit=limit, category=category)
     items = [
         RecommendationItem(
-            song=SongRead.model_validate(r["song"]),
+            song=song_to_read(r["song"]),
             score=r["score"],
             reason=r["reason"],
             cluster_id=r["cluster_id"],
@@ -61,7 +62,7 @@ def trending_endpoint(
 ):
     """Returns top trending tracks ranked by catalog play count."""
     songs = get_trending_songs(db, limit=limit)
-    return [SongRead.model_validate(s) for s in songs]
+    return [song_to_read(s) for s in songs]
 
 
 @router.get("/new-releases", response_model=List[SongRead])
@@ -71,7 +72,7 @@ def new_releases_endpoint(
 ):
     """Returns freshest releases via the active ReleaseProvider."""
     songs = get_new_release_recommendations(db, limit=limit)
-    return [SongRead.model_validate(s) for s in songs]
+    return [song_to_read(s) for s in songs]
 
 
 @router.get("/foreign-music")
@@ -83,7 +84,7 @@ def foreign_music_endpoint(
     grouped = get_foreign_music(db, limit_per_lang=limit_per_lang)
     result = {}
     for lang, songs in grouped.items():
-        result[lang] = [SongRead.model_validate(s) for s in songs]
+        result[lang] = [song_to_read(s) for s in songs]
     return result
 
 
