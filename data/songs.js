@@ -88,7 +88,7 @@ const SONGS = [
   },
   {
     "id": "sp-6",
-    "title": "12 Bande - PagalNew",
+    "title": "12 Bande",
     "artist": "Varinder Brar",
     "album": "12 Bande",
     "albumArt": "covers/web/sp-6.jpg",
@@ -248,7 +248,7 @@ const SONGS = [
   },
   {
     "id": "sp-16",
-    "title": "52 Gaj Ka Daman - PagalNew",
+    "title": "52 Gaj Ka Daman",
     "artist": "Renuka Panwar",
     "album": "52 Gaj Ka Daman",
     "albumArt": "covers/web/sp-16.jpg",
@@ -264,7 +264,7 @@ const SONGS = [
   },
   {
     "id": "sp-17",
-    "title": "8 Parche - PagalNew",
+    "title": "8 Parche",
     "artist": "Baani Sandhu, Gur Sidhu",
     "album": "8 Parche",
     "albumArt": "covers/web/sp-17.jpg",
@@ -440,7 +440,7 @@ const SONGS = [
   },
   {
     "id": "sp-28",
-    "title": "Aankhon Aankhon - PagalNew",
+    "title": "Aankhon Aankhon",
     "artist": "Yo Yo Honey Singh",
     "album": "Bhaag Johnny",
     "albumArt": "covers/web/sp-28.jpg",
@@ -504,7 +504,7 @@ const SONGS = [
   },
   {
     "id": "sp-32",
-    "title": "Dhanno Aapka Kya Hoga - PagalNew",
+    "title": "Dhanno Aapka Kya Hoga",
     "artist": "Mika Singh, Sunidhi Chauhan, Sajid Khan",
     "album": "Housefull",
     "albumArt": "covers/web/sp-32.jpg",
@@ -664,7 +664,7 @@ const SONGS = [
   },
   {
     "id": "sp-42",
-    "title": "MY CUP feat. Nala & MacyO (Instrumental & rap removal)",
+    "title": "MY CUP feat. Nala & MacyO",
     "artist": "Acelater",
     "album": "Single",
     "albumArt": "covers/web/sp-42.jpg",
@@ -744,7 +744,7 @@ const SONGS = [
   },
   {
     "id": "sp-47",
-    "title": "Admirin You - PagalNew",
+    "title": "Admirin You",
     "artist": "Karan Aujla, IKKY",
     "album": "Admirin You",
     "albumArt": "covers/web/sp-47.jpg",
@@ -1752,7 +1752,7 @@ const SONGS = [
   },
   {
     "id": "sp-110",
-    "title": "Aziyat - PagalNew",
+    "title": "Aziyat",
     "artist": "Pratyush Dhiman",
     "album": "Aziyat",
     "albumArt": "covers/web/sp-110.jpg",
@@ -1768,7 +1768,7 @@ const SONGS = [
   },
   {
     "id": "sp-111",
-    "title": "AZUL - PagalNew",
+    "title": "AZUL",
     "artist": "Lavish Dhiman, Guru Randhawa, Gurjit Gill",
     "album": "AZUL",
     "albumArt": "covers/web/sp-111.jpg",
@@ -1816,7 +1816,7 @@ const SONGS = [
   },
   {
     "id": "sp-114",
-    "title": "Baatein Ye Kabhi Na (Male) - PagalNew",
+    "title": "Baatein Ye Kabhi Na (Male)",
     "artist": "Jeet Gannguli, Arijit Singh",
     "album": "Khamoshiyan",
     "albumArt": "covers/web/sp-114.jpg",
@@ -2088,7 +2088,7 @@ const SONGS = [
   },
   {
     "id": "sp-131",
-    "title": "Barbaad - PagalNew",
+    "title": "Barbaad",
     "artist": "Jubin Nautiyal",
     "album": "Saiyaara",
     "albumArt": "covers/web/sp-131.jpg",
@@ -2312,7 +2312,7 @@ const SONGS = [
   },
   {
     "id": "sp-145",
-    "title": "Bewajah - PagalNew",
+    "title": "Bewajah",
     "artist": "Himesh Reshammiya",
     "album": "Sanam Teri Kasam",
     "albumArt": "covers/web/sp-145.jpg",
@@ -2536,7 +2536,7 @@ const SONGS = [
   },
   {
     "id": "sp-159",
-    "title": "Brown Rang - PagalNew",
+    "title": "Brown Rang",
     "artist": "Yo Yo Honey Singh",
     "album": "International Villager",
     "albumArt": "covers/web/sp-159.jpg",
@@ -2632,7 +2632,7 @@ const SONGS = [
   },
   {
     "id": "sp-165",
-    "title": "Call Aundi - PagalNew",
+    "title": "Call Aundi",
     "artist": "Yo Yo Honey Singh",
     "album": "Zorawar",
     "albumArt": "covers/web/sp-165.jpg",
@@ -2872,7 +2872,7 @@ const SONGS = [
   },
   {
     "id": "sp-180",
-    "title": "Chandigarh Ka Chokra - PagalNew",
+    "title": "Chandigarh Ka Chokra",
     "artist": "Sunanda Sharma",
     "album": "Chandigarh Ka Chokra",
     "albumArt": "covers/web/sp-180.jpg",
@@ -3000,7 +3000,7 @@ const SONGS = [
   },
   {
     "id": "sp-188",
-    "title": "Chhor Denge (Feat. Nora Fatehi) - PagalNew",
+    "title": "Chhor Denge (Feat. Nora Fatehi)",
     "artist": "Parampara Tandon,Sachet-Parampara,Parampara Tandon,Sachet-Parampara",
     "album": "Chhor Denge (Feat. Nora Fatehi)",
     "albumArt": "covers/web/sp-188.jpg",
@@ -3128,7 +3128,7 @@ const SONGS = [
   },
   {
     "id": "sp-196",
-    "title": "Love Nwantiti (Remix)",
+    "title": "Love Nwantiti",
     "artist": "CKay",
     "album": "Single",
     "albumArt": "covers/web/sp-196.jpg",
@@ -3240,7 +3240,7 @@ const SONGS = [
   },
   {
     "id": "sp-203",
-    "title": "Closer - PagalNew",
+    "title": "Closer",
     "artist": "The Chainsmokers",
     "album": "Closer",
     "albumArt": "covers/web/sp-203.jpg",
@@ -3576,7 +3576,7 @@ const SONGS = [
   },
   {
     "id": "sp-224",
-    "title": "Deewaniyat - PagalNew",
+    "title": "Deewaniyat",
     "artist": "Vishal Mishra",
     "album": "Ek Deewane Ki Deewaniyat",
     "albumArt": "covers/web/sp-224.jpg",
@@ -3784,7 +3784,7 @@ const SONGS = [
   },
   {
     "id": "sp-237",
-    "title": "Dhoonde Akhiyaan - PagalNew",
+    "title": "Dhoonde Akhiyaan",
     "artist": "Yasser Desai, Altamash Faridi",
     "album": "Jabariya Jodi",
     "albumArt": "covers/web/sp-237.jpg",
@@ -3800,7 +3800,7 @@ const SONGS = [
   },
   {
     "id": "sp-238",
-    "title": "Dhun - PagalNew",
+    "title": "Dhun",
     "artist": "Arijit Singh",
     "album": "Saiyaara",
     "albumArt": "covers/web/sp-238.jpg",
@@ -3880,7 +3880,7 @@ const SONGS = [
   },
   {
     "id": "sp-243",
-    "title": "Dil Ibaadat - PagalNew",
+    "title": "Dil Ibaadat",
     "artist": "Pritam, KK",
     "album": "Tum Mile (Original Motion Picture Soundtrack)",
     "albumArt": "covers/web/sp-243.jpg",
@@ -4216,7 +4216,7 @@ const SONGS = [
   },
   {
     "id": "sp-264",
-    "title": "Dooron Dooron Unplugged - PagalNew",
+    "title": "Dooron Dooron Unplugged",
     "artist": "Paresh Pahuja",
     "album": "Dooron Dooron Unplugged",
     "albumArt": "covers/web/sp-264.jpg",
@@ -4392,7 +4392,7 @@ const SONGS = [
   },
   {
     "id": "sp-275",
-    "title": "Dus Don - PagalNew",
+    "title": "Dus Don",
     "artist": "Dada Sadhu",
     "album": "Dus Don",
     "albumArt": "covers/web/sp-275.jpg",
@@ -4824,7 +4824,7 @@ const SONGS = [
   },
   {
     "id": "sp-302",
-    "title": "Fallin for You - PagalNew",
+    "title": "Fallin for You",
     "artist": "Shrey Singhal",
     "album": "Fallin for You",
     "albumArt": "covers/web/sp-302.jpg",
@@ -5496,7 +5496,7 @@ const SONGS = [
   },
   {
     "id": "sp-344",
-    "title": "Gypsy - PagalNew",
+    "title": "Gypsy",
     "artist": "G.D. Kaur",
     "album": "Gypsy",
     "albumArt": "covers/web/sp-344.jpg",
@@ -5720,7 +5720,7 @@ const SONGS = [
   },
   {
     "id": "sp-358",
-    "title": "Haseen - PagalNew",
+    "title": "Haseen",
     "artist": "Talwiinder, Nds, Rippy Grewal",
     "album": "Haseen",
     "albumArt": "covers/web/sp-358.jpg",
@@ -6056,7 +6056,7 @@ const SONGS = [
   },
   {
     "id": "sp-379",
-    "title": "Hum Mar Jayenge - PagalNew",
+    "title": "Hum Mar Jayenge",
     "artist": "Tulsi Kumar, Arijit Singh",
     "album": "Aashiqui 2",
     "albumArt": "covers/web/sp-379.jpg",
@@ -6072,7 +6072,7 @@ const SONGS = [
   },
   {
     "id": "sp-380",
-    "title": "Hum Toh Deewane - PagalNew",
+    "title": "Hum Toh Deewane",
     "artist": "Rajat Nagpal, Yasser Desai, Rana Sotal",
     "album": "Hum Toh Deewane",
     "albumArt": "covers/web/sp-380.jpg",
@@ -6120,7 +6120,7 @@ const SONGS = [
   },
   {
     "id": "sp-383",
-    "title": "Humsafar - PagalNew",
+    "title": "Humsafar",
     "artist": "Sachet Tandon, Parampara Tandon",
     "album": "Saiyaara",
     "albumArt": "covers/web/sp-383.jpg",
@@ -6808,7 +6808,7 @@ const SONGS = [
   },
   {
     "id": "sp-426",
-    "title": "Jeena Jeena - PagalNew",
+    "title": "Jeena Jeena",
     "artist": "Atif Aslam",
     "album": "Badlapur",
     "albumArt": "covers/web/sp-426.jpg",
@@ -7016,7 +7016,7 @@ const SONGS = [
   },
   {
     "id": "sp-439",
-    "title": "Jo Tere Sang - PagalNew",
+    "title": "Jo Tere Sang",
     "artist": "Jeet Gannguli, Mustafa Zahid",
     "album": "Blood Money",
     "albumArt": "covers/web/sp-439.jpg",
@@ -7672,7 +7672,7 @@ const SONGS = [
   },
   {
     "id": "sp-480",
-    "title": "Khaab - PagalNew",
+    "title": "Khaab",
     "artist": "Akhil",
     "album": "Khaab",
     "albumArt": "covers/web/sp-480.jpg",
@@ -7752,7 +7752,7 @@ const SONGS = [
   },
   {
     "id": "sp-485",
-    "title": "Khayaal - PagalNew",
+    "title": "Khayaal",
     "artist": "Talwiinder, Nds",
     "album": "Khayaal",
     "albumArt": "covers/web/sp-485.jpg",
@@ -7800,7 +7800,7 @@ const SONGS = [
   },
   {
     "id": "sp-488",
-    "title": "Khutti - PagalNew",
+    "title": "Khutti",
     "artist": "Diljit Dosanjh, Saweetie",
     "album": "Khutti",
     "albumArt": "covers/web/sp-488.jpg",
@@ -7896,7 +7896,7 @@ const SONGS = [
   },
   {
     "id": "sp-494",
-    "title": "Kiya Kiya - PagalNew",
+    "title": "Kiya Kiya",
     "artist": "Anand Raj Anand, Shweta Pandit",
     "album": "Welcome",
     "albumArt": "covers/web/sp-494.jpg",
@@ -8104,7 +8104,7 @@ const SONGS = [
   },
   {
     "id": "sp-507",
-    "title": "La La La - PagalNew",
+    "title": "La La La",
     "artist": "Dhanda Nyoliwala",
     "album": "La La La",
     "albumArt": "covers/web/sp-507.jpg",
@@ -8200,7 +8200,7 @@ const SONGS = [
   },
   {
     "id": "sp-513",
-    "title": "Lalkara - DjPunjab.Com.Se",
+    "title": "Lalkara",
     "artist": "Diljit Dosanjh, Sultaan - DjPunjab.Com.Se",
     "album": "Lalkara-DjPunjab.Com.Se",
     "albumArt": "covers/web/sp-513.jpg",
@@ -8520,7 +8520,7 @@ const SONGS = [
   },
   {
     "id": "sp-533",
-    "title": "Long Drive - PagalNew",
+    "title": "Long Drive",
     "artist": "Himesh Reshammiya, Mika Singh",
     "album": "Khiladi 786",
     "albumArt": "covers/web/sp-533.jpg",
@@ -8808,7 +8808,7 @@ const SONGS = [
   },
   {
     "id": "sp-551",
-    "title": "Make Some Noise For The Desi Boyz - PagalNew",
+    "title": "Make Some Noise For The Desi Boyz",
     "artist": "Pritam, KK, Bob",
     "album": "Desi Boyz",
     "albumArt": "covers/web/sp-551.jpg",
@@ -8872,7 +8872,7 @@ const SONGS = [
   },
   {
     "id": "sp-555",
-    "title": "MANIAC - DjPunjab.Com.Se",
+    "title": "MANIAC",
     "artist": "Yo Yo Honey Singh - DjPunjab.Com.Se",
     "album": "MANIAC-DjPunjab.Com.Se",
     "albumArt": "covers/web/sp-555.jpg",
@@ -9160,7 +9160,7 @@ const SONGS = [
   },
   {
     "id": "sp-573",
-    "title": "MF Gabhru - PagalNew",
+    "title": "MF Gabhru",
     "artist": "Karan Aujla",
     "album": "MF Gabhru",
     "albumArt": "covers/web/sp-573.jpg",
@@ -9512,7 +9512,7 @@ const SONGS = [
   },
   {
     "id": "sp-595",
-    "title": "Mushkil Hai - PagalNew",
+    "title": "Mushkil Hai",
     "artist": "Vishal Mishra, Hansika Pareek, Som",
     "album": "Vicky Vidya Ka Woh Wala Video",
     "albumArt": "covers/web/sp-595.jpg",
@@ -9592,7 +9592,7 @@ const SONGS = [
   },
   {
     "id": "sp-600",
-    "title": "Naal Nachna - PagalNew",
+    "title": "Naal Nachna",
     "artist": "Reble, Irshad Kamil, Shashwat Sachdev, Afsana Khan",
     "album": "Dhurandhar",
     "albumArt": "covers/web/sp-600.jpg",
@@ -9624,7 +9624,7 @@ const SONGS = [
   },
   {
     "id": "sp-602",
-    "title": "Naam Tera - PagalNew",
+    "title": "Naam Tera",
     "artist": "Ndee Kundu",
     "album": "Naam Tera",
     "albumArt": "covers/web/sp-602.jpg",
@@ -9656,7 +9656,7 @@ const SONGS = [
   },
   {
     "id": "sp-604",
-    "title": "Naina - PagalNew",
+    "title": "Naina",
     "artist": "Diljit Dosanjh, Badshah",
     "album": "Crew",
     "albumArt": "covers/web/sp-604.jpg",
@@ -9912,7 +9912,7 @@ const SONGS = [
   },
   {
     "id": "sp-620",
-    "title": "Piya Aaye Na - PagalSongs.com",
+    "title": "Piya Aaye Na",
     "artist": "KK, Tulsi Kumar",
     "album": "Aashiqui 2 (2013)",
     "albumArt": "covers/web/sp-620.jpg",
@@ -9928,7 +9928,7 @@ const SONGS = [
   },
   {
     "id": "sp-621",
-    "title": "Haaye Oye - PagalSongs.com",
+    "title": "Haaye Oye",
     "artist": "Qaran, Ash King",
     "album": "Haaye Oye (2019)",
     "albumArt": "covers/web/sp-621.jpg",
@@ -9944,7 +9944,7 @@ const SONGS = [
   },
   {
     "id": "sp-622",
-    "title": "Heartless - PagalSongs.com",
+    "title": "Heartless",
     "artist": "Badshah, Aastha Gill",
     "album": "ONE (2018)",
     "albumArt": "covers/web/sp-622.jpg",
@@ -10024,7 +10024,7 @@ const SONGS = [
   },
   {
     "id": "sp-627",
-    "title": "No Loss - PagalNew",
+    "title": "No Loss",
     "artist": "King",
     "album": "NEW LIFE",
     "albumArt": "covers/web/sp-627.jpg",
@@ -10232,7 +10232,7 @@ const SONGS = [
   },
   {
     "id": "sp-640",
-    "title": "O Mere Khuda - PagalNew",
+    "title": "O Mere Khuda",
     "artist": "Atif Aslam, Garima Jhingon",
     "album": "Prince",
     "albumArt": "covers/web/sp-640.jpg",
@@ -10312,7 +10312,7 @@ const SONGS = [
   },
   {
     "id": "sp-645",
-    "title": "Om Mangalam - PagalNew",
+    "title": "Om Mangalam",
     "artist": "RDB, Nindy Kaur",
     "album": "Kambakkht Ishq",
     "albumArt": "covers/web/sp-645.jpg",
@@ -10344,7 +10344,7 @@ const SONGS = [
   },
   {
     "id": "sp-647",
-    "title": "One Bottle Down - PagalNew",
+    "title": "One Bottle Down",
     "artist": "Yo Yo Honey Singh",
     "album": "One Bottle Down",
     "albumArt": "covers/web/sp-647.jpg",
@@ -10664,7 +10664,7 @@ const SONGS = [
   },
   {
     "id": "sp-667",
-    "title": "Pehli Dafa - PagalNew",
+    "title": "Pehli Dafa",
     "artist": "Atif Aslam",
     "album": "Pehli Dafa",
     "albumArt": "covers/web/sp-667.jpg",
@@ -10696,7 +10696,7 @@ const SONGS = [
   },
   {
     "id": "sp-669",
-    "title": "Phir Mohabbat - PagalNew",
+    "title": "Phir Mohabbat",
     "artist": "Mohammed Irfan, Saim Bhat, Arijit Singh",
     "album": "Murder 2",
     "albumArt": "covers/web/sp-669.jpg",
@@ -10808,7 +10808,7 @@ const SONGS = [
   },
   {
     "id": "sp-676",
-    "title": "Piya O Re Piya - Sad - PagalNew",
+    "title": "Piya O Re Piya - Sad",
     "artist": "Atif Aslam, Shreya Ghoshal",
     "album": "Tere Naal Love Ho Gaya",
     "albumArt": "covers/web/sp-676.jpg",
@@ -10984,7 +10984,7 @@ const SONGS = [
   },
   {
     "id": "sp-687",
-    "title": "Preet Re - PagalNew",
+    "title": "Preet Re",
     "artist": "Darshan Raval, Jonita Gandhi",
     "album": "Dhadak 2",
     "albumArt": "covers/web/sp-687.jpg",
@@ -11256,7 +11256,7 @@ const SONGS = [
   },
   {
     "id": "sp-704",
-    "title": "Raat Jashan Di - PagalNew",
+    "title": "Raat Jashan Di",
     "artist": "Yo Yo Honey Singh, Jasmine Sandlas",
     "album": "Zorawar",
     "albumArt": "covers/web/sp-704.jpg",
@@ -11272,7 +11272,7 @@ const SONGS = [
   },
   {
     "id": "sp-705",
-    "title": "Raat Ke Shikari - PagalNew",
+    "title": "Raat Ke Shikari",
     "artist": "Masoom Sharma",
     "album": "Raat Ke Shikari",
     "albumArt": "covers/web/sp-705.jpg",
@@ -11928,7 +11928,7 @@ const SONGS = [
   },
   {
     "id": "sp-746",
-    "title": "Sahiba - PagalNew",
+    "title": "Sahiba",
     "artist": "Priya Saraiya, Aditya Sharma, Jasleen Royal, Stebin Ben, Vijay Deverakonda, Radhikka Madan",
     "album": "Sahiba",
     "albumArt": "covers/web/sp-746.jpg",
@@ -12840,7 +12840,7 @@ const SONGS = [
   },
   {
     "id": "sp-803",
-    "title": "Soch Na Sake - PagalNew",
+    "title": "Soch Na Sake",
     "artist": "Arijit Singh, Tulsi Kumar, Amaal Mallik",
     "album": "Airlift",
     "albumArt": "covers/web/sp-803.jpg",
@@ -13673,7 +13673,7 @@ const SONGS = [
   {
     "id": "sp-855",
     "title": "Suniyan Suniyan(PaglaSongs)",
-    "artist": "us - PagalWorld.Com.so",
+    "artist": "us",
     "album": "Viral Mp3 Songs - PagalWorld.Com.so",
     "albumArt": "covers/web/sp-855.jpg",
     "audioUrl": "spotify playlist/Suniyan%20Suniyan_320(PagalWorld.com.so).mp3",
@@ -13768,7 +13768,7 @@ const SONGS = [
   },
   {
     "id": "sp-861",
-    "title": "SYML - \"Please Slow Down\"",
+    "title": "SYML - \"Please Slow Down",
     "artist": "SYML",
     "album": "SYML - \"Please Slow Down\"",
     "albumArt": "covers/web/sp-861.png",
@@ -13800,7 +13800,7 @@ const SONGS = [
   },
   {
     "id": "sp-863",
-    "title": "Heer Toh Badi Sad Hai' ｜ Tamasha ｜ Deepika Padukone ｜ T-Series",
+    "title": "Heer Toh Badi Sad Hai' ｜ Tamasha ｜ Deepika Padukone",
     "artist": "T-Series",
     "album": "Single",
     "albumArt": "covers/web/sp-863.jpg",
@@ -13816,7 +13816,7 @@ const SONGS = [
   },
   {
     "id": "sp-864",
-    "title": "Main Hoon Hero Tera' - Salman Khan ｜ Amaal Mallik ｜ Hero ｜ T-Series",
+    "title": "Main Hoon Hero Tera' - Salman Khan ｜ Amaal Mallik ｜ Hero",
     "artist": "T-Series",
     "album": "Single",
     "albumArt": "covers/web/sp-864.jpg",
@@ -13848,7 +13848,7 @@ const SONGS = [
   },
   {
     "id": "sp-866",
-    "title": "Selfie Le Le Re' Pritam - Salman Khan ｜ Bajrangi Bhaijaan ｜ T-Series",
+    "title": "Selfie Le Le Re' Pritam - Salman Khan ｜ Bajrangi Bhaijaan",
     "artist": "T-Series",
     "album": "Single",
     "albumArt": "covers/web/sp-866.jpg",
@@ -13864,7 +13864,7 @@ const SONGS = [
   },
   {
     "id": "sp-867",
-    "title": "SOCH NA SAKE' Video ｜ AIRLIFT ｜ Akshay Kumar, Nimrat Kaur ｜ Arijit Singh, Tulsi Kumar ｜ T-Series",
+    "title": "SOCH NA SAKE' Video ｜ AIRLIFT ｜ Akshay Kumar, Nimrat Kaur ｜ Arijit Singh, Tulsi Kumar",
     "artist": "T-Series",
     "album": "Single",
     "albumArt": "covers/web/sp-867.jpg",
@@ -13880,7 +13880,7 @@ const SONGS = [
   },
   {
     "id": "sp-868",
-    "title": "Tharki Chokro' ｜ PK ｜ Aamir Khan, Sanjay Dutt ｜ T-Series",
+    "title": "Tharki Chokro' ｜ PK ｜ Aamir Khan, Sanjay Dutt",
     "artist": "T-Series",
     "album": "Single",
     "albumArt": "covers/web/sp-868.jpg",
@@ -13976,7 +13976,7 @@ const SONGS = [
   },
   {
     "id": "sp-874",
-    "title": "Agar Tum Saath Ho FULL AUDIO Song ｜ Tamasha ｜ Ranbir Kapoor, Deepika Padukone ｜ T-Series",
+    "title": "Agar Tum Saath Ho FULL AUDIO Song ｜ Tamasha ｜ Ranbir Kapoor, Deepika Padukone",
     "artist": "T-Series",
     "album": "Single",
     "albumArt": "covers/web/sp-874.jpg",
@@ -13992,7 +13992,7 @@ const SONGS = [
   },
   {
     "id": "sp-875",
-    "title": "Atrangi Yaari ｜ WAZIR ｜ Amitabh Bachchan, Farhan Akhtar ｜ T-Series",
+    "title": "Atrangi Yaari ｜ WAZIR ｜ Amitabh Bachchan, Farhan Akhtar",
     "artist": "T-Series",
     "album": "Single",
     "albumArt": "covers/web/sp-875.jpg",
@@ -14136,7 +14136,7 @@ const SONGS = [
   },
   {
     "id": "sp-884",
-    "title": "Jab Tum Chaho ｜ Prem Ratan Dhan Payo ｜ Salman Khan, Sonam Kapoor ｜ T-Series",
+    "title": "Jab Tum Chaho ｜ Prem Ratan Dhan Payo ｜ Salman Khan, Sonam Kapoor",
     "artist": "T-Series",
     "album": "Single",
     "albumArt": "covers/web/sp-884.jpg",
@@ -14152,7 +14152,7 @@ const SONGS = [
   },
   {
     "id": "sp-885",
-    "title": "Matargashti - Mohit Chauhan ｜ Tamasha ｜ Ranbir Kapoor, Deepika Padukone ｜ T-Series",
+    "title": "Matargashti - Mohit Chauhan ｜ Tamasha ｜ Ranbir Kapoor, Deepika Padukone",
     "artist": "T-Series",
     "album": "Single",
     "albumArt": "covers/web/sp-885.jpg",
@@ -14216,7 +14216,7 @@ const SONGS = [
   },
   {
     "id": "sp-889",
-    "title": "Sahiba ： Aditya Rikhari, Ankita Chhetri ｜ T-Series",
+    "title": "Sahiba ： Aditya Rikhari, Ankita Chhetri",
     "artist": "T-Series",
     "album": "Single",
     "albumArt": "covers/web/sp-889.jpg",
@@ -14248,7 +14248,7 @@ const SONGS = [
   },
   {
     "id": "sp-891",
-    "title": "SANAM RE Title Song ｜ Sanam Re ｜ Pulkit Samrat, Yami Gautam, Divya Khosla Kumar ｜ T-Series",
+    "title": "SANAM RE Title Song ｜ Sanam Re ｜ Pulkit Samrat, Yami Gautam, Divya Khosla Kumar",
     "artist": "T-Series",
     "album": "Single",
     "albumArt": "covers/web/sp-891.jpg",
@@ -14344,7 +14344,7 @@ const SONGS = [
   },
   {
     "id": "sp-897",
-    "title": "Wajah Tum Ho FULL AUDIO Song ｜ Hate Story 3 ｜ Armaan Malik ｜ T-Series",
+    "title": "Wajah Tum Ho FULL AUDIO Song ｜ Hate Story 3 ｜ Armaan Malik",
     "artist": "T-Series",
     "album": "Single",
     "albumArt": "covers/web/sp-897.jpg",
@@ -14680,8 +14680,8 @@ const SONGS = [
   },
   {
     "id": "sp-918",
-    "title": "Takeover-(PagalSongs.Com.IN)",
-    "artist": "AP Dhillon-(PagalSongs.Com.iN)",
+    "title": "Takeover",
+    "artist": "AP Dhillon",
     "album": "Takeover-(PagalSongs.Com.IN)",
     "albumArt": "covers/web/sp-918.jpg",
     "audioUrl": "spotify playlist/Takeover-(PagalSongs.Com.IN).mp3",
@@ -14920,7 +14920,7 @@ const SONGS = [
   },
   {
     "id": "sp-933",
-    "title": "Tera Yaar Hoon Main - PagalNew",
+    "title": "Tera Yaar Hoon Main",
     "artist": "Arijit Singh",
     "album": "Sonu Ke Titu Ki Sweety",
     "albumArt": "covers/web/sp-933.jpg",
@@ -15032,7 +15032,7 @@ const SONGS = [
   },
   {
     "id": "sp-940",
-    "title": "Tere Liye - PagalNew",
+    "title": "Tere Liye",
     "artist": "Atif Aslam, Shreya Ghoshal",
     "album": "Prince",
     "albumArt": "covers/web/sp-940.jpg",
@@ -15784,7 +15784,7 @@ const SONGS = [
   },
   {
     "id": "sp-987",
-    "title": "Tu Hain Toh Main Hoon - PagalNew",
+    "title": "Tu Hain Toh Main Hoon",
     "artist": "Arijit Singh, Afsana Khan",
     "album": "Sky Force",
     "albumArt": "covers/web/sp-987.jpg",
@@ -15944,7 +15944,7 @@ const SONGS = [
   },
   {
     "id": "sp-997",
-    "title": "Tum Ho Toh - PagalNew",
+    "title": "Tum Ho Toh",
     "artist": "Vishal Mishra, Hansika Pareek",
     "album": "Saiyaara",
     "albumArt": "covers/web/sp-997.jpg",
@@ -15976,7 +15976,7 @@ const SONGS = [
   },
   {
     "id": "sp-999",
-    "title": "Tum Se - PagalNew",
+    "title": "Tum Se",
     "artist": "Raghav Chaitanya, Varun Jain",
     "album": "Teri Baaton Mein Aisa Uljha Jiya",
     "albumArt": "covers/web/sp-999.jpg",
@@ -16376,7 +16376,7 @@ const SONGS = [
   },
   {
     "id": "sp-1024",
-    "title": "Vailpuna - PagalNew",
+    "title": "Vailpuna",
     "artist": "Sippy Gill",
     "album": "Vailpuna",
     "albumArt": "covers/web/sp-1024.jpg",
@@ -16616,7 +16616,7 @@ const SONGS = [
   },
   {
     "id": "sp-1039",
-    "title": "Wajah Tum Ho - PagalNew",
+    "title": "Wajah Tum Ho",
     "artist": "Armaan Malik",
     "album": "Hate Story 3",
     "albumArt": "covers/web/sp-1039.jpg",
@@ -16760,7 +16760,7 @@ const SONGS = [
   },
   {
     "id": "sp-1048",
-    "title": "White Brown Black - PagalNew",
+    "title": "White Brown Black",
     "artist": "Jaani, Karan Aujla, Avvy Sra",
     "album": "White Brown Black",
     "albumArt": "covers/web/sp-1048.jpg",
@@ -16824,7 +16824,7 @@ const SONGS = [
   },
   {
     "id": "sp-1052",
-    "title": "With You - PagalNew",
+    "title": "With You",
     "artist": "AP Dhillon",
     "album": "With You",
     "albumArt": "covers/web/sp-1052.jpg",
@@ -16872,7 +16872,7 @@ const SONGS = [
   },
   {
     "id": "sp-1055",
-    "title": "Woh Lamhe - PagalNew",
+    "title": "Woh Lamhe",
     "artist": "Atif Aslam",
     "album": "Zeher",
     "albumArt": "covers/web/sp-1055.jpg",
@@ -17192,7 +17192,7 @@ const SONGS = [
   },
   {
     "id": "sp-1075",
-    "title": "Zara Zara Touch Me - PagalNew",
+    "title": "Zara Zara Touch Me",
     "artist": "Pritam, Monali Thakur, Earl Edgar (URL)",
     "album": "Race",
     "albumArt": "covers/web/sp-1075.jpg",

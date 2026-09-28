@@ -987,9 +987,12 @@
     display: none !important;
   }
   .catalog-card-scroll .catalog-song-card {
-    flex: 0 0 140px !important;
-    width: 140px !important;
-    min-width: 140px !important;
+    flex: 0 0 144px !important;
+    width: 144px !important;
+    min-width: 144px !important;
+    max-width: 144px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
   /* Search Page Bar on Mobile */

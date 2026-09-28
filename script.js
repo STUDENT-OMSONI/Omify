@@ -134,6 +134,7 @@
     songs.forEach((raw) => {
       const norm = normalizeApiSong(raw);
       if (!norm) return;
+      cleanAndClassifySong(norm);
 
       const existing = songById.get(norm.id);
 
@@ -264,10 +265,14 @@
 
     // Clean noisy title scrape markers
     title = title
-      .replace(/\s*-\s*PagalNew(\.Com\.Se|\.Com|\.Se)?/gi, '')
-      .replace(/\s*-\s*PagalWorld(\.Com)?/gi, '')
-      .replace(/\s*-\s*SongsPk/gi, '')
+      .replace(/\s*-\s*PagalNew[.\w]*/gi, '')
+      .replace(/\s*[-_]?\s*\(?PagalSongs[.\w]*\)?/gi, '')
+      .replace(/\s*-\s*PagalWorld[.\w]*/gi, '')
+      .replace(/\s*-\s*SongsPk[.\w]*/gi, '')
+      .replace(/\s*-\s*DjPunjab[.\w]*/gi, '')
       .replace(/\[\s*PagalNew\s*\]/gi, '')
+      .replace(/\[\s*PagalSongs\s*\]/gi, '')
+      .replace(/\[\s*PagalWorld\s*\]/gi, '')
       .replace(/\s*[\|｜]\s*(T-Series|Sony Music India|Zee Music Company|YRF|Tips Official|Speed Records|White Hill Music|Saregama).*/gi, '')
       .replace(/\s*-\s*(T-Series|Sony Music India|Zee Music Company|YRF|Tips Official).*/gi, '')
       .replace(/\((Official Video|Official Audio|Lyrical Video|Lyric Video|Full Video|Video Song|Audio Song|Full Song|4K Video|HD Video|Remix|Slowed\s*\+\s*Reverb|Instrumental & rap removal)\)/gi, '')
@@ -279,7 +284,9 @@
 
     // Clean noisy artist scrape markers
     artist = artist
-      .replace(/\s*-\s*PagalNew(\.Com\.Se|\.Com|\.Se)?/gi, '')
+      .replace(/\s*-\s*PagalNew[.\w]*/gi, '')
+      .replace(/\s*[-_]?\s*\(?PagalSongs[.\w]*\)?/gi, '')
+      .replace(/\s*-\s*PagalWorld[.\w]*/gi, '')
       .replace(/\s*[\|｜]\s*(T-Series|Sony Music India|Zee Music Company|YRF|Tips Official).*/gi, '')
       .replace(/\s+/g, ' ')
       .trim();
@@ -5265,17 +5272,39 @@
       "Haryanvi": "fa-bolt",
     };
 
+    function sanitizeDisplayTitle(raw) {
+      if (!raw) return "";
+      return String(raw)
+        .replace(/\s*-\s*PagalNew[.\w]*/gi, '')
+        .replace(/\s*[-_]?\s*\(?PagalSongs[.\w]*\)?/gi, '')
+        .replace(/\s*-\s*PagalWorld[.\w]*/gi, '')
+        .replace(/\s*-\s*SongsPk[.\w]*/gi, '')
+        .replace(/\s*-\s*DjPunjab[.\w]*/gi, '')
+        .replace(/\[\s*PagalNew\s*\]/gi, '')
+        .replace(/\[\s*PagalSongs\s*\]/gi, '')
+        .replace(/\[\s*PagalWorld\s*\]/gi, '')
+        .replace(/\s*[\|｜]\s*(T-Series|Sony Music India|Zee Music Company|YRF|Tips Official|Speed Records|White Hill Music|Saregama).*/gi, '')
+        .replace(/\s*-\s*(T-Series|Sony Music India|Zee Music Company|YRF|Tips Official).*/gi, '')
+        .replace(/\((Official Video|Official Audio|Lyrical Video|Lyric Video|Full Video|Video Song|Audio Song|Full Song|4K Video|HD Video|Remix|Slowed\s*\+\s*Reverb|Instrumental & rap removal)\)/gi, '')
+        .replace(/\[(Official Video|Official Audio|Lyrical Video|Lyric Video|Full Video|Video Song|Audio Song|Full Song|4K Video|HD Video|Remix)\]/gi, '')
+        .replace(/['"]+$/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
     function renderSongCard(s) {
       const isCurrent = Boolean(s.id === state.currentSongId);
       const isCurrentPlaying = isCurrent && state.isPlaying;
+      const cleanTitle = sanitizeDisplayTitle(s.title);
+      const cleanArtist = sanitizeDisplayTitle(s.artist);
       return `
         <div class="catalog-song-card ${isCurrent ? "playing" : ""} ${isCurrentPlaying ? "active-playing" : ""}" data-song-id="${s.id}">
           <div class="catalog-card-art-wrap">
-            <img src="${s.albumArt}" alt="${escapeHtml(s.title)}" loading="lazy" onerror="this.src='/assets/music-cover.svg'" />
-            <button class="play-fab" aria-label="${isCurrentPlaying ? "Pause" : "Play"} ${escapeHtml(s.title)}"><i class="fa-solid ${isCurrentPlaying ? "fa-pause" : "fa-play"}"></i></button>
+            <img src="${s.albumArt}" alt="${escapeHtml(cleanTitle)}" loading="lazy" onerror="this.src='/assets/music-cover.svg'" />
+            <button class="play-fab" aria-label="${isCurrentPlaying ? "Pause" : "Play"} ${escapeHtml(cleanTitle)}"><i class="fa-solid ${isCurrentPlaying ? "fa-pause" : "fa-play"}"></i></button>
           </div>
-          <div class="catalog-card-title" title="${escapeHtml(s.title)}">${escapeHtml(s.title)}</div>
-          <div class="catalog-card-sub" title="${escapeHtml(s.artist)}">${escapeHtml(s.artist)}</div>
+          <div class="catalog-card-title" title="${escapeHtml(cleanTitle)}">${escapeHtml(cleanTitle)}</div>
+          <div class="catalog-card-sub" title="${escapeHtml(cleanArtist)}">${escapeHtml(cleanArtist)}</div>
         </div>
       `;
     }

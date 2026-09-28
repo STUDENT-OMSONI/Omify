@@ -6938,41 +6938,62 @@ img.img-error{
 }
 
 .catalog-song-card {
-  flex: 0 0 168px;
+  flex: 0 0 172px;
+  width: 172px;
+  min-width: 172px;
+  max-width: 172px;
   cursor: pointer;
   padding: 12px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid transparent;
+  background: var(--surface, #181818);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
   transition: background 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 .catalog-song-card:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--surface-hover, #242424);
+  border-color: rgba(255, 255, 255, 0.16);
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5);
 }
 .catalog-song-card.active-playing {
   background: rgba(30, 215, 96, 0.08);
-  border-color: rgba(30, 215, 96, 0.3);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  border-color: rgba(30, 215, 96, 0.35);
+  box-shadow: 0 8px 24px rgba(30, 215, 96, 0.2);
 }
 .catalog-song-card.active-playing .catalog-card-title {
   color: var(--signal) !important;
 }
+
+/* Horizontal scroll top picks shelf: strict uniform card sizing */
+.catalog-card-scroll .catalog-song-card {
+  flex: 0 0 172px !important;
+  width: 172px !important;
+  min-width: 172px !important;
+  max-width: 172px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
 .catalog-card-art-wrap {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 8px;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--surface-raised, #282828);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  flex-shrink: 0;
 }
 .catalog-card-art-wrap img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .catalog-song-card:hover .catalog-card-art-wrap img {
@@ -7028,14 +7049,17 @@ img.img-error{
 }
 .catalog-card-title {
   margin-top: 10px;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 700;
   color: var(--text-heading);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%;
   max-width: 100%;
+  display: block;
   letter-spacing: -0.01em;
+  line-height: 1.3;
 }
 .catalog-card-sub {
   font-size: 0.78rem;
@@ -7043,9 +7067,12 @@ img.img-error{
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%;
   max-width: 100%;
-  margin-top: 3px;
+  display: block;
+  margin-top: 4px;
   font-weight: 500;
+  line-height: 1.3;
 }
 
 /* ---- Stats & Pagination ---- */
@@ -7096,8 +7123,10 @@ img.img-error{
   margin-bottom: 28px;
 }
 .catalog-cards-grid .catalog-song-card {
-  flex: initial;
-  width: 100%;
+  flex: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
 }
 .catalog-cards-grid .catalog-card-art-wrap {
   width: 100%;
@@ -7106,6 +7135,7 @@ img.img-error{
 }
 .catalog-cards-grid .catalog-card-title,
 .catalog-cards-grid .catalog-card-sub {
+  width: 100%;
   max-width: 100%;
 }
 
@@ -7271,7 +7301,9 @@ img.img-error{
   .catalog-view-toggle { display: flex; }
   .catalog-genre-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
   .catalog-cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
-  .catalog-song-card { width: 100% !important; max-width: 100% !important; min-width: 0 !important; flex: none !important; }
+  .catalog-cards-grid .catalog-song-card,
+  .catalog-genre-section .catalog-song-card { width: 100% !important; max-width: 100% !important; min-width: 0 !important; flex: none !important; }
+  .catalog-card-scroll .catalog-song-card { width: 144px !important; min-width: 144px !important; max-width: 144px !important; flex: 0 0 144px !important; }
   .catalog-card-art-wrap { width: 100% !important; height: auto !important; aspect-ratio: 1 / 1 !important; }
   .catalog-card-title, .catalog-card-sub { max-width: 100% !important; }
   .catalog-hero-actions { width: 100%; }
