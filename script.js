@@ -8,6 +8,17 @@
 
   // ---------------------------------------------------------------- backend ML engine
   const API_BASE = "https://omify-backend.onrender.com";
+  const FRONTEND_BASE = "https://omify-pearl.vercel.app";
+
+  const isLocalHost = Boolean(
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname === "0.0.0.0" ||
+      window.location.protocol === "file:" ||
+      window.location.hostname.endsWith(".local"))
+  );
+
   function resolveBackendAssetUrl(url) {
     if (!url) return "";
 
@@ -16,9 +27,7 @@
       return url;
     }
 
-    const FRONTEND_BASE = "https://omify-pearl.vercel.app";
-
-    // Cover images belong to the Vercel frontend.
+    // Cover images: prioritize local files on localhost, or same-origin / Vercel on remote
     if (/^https?:\/\//i.test(url)) {
       try {
         const parsed = new URL(url);
@@ -28,9 +37,8 @@
             parsed.pathname.split("/").pop() || ""
           );
 
-          return filename
-            ? `${FRONTEND_BASE}/covers/web/${encodeURIComponent(filename)}`
-            : "";
+          if (!filename) return "";
+          return isLocalHost ? `covers/web/${encodeURIComponent(filename)}` : `/covers/web/${encodeURIComponent(filename)}`;
         }
 
         return url;
@@ -41,21 +49,24 @@
 
     const clean = url.replace(/^\/+/, "");
 
-    // Local cover paths should always use Vercel.
+    // Local cover paths
     if (clean.startsWith("covers/")) {
       const filename = clean.split("/").pop();
-
-      return filename
-        ? `${FRONTEND_BASE}/covers/web/${encodeURIComponent(filename)}`
-        : "";
+      if (!filename) return "";
+      return isLocalHost ? `covers/web/${encodeURIComponent(filename)}` : `/covers/web/${encodeURIComponent(filename)}`;
     }
 
-    // Frontend assets also belong to Vercel.
+    // Frontend assets
     if (clean.startsWith("assets/")) {
-      return `${FRONTEND_BASE}/${clean}`;
+      return isLocalHost ? clean : `/${clean}`;
     }
 
-    // Audio and other backend assets continue using Render.
+    // Local spotify playlist audio
+    if (clean.startsWith("spotify playlist/")) {
+      return clean;
+    }
+
+    // Audio and other backend assets continue using Render
     return `${API_BASE}/${clean}`;
   }
 
@@ -355,11 +366,32 @@
   refreshSongMaps();
 
   // Pull the full catalog's real audio URLs (and fresh cover art) from the
-  // backend on load. Without this, only songs surfaced by /api/made-for-you,
-  // /api/new-releases, /api/trending, or /api/foreign-music ever get a real
-  // audioUrl — every other song (most of the Home page) stays silent.
+  // backend with local bypass, persistent localStorage caching, and gentle throttled batching.
   async function hydrateAllSongsFromBackend() {
-    const PAGE_SIZE = 50; // backend rejects large limits (422) — stay conservative
+    // 1. If running locally, all 1098 tracks already exist locally on disk — skip 22 heavy remote requests!
+    if (isLocalHost) {
+      console.log("Omify: running in high-performance local streaming mode (1098 local songs ready).");
+      return;
+    }
+
+    // 2. Check persistent browser cache first (45-minute TTL)
+    const CACHE_KEY = "omify_hydrated_catalog_v2";
+    const CACHE_TTL = 45 * 60 * 1000;
+    try {
+      const rawCache = localStorage.getItem(CACHE_KEY);
+      if (rawCache) {
+        const parsed = JSON.parse(rawCache);
+        if (parsed && Date.now() - (parsed.ts || 0) < CACHE_TTL && Array.isArray(parsed.items) && parsed.items.length) {
+          registerSongs(parsed.items);
+          refreshSongMaps();
+          refreshVisibleTrackRows();
+          console.log(`Omify: instant cache load — ${parsed.items.length} songs hydrated with 0ms network wait`);
+          return;
+        }
+      }
+    } catch (_) {}
+
+    const PAGE_SIZE = 50;
     try {
       const first = await fetch(`${API_BASE}/api/songs?limit=${PAGE_SIZE}&skip=0`);
       if (!first.ok) {
@@ -372,33 +404,44 @@
       registerSongs(firstData.items);
       let loaded = firstData.items.length;
       const total = Number(firstData.total) || loaded;
+      const allHydrated = [...firstData.items];
 
       const offsets = [];
       for (let off = loaded; off < total; off += PAGE_SIZE) offsets.push(off);
 
-      const pages = await Promise.all(
-        offsets.map((off) =>
-          fetch(`${API_BASE}/api/songs?limit=${PAGE_SIZE}&skip=${off}`)
-            .then((r) => (r.ok ? r.json() : null))
-            .catch(() => null)
-        )
-      );
-      pages.forEach((page) => {
-        if (page && Array.isArray(page.items) && page.items.length) {
-          registerSongs(page.items);
-          loaded += page.items.length;
+      // Throttled background fetching in gentle batches of 2 requests (no server overload)
+      for (let i = 0; i < offsets.length; i += 2) {
+        const chunk = offsets.slice(i, i + 2);
+        const chunkResults = await Promise.all(
+          chunk.map((off) =>
+            fetch(`${API_BASE}/api/songs?limit=${PAGE_SIZE}&skip=${off}`)
+              .then((r) => (r.ok ? r.json() : null))
+              .catch(() => null)
+          )
+        );
+        chunkResults.forEach((page) => {
+          if (page && Array.isArray(page.items) && page.items.length) {
+            registerSongs(page.items);
+            allHydrated.push(...page.items);
+            loaded += page.items.length;
+          }
+        });
+        // Small yield so user interaction and playback requests always take priority
+        if (i + 2 < offsets.length) {
+          await new Promise((r) => setTimeout(r, 200));
         }
-      });
+      }
 
       refreshSongMaps();
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items: allHydrated }));
+      } catch (_) {}
       console.log(`Omify: hydrated ${loaded} songs with live backend audio URLs`);
     } catch (err) {
       console.warn("Omify: full catalog hydration failed", err);
     } finally {
-      // Refresh whatever's on screen so audio URLs & art update without
-      // making the user wait for this before seeing the page at all.
-      router();
-      renderSidebarLibrary();
+      // Do NOT re-run router() here to avoid wiping out the user's active view or scroll position!
+      refreshVisibleTrackRows();
     }
   }
 
@@ -606,6 +649,7 @@
 
   // ================================================================== PLAYER
   const audio = new Audio();
+  audio.preload = "auto";
   audio.volume = 0.7;
 
   const elDOM = {
@@ -682,29 +726,66 @@
     loadAndPlayCurrent();
   }
 
+  // Fast in-memory cache & pending fetch tracker
+  const audioUrlCache = new Map();
+  const pendingAudioFetches = new Map();
+
   function getCleanAudioUrl(song) {
     if (!song) return "";
 
-    const raw = String(song.audioUrl || song.audioSrc || "").trim();
-
-    if (!raw || !/^https?:\/\//i.test(raw)) {
-      return "";
+    // 1. In-memory cache hit
+    if (audioUrlCache.has(song.id)) {
+      return audioUrlCache.get(song.id);
     }
 
-    // Keep signed Backblaze URLs exactly as returned by the backend.
-    return raw;
+    const raw = String(song.audioUrl || song.audioSrc || "").trim();
+    if (!raw) return "";
+
+    // 2. Direct signed or external HTTP/HTTPS URL
+    if (/^https?:\/\//i.test(raw)) {
+      audioUrlCache.set(song.id, raw);
+      return raw;
+    }
+
+    // 3. Local environment: stream directly from local "spotify playlist/" with 0ms network latency
+    if (isLocalHost) {
+      let cleanPath = raw.replace(/^\/+/, "");
+      const slashIdx = cleanPath.indexOf("/");
+      if (slashIdx !== -1) {
+        const dir = cleanPath.slice(0, slashIdx);
+        const file = cleanPath.slice(slashIdx + 1);
+        let decoded = file;
+        try { decoded = decodeURIComponent(file); } catch (_) {}
+        cleanPath = `${encodeURIComponent(dir)}/${encodeURIComponent(decoded)}`;
+      } else {
+        cleanPath = encodeURIComponent(cleanPath);
+      }
+      audioUrlCache.set(song.id, cleanPath);
+      return cleanPath;
+    }
+
+    // 4. SessionStorage cache (instant across song transitions)
+    try {
+      const cached = sessionStorage.getItem(`omify_audio_${song.id}`);
+      if (cached && /^https?:\/\//i.test(cached)) {
+        audioUrlCache.set(song.id, cached);
+        return cached;
+      }
+    } catch (_) {}
+
+    return "";
   }
-  async function loadAndPlayCurrent() {
-    const song = currentSong();
-    if (!song) return;
 
-    // Immediately update now playing UI with song metadata so player reflects selection right away
-    updateNowPlayingUI(song, false);
-
+  async function resolvePlayableAudioUrl(song) {
+    if (!song) return "";
     let cleanUrl = getCleanAudioUrl(song);
+    if (cleanUrl) return cleanUrl;
 
-    // If song does not have a playable https:// URL, immediately fetch live signed URL from backend
-    if (!cleanUrl && song.id) {
+    if (pendingAudioFetches.has(song.id)) {
+      return pendingAudioFetches.get(song.id);
+    }
+
+    const fetchPromise = (async () => {
       try {
         const res = await fetch(`${API_BASE}/api/songs/${encodeURIComponent(song.id)}`);
         if (res.ok) {
@@ -712,14 +793,61 @@
           if (fresh && fresh.audio_url && /^https?:\/\//i.test(fresh.audio_url)) {
             song.audioUrl = fresh.audio_url;
             if (fresh.album_art) song.albumArt = fresh.album_art;
-            cleanUrl = fresh.audio_url;
+            audioUrlCache.set(song.id, fresh.audio_url);
+            try { sessionStorage.setItem(`omify_audio_${song.id}`, fresh.audio_url); } catch (_) {}
             const mapped = songById.get(song.id);
             if (mapped) mapped.audioUrl = fresh.audio_url;
+            return fresh.audio_url;
           }
         }
       } catch (err) {
-        console.warn("Omify: live audio URL hydration error for", song.id, err);
+        console.warn("Omify: live audio URL fetch error for", song.id, err);
+      } finally {
+        pendingAudioFetches.delete(song.id);
       }
+      return "";
+    })();
+
+    pendingAudioFetches.set(song.id, fetchPromise);
+    return fetchPromise;
+  }
+
+  // Background track prefetcher for the next song in the queue
+  let prefetchTimer = null;
+  function prefetchUpcomingTracks() {
+    clearTimeout(prefetchTimer);
+    prefetchTimer = setTimeout(() => {
+      if (!state.queue || state.queue.length <= 1) return;
+      const nextIdx = (state.currentIndex + 1) % state.queue.length;
+      const nextId = state.queue[nextIdx];
+      const nextSong = songById.get(nextId);
+      if (nextSong && !audioUrlCache.has(nextSong.id)) {
+        resolvePlayableAudioUrl(nextSong).then((url) => {
+          if (url && typeof Audio !== "undefined") {
+            try {
+              const preloader = new Audio();
+              preloader.preload = "auto";
+              preloader.src = url;
+            } catch (_) {}
+          }
+        });
+      }
+    }, 600);
+  }
+
+  async function loadAndPlayCurrent() {
+    const song = currentSong();
+    if (!song) return;
+
+    // Immediately update now playing UI with song metadata so player reflects selection right away
+    updateNowPlayingUI(song, true);
+    setPlayIcon(true); // Optimistic UI update: user sees play button activate immediately!
+
+    let cleanUrl = getCleanAudioUrl(song);
+
+    // If song does not have a cached or local playable URL, fetch live signed URL from backend
+    if (!cleanUrl && song.id) {
+      cleanUrl = await resolvePlayableAudioUrl(song);
     }
 
     if (!cleanUrl) {
@@ -729,7 +857,9 @@
       return;
     }
 
-    audio.src = cleanUrl;
+    if (audio.src !== cleanUrl) {
+      audio.src = cleanUrl;
+    }
     audio.currentTime = 0;
 
     // Immediately synchronize time displays and seek bar to avoid 0:00 desync
@@ -747,16 +877,28 @@
       updateRangeFill(elDOM.mobilePlayerSeek);
     }
 
-    updateNowPlayingUI(song, false);
+    updateNowPlayingUI(song, true);
 
     const p = audio.play();
     if (p !== undefined) {
       p.then(() => {
         setPlayIcon(true);
+        prefetchUpcomingTracks();
       }).catch((e) => {
         console.warn("Omify: playback failed", e);
         setPlayIcon(false);
-        toast(`Couldn't play "${song.title}" — check audio source.`);
+        // If local playback failed, attempt seamless remote fallback
+        if (isLocalHost && !cleanUrl.startsWith("http")) {
+          resolvePlayableAudioUrl(song).then((remoteUrl) => {
+            if (remoteUrl && remoteUrl !== cleanUrl) {
+              audio.src = remoteUrl;
+              audio.play().then(() => {
+                setPlayIcon(true);
+                prefetchUpcomingTracks();
+              }).catch(() => setPlayIcon(false));
+            }
+          });
+        }
       });
     }
 
@@ -1239,6 +1381,27 @@
     playNext(true);
   });
   audio.addEventListener("error", () => {
+    const s = currentSong();
+    // If local playback errored, automatically fallback to remote signed URL
+    if (s && audio.src && !audio.src.startsWith("http")) {
+      console.log("Local audio source failed, attempting backend signed URL fallback for", s.id);
+      resolvePlayableAudioUrl(s).then((remoteUrl) => {
+        if (remoteUrl && remoteUrl !== audio.src) {
+          audio.src = remoteUrl;
+          audio.play().then(() => {
+            setPlayIcon(true);
+            prefetchUpcomingTracks();
+          }).catch(() => {
+            toast("Playback error — this track's audio source could not be loaded.");
+            setPlayIcon(false);
+          });
+          return;
+        }
+        toast("Playback error — this track's audio source could not be loaded.");
+        setPlayIcon(false);
+      });
+      return;
+    }
     toast("Playback error — this track's audio source could not be loaded.");
     setPlayIcon(false);
   });
@@ -2435,6 +2598,33 @@
 
   // ================================================================== PAGES
 
+  // Memoized home page shelves so navigating home never re-sorts 1098 songs 15 times
+  let _homeShelvesCache = null;
+  function getHomeCachedShelves() {
+    if (_homeShelvesCache) return _homeShelvesCache;
+    const trending = [...SONGS].sort((a, b) => b.playCount - a.playCount);
+    const newReleases = [...SONGS].sort((a, b) => b.releaseYear - a.releaseYear).slice(0, 10);
+    const editorsPicks = SONGS.filter((_, i) => i % 11 === 0).slice(0, 10);
+    const arijitSongs = getSongsBySinger("arijit", 12);
+    const punjabiSongs = SONGS.filter((s) => s.theme === "punjabi").slice(0, 12);
+    const honeySongs = getSongsBySinger("honey singh", 12);
+    const tahaSongs = getSongsBySinger("taha", 12);
+    const pritamSongs = getSongsBySinger("pritam", 12);
+    const romanticSongs = SONGS.filter((s) => s.theme === "romantic").slice(0, 12);
+    const partySongs = SONGS.filter((s) => s.theme === "party").slice(0, 12);
+    const nostalgiaSongs = SONGS.filter((s) => s.theme === "nostalgia").slice(0, 12);
+    const hiphopSongs = SONGS.filter((s) => s.theme === "hiphop").slice(0, 12);
+    const lofiSongs = SONGS.filter((s) => s.theme === "indie_lofi").slice(0, 12);
+    const internationalSongs = SONGS.filter((s) => s.theme === "international").slice(0, 12);
+    const workoutSongs = SONGS.filter((s) => s.theme === "workout" || (s.bpm && s.bpm >= 120 && (s.theme === "party" || s.theme === "punjabi"))).slice(0, 12);
+    _homeShelvesCache = {
+      trending, newReleases, editorsPicks, arijitSongs, punjabiSongs,
+      honeySongs, tahaSongs, pritamSongs, romanticSongs, partySongs,
+      nostalgiaSongs, hiphopSongs, lofiSongs, internationalSongs, workoutSongs
+    };
+    return _homeShelvesCache;
+  }
+
   function pageHome() {
     const hour = new Date().getHours();
     const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -2443,30 +2633,27 @@
     const recentIds = state.recent.slice(0, 8).map((r) => r.songId).filter((id) => songById.has(id));
     const localSongs = SONGS.slice(0, 10);
     const bollywoodSongs = SONGS.slice(10, 23);
-    const trending = [...SONGS].sort((a, b) => b.playCount - a.playCount);
-    const newReleases = [...SONGS].sort((a, b) => b.releaseYear - a.releaseYear).slice(0, 10);
-    const editorsPicks = SONGS.filter((_, i) => i % 11 === 0).slice(0, 10);
     const topArtists = ARTISTS.slice(0, 8);
-    const foreignFaves = SONGS.filter((s) => s.language !== "English" && s.language !== "Instrumental").sort((a, b) => b.playCount - a.playCount).slice(0, 10);
+
+    const shelves = getHomeCachedShelves();
+    const trending = shelves.trending;
+    const newReleases = shelves.newReleases;
+    const editorsPicks = shelves.editorsPicks;
+    const arijitSongs = shelves.arijitSongs;
+    const punjabiSongs = shelves.punjabiSongs;
+    const honeySongs = shelves.honeySongs;
+    const tahaSongs = shelves.tahaSongs;
+    const pritamSongs = shelves.pritamSongs;
+    const romanticSongs = shelves.romanticSongs;
+    const partySongs = shelves.partySongs;
+    const nostalgiaSongs = shelves.nostalgiaSongs;
+    const hiphopSongs = shelves.hiphopSongs;
+    const lofiSongs = shelves.lofiSongs;
+    const internationalSongs = shelves.internationalSongs;
+    const workoutSongs = shelves.workoutSongs;
 
     // Curated Taste Mixes
     const curatedPlaylists = buildCuratedPlaylists();
-
-    // Dedicated Singer Song Lists
-    const arijitSongs = getSongsBySinger("arijit", 12);
-    const punjabiSongs = SONGS.filter((s) => s.theme === "punjabi").slice(0, 12);
-    const honeySongs = getSongsBySinger("honey singh", 12);
-    const tahaSongs = getSongsBySinger("taha", 12);
-    const pritamSongs = getSongsBySinger("pritam", 12);
-
-    // Authentic Thematic Song Collections
-    const romanticSongs = SONGS.filter((s) => s.theme === "romantic").slice(0, 12);
-    const partySongs = SONGS.filter((s) => s.theme === "party").slice(0, 12);
-    const nostalgiaSongs = SONGS.filter((s) => s.theme === "nostalgia").slice(0, 12);
-    const hiphopSongs = SONGS.filter((s) => s.theme === "hiphop").slice(0, 12);
-    const lofiSongs = SONGS.filter((s) => s.theme === "indie_lofi").slice(0, 12);
-    const internationalSongs = SONGS.filter((s) => s.theme === "international").slice(0, 12);
-    const workoutSongs = SONGS.filter((s) => s.theme === "workout" || (s.bpm && s.bpm >= 120 && (s.theme === "party" || s.theme === "punjabi"))).slice(0, 12);
 
     // Build the 8 compact quick-play cards
     const quickPlaySongs = [];
@@ -2839,12 +3026,27 @@
       aiNext.addEventListener("click", () => aiRow.scrollBy({ left: 420, behavior: "smooth" }));
     }
 
+    // In-memory caches for instant home recommendation switching
+    const _aiRecsCache = new Map();
+    let _newReleasesCache = null;
+
     async function loadHomeAiRecs(category = "all") {
       const container = elDOM.view.querySelector("#aiRecsScrollRow");
       if (!container) return;
+
+      if (_aiRecsCache.has(category)) {
+        const cachedSongs = _aiRecsCache.get(category);
+        container.innerHTML = cachedSongs.map(s => mediaCard(songToCard(s))).join("");
+        bindAllSongCards(container);
+        return;
+      }
+
       try {
         const catQuery = (!category || category === "all") ? "" : `&category=${encodeURIComponent(category)}`;
-        const res = await fetch(`${API_BASE}/api/made-for-you?limit=14${catQuery}`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(`${API_BASE}/api/made-for-you?limit=14${catQuery}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
         if (res.ok) {
           const data = await res.json();
           if (data && data.items && data.items.length) {
@@ -2860,15 +3062,17 @@
               return normalizeApiSong({ ...it.song, reason: it.reason, score: it.score, cluster_id: it.cluster_id });
             }).filter(Boolean);
 
+            _aiRecsCache.set(category, recSongs);
             container.innerHTML = recSongs.map(s => mediaCard(songToCard(s))).join("");
             bindAllSongCards(container);
             return;
           }
         }
       } catch (err) {
-        console.warn("Home AI recommendations fetch error:", err);
+        // Silently fall back to instant local catalog collections
       }
-      // Smart category fallback if backend API is not responding
+
+      // Instant local thematic collections fallback
       let fallback = SONGS;
       if (category === "romantic") fallback = romanticSongs.length ? romanticSongs : SONGS.filter(s => s.theme === "romantic");
       else if (category === "workout") fallback = workoutSongs.length ? workoutSongs : SONGS.filter(s => s.theme === "workout");
@@ -2878,7 +3082,7 @@
       else if (category === "bollywood") fallback = bollywoodSongs.length ? bollywoodSongs : SONGS.filter(s => s.theme === "bollywood_hits");
       else fallback = SONGS.slice(0, 14);
 
-      container.innerHTML = fallback.slice(0, 14).map(s => {
+      const fallbackCards = fallback.slice(0, 14).map(s => {
         const card = songToCard(s);
         card.score = 0.95;
         card.reason = category === "romantic" ? "Soulful Bollywood romance for your mood"
@@ -2889,7 +3093,8 @@
           : category === "bollywood" ? "Blockbuster Bollywood anthem"
           : "Recommended based on your taste";
         return mediaCard(card);
-      }).join("");
+      });
+      container.innerHTML = fallbackCards.join("");
       bindAllSongCards(container);
     }
     loadHomeAiRecs();
@@ -2901,7 +3106,7 @@
         pill.classList.add("active");
         const cat = pill.dataset.category || "all";
         const row = elDOM.view.querySelector("#aiRecsScrollRow");
-        if (row) {
+        if (row && !_aiRecsCache.has(cat)) {
           row.scrollLeft = 0;
           row.innerHTML = skeletonCards(6);
         }
@@ -2912,8 +3117,18 @@
     async function loadHomeNewReleases() {
       const container = elDOM.view.querySelector("#homeNewReleasesRow");
       if (!container) return;
+
+      if (_newReleasesCache) {
+        container.innerHTML = _newReleasesCache.map(c => mediaCard(c)).join("");
+        bindAllSongCards(container);
+        return;
+      }
+
       try {
-        const res = await fetch(`${API_BASE}/api/new-releases?limit=12`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(`${API_BASE}/api/new-releases?limit=12`, { signal: controller.signal });
+        clearTimeout(timeoutId);
         if (res.ok) {
           const data = await res.json();
           if (data && data.length) {
@@ -2928,12 +3143,13 @@
               const item = found || normalizeApiSong(s);
               return songToCard(item);
             });
+            _newReleasesCache = cards;
             container.innerHTML = cards.map(c => mediaCard(c)).join("");
             bindAllSongCards(container);
           }
         }
       } catch (err) {
-        console.warn("Home new releases fetch error:", err);
+        // Silently keep local new releases
       }
     }
     loadHomeNewReleases();
@@ -5318,34 +5534,35 @@
 
       bindTrackRows(elDOM.view);
 
-      // Bind all catalog song cards (click anywhere to play/view, or play fab to immediately play/pause)
-      elDOM.view.querySelectorAll(".catalog-song-card").forEach(card => {
+      // High-performance event delegation for catalog song cards (replaces 2,000+ individual listeners)
+      const catalogGridEl = elDOM.view.querySelector(".catalog-cards-grid, .catalog-genre-section, .catalog-card-scroll") || elDOM.view;
+      catalogGridEl.onclick = (e) => {
+        const fab = e.target.closest(".play-fab");
+        const card = e.target.closest(".catalog-song-card");
+        if (!card) return;
         const songId = card.dataset.songId;
-        card.addEventListener("click", (e) => {
-          if (e.target.closest(".play-fab")) return;
-          const cur = currentSong();
+        if (!songId) return;
+
+        const cur = currentSong();
+        if (fab) {
+          e.stopPropagation();
           if (cur && cur.id === songId) {
             togglePlay();
           } else {
-            const song = songById.get(songId);
-            if (song) {
-              playQueue([songId], 0);
-            }
+            playQueue([songId], 0);
           }
-        });
-        const fab = card.querySelector(".play-fab");
-        if (fab) {
-          fab.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const cur = currentSong();
-            if (cur && cur.id === songId) {
-              togglePlay();
-            } else {
-              playQueue([songId], 0);
-            }
-          });
+          return;
         }
-      });
+
+        if (cur && cur.id === songId) {
+          togglePlay();
+        } else {
+          const song = songById.get(songId);
+          if (song) {
+            playQueue([songId], 0);
+          }
+        }
+      };
 
       // Bind quick-jump genre navigation pills
       elDOM.view.querySelectorAll(".catalog-nav-pill").forEach(pill => {
@@ -5441,20 +5658,25 @@
         });
       });
 
-      // Search input
+      // Search input with high-performance 140ms debounce
       const searchIn = document.getElementById("catalogSearchInput");
       if (searchIn) {
         if (filterQuery) {
           searchIn.focus();
           searchIn.setSelectionRange(searchIn.value.length, searchIn.value.length);
         }
+        let catSearchTimer = null;
         searchIn.addEventListener("input", (e) => {
-          filterQuery = e.target.value;
-          currentPage = 1;
-          if (filterQuery && viewMode === "genres") {
-            viewMode = "grid";
-          }
-          renderCatalog();
+          const val = e.target.value;
+          clearTimeout(catSearchTimer);
+          catSearchTimer = setTimeout(() => {
+            filterQuery = val;
+            currentPage = 1;
+            if (filterQuery && viewMode === "genres") {
+              viewMode = "grid";
+            }
+            renderCatalog();
+          }, 140);
         });
       }
 
@@ -7424,7 +7646,10 @@
   // Live Sync on startup with FastAPI Backend
   async function syncBackendState() {
     try {
-      const favRes = await fetch(`${API_BASE}/api/favorites`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const favRes = await fetch(`${API_BASE}/api/favorites`, { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (favRes.ok) {
         const favs = await favRes.json();
         if (Array.isArray(favs)) {

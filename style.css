@@ -7401,5 +7401,21 @@ img.img-error{
   color: #121212 !important;
 }
 
+/* ================================================================
+   PERFORMANCE & SMOOTH RENDERING OPTIMIZATIONS
+   ================================================================ */
+.section,
+.catalog-genre-section,
+.catalog-cards-grid,
+.track-list {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 160px;
+}
+
+.player-bar {
+  transform: translateZ(0);
+}
+
+
 
 
